@@ -1,0 +1,13 @@
+{
+  "id": "hello-plugin-demo",
+  "title": "hello, from a plugin",
+  "subtitle": "one slide, rendered by hello/counter",
+  "slides": [
+    {
+      "kind": "hello/counter",
+      "title": "Counting up",
+      "from": 1,
+      "to": 5
+    }
+  ]
+}

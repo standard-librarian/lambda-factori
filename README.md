@@ -119,31 +119,59 @@ A minimal `line` slide:
 Deck keys: **→ / space** next · **←** back · **N** notes · **O** overview · **F** fullscreen ·
 **P** presenter · **E** edit slide · **S** copy share link · **Esc** home.
 
-## Plugins
+## Write a plugin
 
 The host knows nothing about combinators or slides. Everything you can open is a plugin, loaded
-lazily and addressed by a hash route, `#/<plugin>/<path…>`:
+lazily and addressed by a hash route, `#/<plugin>/<path…>`. A plugin is built against
+**`@lambda-factori/kernel`** alone — the SDK package, with no Pixi and no runtime internals — and
+a worked example lives in [`examples/hello-plugin`](examples/hello-plugin).
 
 ```ts
-import type { Plugin } from "@lambda-factori/runtime/kernel/Plugin.ts"
+import type { HostApi, Plugin } from "@lambda-factori/kernel/Plugin.ts"
 
-export const plugin: Plugin = {
+const plugin: Plugin = {
   id: "hello", title: "hello", subtitle: "a minimal plugin", kind: "tool",
   color: 0x306db5, shade: 0x1f4c85,
-  open: (host, path) => host.show(() => new HelloScene(host, path))
+  open: (host: HostApi, path) => host.show(() => helloScene(host))
 }
+export default plugin
 ```
 
-- **Built-in plugins** (`apps/web/src/plugins.ts`, the one place that names them): `combinators`,
-  `editor`, `deck`, and `office` (a library plugin: slide mechanics only, no route).
-- **Third-party plugins**: `#/plugin/<url>` loads an ES module whose default export is a `Plugin`.
-- **Slide mechanics**: a plugin can lend the deck namespaced slide kinds (`<plugin>/<mechanic>`) through
-  its `mechanics` field. A deck resolves them before it opens, so rendering stays synchronous. Examples:
-  `office/scene`, `combinators/theater`.
-- **Share packs and home shelves**: a plugin declares the pack types it can open from a share link
-  (`packTypes` + `previewPack`) and can put a shelf of cards on the home screen (`shelf`).
-- **The dependency rule**: plugins and the host both depend on `runtime/src/kernel/` (the contracts),
-  never on each other. `packages/runtime/src/architecture.test.ts` enforces it on every `pnpm check`.
+- **Manifest.** `id`, `title`, `subtitle`, `kind` (`"game" | "tool" | "deck" | "library"` — a
+  `library` plugin has no route and no home-screen card, e.g. `office`), `color`/`shade`.
+- **`open(host, path)`.** Called when the hash routes to this plugin's id; `path` is the segments
+  after it. Build a `Scene` (`view`, optional `tick`/`animating`/`onKey`, `destroy`) and hand it to
+  `host.show(() => scene)`.
+- **Getting Pixi.** A plugin never `import`s `pixi.js` as a *value* — a plugin loaded from a URL
+  can't share the host's copy, and a second bundled one is fragile and ~500KB. It `import type`s
+  from `pixi.js` for types, and builds real objects through `HostApi.pixi`, the host's own
+  pixi.js: `new host.pixi.Graphics()` in `open`, or `ctx.host.pixi` inside a mechanic's `render`
+  (`SlideContext.host` is the same `HostApi`).
+- **`mechanics`.** Slide kinds a plugin lends the deck, keyed by name (the deck slide kind is
+  `"<id>/<name>"`, e.g. `office/scene`). Build one with `defineMechanic` (from
+  `@lambda-factori/kernel/mechanic.ts`): give it a `Schema` and a `render(value, ctx)`, and it
+  handles decoding and the readable "doesn't match" error itself. Add `template` — a minimal valid
+  slide, typed against the schema's encoded shape — and the deck's slide editor insert menu offers
+  it automatically.
+- **`packTypes` / `previewPack`.** Declare which `SharedPack.type` values this plugin can decode
+  (e.g. `["deck"]`), and implement `previewPack(type, data, host)` to describe one and offer
+  actions (e.g. "play now") on `OpenScene`'s card — the screen behind `#/open/<link>` and
+  `#/import/<url>`.
+- **`shelf`.** A `HomeShelf` (`title` + `cards()`) to add a row of cards to the home screen
+  without loading the plugin's own chunk (e.g. the deck plugin lists its decks this way).
+- **Built-in plugins** live in `apps/web/src/plugins.ts`, the one place that names them:
+  `combinators`, `editor`, `deck`, `office` (library-only).
+- **Third-party plugins**: `#/plugin/<url>` loads an ES module whose default export is a `Plugin`
+  — built and hosted anywhere, with Vite library mode (see `examples/hello-plugin/vite.config.ts`:
+  a single ES module, `pixi.js` marked `external` since it's only ever imported for types). It
+  can't shadow a built-in plugin's id (the host refuses and toasts); and it can't import runtime
+  internals — only `@lambda-factori/kernel` and its own dependencies, which
+  `packages/runtime/src/architecture.test.ts` enforces for `examples/*` the same way it enforces
+  every other layer boundary.
+- **What it can't do.** Reach another plugin directly, reach the host's Effect services
+  (`game/*`), or claim a built-in's id. A deck can only resolve a URL plugin's mechanics after
+  that plugin has been opened once by route in the same session — there's no way yet for a deck
+  to declare "load this plugin from this URL" on its own.
 
 ## Sharing, without a backend
 
@@ -191,10 +219,15 @@ apps/web/public       decks/, fonts/, registry.json: served as-is
 packages/core         pure combinator logic + the level pack; depends only on effect (no Pixi/DOM)
 packages/contracts    data schemas every app shares: Deck, OfficeSpec, TheaterSlide; depends only on effect
 packages/office       the office plugin's HRM interpreter (vm.ts, program.ts); pure, no dependencies
-packages/runtime      what every shell loads: kernel/ (the plugin, scene and slide contracts),
-                      platform/ (storage, preload), ui/ (domain-free Pixi kit), host/ (router,
-                      render loop, home, sharing), game/ (the combinator game's Effect services),
-                      plugins/ (combinators · editor · deck · office)
+packages/kernel       the plugin SDK: Plugin, Scene, Slide, defineMechanic, tween; depends only on
+                      effect, and on pixi.js as a peerDependency (types only — no value import)
+packages/runtime      what every shell loads, built on the kernel: platform/ (storage, preload),
+                      ui/ (domain-free Pixi kit), host/ (router, render loop, home, sharing),
+                      game/ (the combinator game's Effect services), plugins/ (combinators ·
+                      editor · deck · office)
+examples/hello-plugin the SDK's worked example: a third-party plugin built only against the
+                      kernel, built to a single ES module with Vite library mode; not part of
+                      any app's bundle
 scripts/              drive.ts (headless play-tester), search.ts (recipe search)
 ```
 

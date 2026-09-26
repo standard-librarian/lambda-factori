@@ -80,11 +80,11 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
 
 ```
             ┌───────────────────────────────────────────────────────────┐
-  POLICY    │ every packages/* except runtime: pure domain + schemas    │  → effect, itself,
-  (stable)  │ (core, contracts, office, …), one layer `pure:<name>` each│    contracts
-            │ runtime/kernel/   the ports: Plugin, HostApi, Scene,       │  → nothing in runtime
+  POLICY    │ every packages/* except runtime and kernel: pure domain   │  → effect, itself,
+  (stable)  │ + schemas (core, contracts, office, …), `pure:<name>` each│    contracts
+            │ packages/kernel   the SDK: Plugin, HostApi, Scene,         │  → nothing of ours
             │                   Slide (SlideView, SlideContext, Mechanic),│  (pixi *types* ok)
-            │                   tween                                     │
+            │                   defineMechanic, tween                    │
  ═══════════╪════════════════════ red line ═════════════════════════════╪══════════
   DETAILS   │ runtime/platform/ Storage, Preload, devHooks (browser)     │  → nothing in runtime
  (volatile) │ runtime/ui/       domain-free Pixi kit                     │  → kernel
@@ -93,11 +93,14 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
             │ runtime/game/     the combinator game's Effect services    │  → platform, core, contracts
             │ runtime/plugins/<id>/  one plugin each                     │  → kernel, ui, platform, game,
             │                                                            │    core, contracts, itself
+            │ examples/<name>/src  a worked third-party plugin           │  → kernel only
             │ apps/*/src        composition root                        │  → anything
             └───────────────────────────────────────────────────────────┘
 ```
 
-1. `kernel/` imports nothing else in `runtime`, and nothing from `core`/`contracts`.
+1. `packages/kernel` imports nothing of ours, and externally only `effect`/`effect/*` and
+   `pixi.js`'s types (`import type`, never a value import — a third-party plugin can't share
+   the host's copy of pixi.js, so the kernel must never force one in).
 2. `platform/` imports nothing else in `runtime`.
 3. `ui/` imports only `kernel/` — the kit is domain-free (no `core`, no `contracts`).
 4. `host/` imports only `kernel/`, `ui/`, `platform/`. **The host never names a plugin.**
@@ -106,9 +109,12 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
    through routes (strings) and kernel ports.
 7. `plugins/<a>/manifest.ts` imports only `kernel/` — it is loaded eagerly, before the chunk.
 8. Only `apps/*/src` names concrete plugins and wires services (the composition root).
-9. Every package under `packages/` except `runtime` is pure: it imports only `effect`, itself
-   and `contracts` — never Pixi or another package. Derived from `readdirSync(packages/)`, so
-   a new pure package is covered without editing the rule table.
+9. Every package under `packages/` except `runtime` and `kernel` is pure: it imports only
+   `effect`, itself and `contracts` — never Pixi or another package. Derived from
+   `readdirSync(packages/)`, so a new pure package is covered without editing the rule table.
+10. `examples/<name>/src` (a third-party plugin built as a worked example, e.g.
+    `examples/hello-plugin`) imports only `@lambda-factori/kernel` — proof that the SDK is
+    enough on its own, never the runtime or another package.
 
 ## Recipes
 
@@ -130,7 +136,7 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
 - **Add a plugin:**
   1. Give it a folder under `plugins/<id>/` with a `manifest.ts` (`id`, `title`, `subtitle`,
      `kind`, `color`, `shade`, and `packTypes` if it shares anything) and a `plugin.ts` that
-     spreads the manifest onto a `Plugin` (`kernel/Plugin.ts`).
+     spreads the manifest onto a `Plugin` (`@lambda-factori/kernel/Plugin.ts`).
   2. List one entry in `apps/web/src/plugins.ts` — the only file that names concrete plugins —
      with a lazy `load` that imports `plugin.ts` and constructs it with its own port.
   3. Its routes are `#/<id>/…`. A `library` plugin (like `office`) has no route, only
@@ -141,7 +147,7 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
   the format"). `OpenScene` finds the owning entry by matching `packTypes` alone; the host
   never decodes the pack itself.
 - **Add a home-screen shelf:** give the plugin's entry, in `apps/web/src/plugins.ts`, a
-  `shelf: { title, cards() }` (`kernel/Plugin.ts`'s `HomeShelf`; see `plugins/deck/shelf.ts`).
+  `shelf: { title, cards() }` (`@lambda-factori/kernel/Plugin.ts`'s `HomeShelf`; see `plugins/deck/shelf.ts`).
   `HomeScene` renders one row per entry that has a shelf, titled by the shelf itself — never a
   title it guesses from `kind`.
 - **Add a level:** add it to `packages/core/src/data/levels.json`. Find the smallest recipe with
@@ -178,7 +184,9 @@ Plugins (`apps/web/src/plugins.ts`, the composition root — see "Dependency rul
   - The VM is a pure package: `packages/office/src/vm.ts` (`@lambda-factori/office/vm.ts`).
 - **Third-party plugins:** `#/plugin/<url>` loads an ES module whose default export is a
   `Plugin`. Plugin slide kinds are namespaced (`<plugin>/<mechanic>`) and preloaded before a
-  deck opens.
+  deck opens. Built only against `@lambda-factori/kernel` (see `examples/hello-plugin` and the
+  README's "Write a plugin"); a deck can resolve a URL plugin's mechanics only after that
+  plugin has already been opened once by route in the same session.
 
 Sharing (no backend): a pack is `{ type, data }`; the host matches `type` against a plugin's
 `packTypes` and asks that plugin's `previewPack` what to show — it never decodes a deck or a
@@ -204,10 +212,16 @@ Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a vers
 - **`packages/office`:** the office plugin's HRM interpreter, pure and Pixi-free: `vm.ts`
   (`run`, `check`) and `program.ts` (the text format). `packages/runtime/src/plugins/office/`
   holds everything that renders it.
+- **`packages/kernel`:** the plugin SDK — the only package a third-party plugin (or `runtime`)
+  depends on: `Plugin.ts` (`HostApi` including `pixi`, `PluginManifest`, `Plugin`, `PluginEntry`,
+  `HomeShelf`, `SharedPack`, `PackPreview`), `Scene.ts`, `Slide.ts` (`SlideContext`, `SlideView`,
+  `Mechanic`), `mechanic.ts` (`defineMechanic`), `tween.ts`. Depends only on `effect`, and on
+  `pixi.js` as a peerDependency for its types (never a value import — see the dependency rule).
+- **`examples/hello-plugin`:** the SDK's worked example — a third-party plugin built only
+  against `@lambda-factori/kernel`, with a route and the `hello/counter` slide mechanic, built to
+  a single ES module with Vite library mode. Not a dependency of any app; see the README's
+  "Write a plugin" section.
 - **`packages/runtime`:** what every shell loads, laid out by the dependency rule.
-  - `kernel/`: the ports every layer depends on and nothing depends on it back — `Plugin.ts`
-    (`HostApi`, `PluginManifest`, `Plugin`, `PluginEntry`, `HomeShelf`, `SharedPack`,
-    `PackPreview`), `Scene.ts`, `Slide.ts` (`SlideContext`, `SlideView`, `Mechanic`), `tween.ts`.
   - `platform/`: browser details shared by nothing else in `runtime`: `Storage`, `Preload`,
     `devHooks.ts`.
   - `ui/`: the domain-free Pixi kit — `label` (optically centred text), `factoryArt` (the
