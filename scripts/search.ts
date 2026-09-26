@@ -6,9 +6,9 @@
  *   pnpm search "w: ÷ (+/ w) (≢ w)" Φ,÷,+/,≢ 4
  *   pnpm search "and: 0001" S,K,I,C 6
  */
-import { byName } from "../src/core/Catalogue.ts"
-import { type Goal, goalOf } from "../src/core/Level.ts"
-import { searchRecipes } from "../src/core/Search.ts"
+import { byName } from "@lambda-factori/core/Catalogue.ts"
+import { type Goal, goalOf } from "@lambda-factori/core/Level.ts"
+import { searchRecipes } from "@lambda-factori/core/Search.ts"
 
 const [targetArg = "I", basisArg = "S,K", maxArg = "7", limitArg = "5"] = process.argv.slice(2)
 

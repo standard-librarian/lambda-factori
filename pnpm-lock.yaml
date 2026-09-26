@@ -4,35 +4,102 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@fontsource/fredoka':
+      specifier: ^5.3.0
+      version: 5.3.0
+    '@types/node':
+      specifier: ^26.6.2
+      version: 26.6.2
+    effect:
+      specifier: 4.0.0-rc.117
+      version: 4.0.0-rc.117
+    pixi.js:
+      specifier: ^8.21.0
+      version: 8.21.0
+    playwright:
+      specifier: ^1.63.0
+      version: 1.63.0
+    typescript:
+      specifier: ^7.0.2
+      version: 7.0.2
+    vite:
+      specifier: ^8.3.1
+      version: 8.3.1
+    vitest:
+      specifier: ^5.0.2
+      version: 5.0.2
+
 importers:
 
   .:
     dependencies:
-      '@fontsource/fredoka':
-        specifier: ^5.3.0
-        version: 5.3.0
-      effect:
-        specifier: 4.0.0-rc.117
-        version: 4.0.0-rc.117
-      pixi.js:
-        specifier: ^8.21.0
-        version: 8.21.0
+      '@lambda-factori/core':
+        specifier: workspace:*
+        version: link:packages/core
     devDependencies:
       '@types/node':
-        specifier: ^26.6.2
+        specifier: 'catalog:'
         version: 26.6.2
       playwright:
-        specifier: ^1.63.0
+        specifier: 'catalog:'
         version: 1.63.0
       typescript:
-        specifier: ^7.0.2
+        specifier: 'catalog:'
         version: 7.0.2
       vite:
-        specifier: ^8.3.1
+        specifier: 'catalog:'
         version: 8.3.1(@types/node@26.6.2)
       vitest:
-        specifier: ^5.0.2
+        specifier: 'catalog:'
         version: 5.0.2(@types/node@26.6.2)(vite@8.3.1(@types/node@26.6.2))
+
+  apps/web:
+    dependencies:
+      '@lambda-factori/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@lambda-factori/runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.117
+    devDependencies:
+      vite:
+        specifier: 'catalog:'
+        version: 8.3.1(@types/node@26.6.2)
+
+  packages/contracts:
+    dependencies:
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.117
+
+  packages/core:
+    dependencies:
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.117
+
+  packages/runtime:
+    dependencies:
+      '@fontsource/fredoka':
+        specifier: 'catalog:'
+        version: 5.3.0
+      '@lambda-factori/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@lambda-factori/core':
+        specifier: workspace:*
+        version: link:../core
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.117
+      pixi.js:
+        specifier: 'catalog:'
+        version: 8.21.0
 
 packages:
 

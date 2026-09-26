@@ -1,5 +1,5 @@
 {
-  "name": "lambda-factori",
+  "name": "@lambda-factori/monorepo",
   "private": true,
   "version": "0.1.0",
   "description": "A framework for explaining ideas with moving parts: slide decks, games and study notes as playable, shareable factories.",
@@ -10,27 +10,25 @@
   },
   "homepage": "https://mdht.me/lambda-factori/",
   "type": "module",
+  "packageManager": "pnpm@10.30.1",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit",
+    "dev": "pnpm --filter @lambda-factori/web dev",
+    "build": "pnpm --filter './apps/*' build",
+    "preview": "pnpm --filter @lambda-factori/web preview",
+    "present": "pnpm build && pnpm --filter @lambda-factori/web exec vite preview --port 4173 --open \"/#/deck/week1-complexity/1\"",
+    "typecheck": "pnpm -r typecheck && tsc --noEmit -p .",
     "test": "vitest run",
     "search": "node scripts/search.ts",
-    "drive": "node scripts/drive.ts",
-    "present": "vite build && vite preview --port 4173 --open \"/#/deck/week1-complexity/1\"",
-    "preview": "vite preview --port 4173"
+    "drive": "node scripts/drive.ts"
   },
   "dependencies": {
-    "@fontsource/fredoka": "^5.3.0",
-    "effect": "4.0.0-rc.117",
-    "pixi.js": "^8.21.0"
+    "@lambda-factori/core": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^26.6.2",
-    "playwright": "^1.63.0",
-    "typescript": "^7.0.2",
-    "vite": "^8.3.1",
-    "vitest": "^5.0.2"
-  },
-  "packageManager": "pnpm@10.30.1"
+    "@types/node": "catalog:",
+    "playwright": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
 }

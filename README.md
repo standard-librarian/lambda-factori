@@ -71,7 +71,7 @@ term step by step: S copies, K drops.
 ### 4 · The mechanics tour
 
 One slide per mechanic. It's the quickest way to see what a deck can do:
-[`public/decks/mechanics-tour.json`](public/decks/mechanics-tour.json).
+[`apps/web/public/decks/mechanics-tour.json`](apps/web/public/decks/mechanics-tour.json).
 
 ![Every slide kind](docs/media/tour.png)
 
@@ -79,7 +79,7 @@ One slide per mechanic. It's the quickest way to see what a deck can do:
 
 ## Slide mechanics
 
-A deck is plain JSON in `public/decks/<id>.json`, listed in `public/decks/index.json` and
+A deck is plain JSON in `apps/web/public/decks/<id>.json`, listed in its `index.json` and
 validated with Effect `Schema`, so a typo gives a readable error instead of a crash. Each step
 (→) advances the slide's own animation before moving to the next slide.
 
@@ -125,7 +125,7 @@ The host knows nothing about combinators or slides. Everything you can open is a
 lazily and addressed by a hash route, `#/<plugin>/<path…>`:
 
 ```ts
-import type { Plugin } from "./src/engine/Plugin.ts"
+import type { Plugin } from "@lambda-factori/runtime/engine/Plugin.ts"
 
 export const plugin: Plugin = {
   id: "hello", title: "hello", subtitle: "a minimal plugin", kind: "tool",
@@ -134,10 +134,10 @@ export const plugin: Plugin = {
 }
 ```
 
-- **Built-in plugins** (`src/engine/registry.ts`): `combinators`, `editor`, `deck`.
+- **Built-in plugins** (`packages/runtime/src/engine/registry.ts`): `combinators`, `editor`, `deck`.
 - **Third-party plugins**: `#/plugin/<url>` loads an ES module whose default export is a `Plugin`.
 - **Slide mechanics**: a plugin can contribute namespaced slide kinds (`<plugin>/<mechanic>`) with
-  `registerMechanics` (`src/engine/mechanics.ts`). They are preloaded before a deck opens, so
+  `registerMechanics` (`packages/runtime/src/engine/mechanics.ts`). They are preloaded before a deck opens, so
   rendering stays synchronous. The `office` plugin is the example: `office/scene`.
 
 ## Sharing, without a backend
@@ -145,7 +145,7 @@ export const plugin: Plugin = {
 - **Share links**: `#/open/<pack>` holds a whole deck or level pack in the URL (deflate-raw +
   base64url). Press **S** in a deck, or use “copy share link” in the editor.
 - **Hosted packs**: `#/import/<url>` opens a deck or level JSON from anywhere.
-- **Community registries**: `public/registry.json` and any registry URL added from the home screen
+- **Community registries**: `apps/web/public/registry.json` and any registry URL added from the home screen
   list decks, levels and plugins. A registry is just a JSON file.
 
 ## Performance
@@ -177,14 +177,22 @@ pnpm drive '[{"shot":"home"}]'       # headless play-tester (1920×1080 design c
 Stack: TypeScript, [PixiJS 8](https://pixijs.com), [Effect 4](https://effect.website) (services,
 `Schema`, layers), Vite, Vitest, Playwright.
 
+A pnpm workspace, organized like [t3code](https://github.com/pingdotgg/t3code): apps are thin
+shells, packages hold everything they share, and one catalog pins shared dependency versions.
+
 ```
-src/core      pure logic: terms, reduction, traces, board, sim, levels, recipe search (no Pixi/DOM)
-src/game      Effect services: levels, progress, decks, events, storage
-src/engine    host (stage, router, render loop), plugin contract, home screen, sharing
-src/render    shared procedural art, UI, tweens, the reduction theater, game scenes
-src/plugins   combinators · editor · deck (schema, slide mechanics, editor, presenter) · office
-public/decks  decks as data
+apps/web              the browser app: index.html, Vite config, main.ts (wires the Effect layers)
+apps/web/public       decks/, fonts/, registry.json: served as-is
+packages/core         pure combinator logic + the level pack; depends only on effect (no Pixi/DOM)
+packages/contracts    data schemas every app shares: Deck, OfficeSpec; depends only on effect
+packages/runtime      what every shell loads: engine/ (host, router, render loop, plugins, sharing),
+                      render/ (procedural art, UI, tweens, theater, game scenes), game/ (Effect
+                      services), plugins/ (combinators · editor · deck · office)
+scripts/              drive.ts (headless play-tester), search.ts (recipe search)
 ```
+
+Packages export their sources directly (`"exports": { "./*": "./src/*" }`), so there is no build
+step between them: `import { parse } from "@lambda-factori/core/Term.ts"`.
 
 ## Credits
 
@@ -192,7 +200,7 @@ public/decks  decks as data
   inspired by *Human Resource Machine* (Tomorrow Corporation). All art here is redrawn
   procedurally. This project is not affiliated with either game.
 - Fonts: [Fredoka](https://fonts.google.com/specimen/Fredoka) (SIL OFL) and
-  [BQN386](https://github.com/dzaima/BQN386) (Unlicense, `public/fonts/BQN386-LICENSE.txt`).
+  [BQN386](https://github.com/dzaima/BQN386) (Unlicense, `apps/web/public/fonts/BQN386-LICENSE.txt`).
 - The Week 1 deck quotes John Ousterhout's *A Philosophy of Software Design* (2nd ed.),
   D. L. Parnas (CACM, 1972), Moseley & Marks (2006), the Stanford CS190 lecture notes, and the
   [Ousterhout–Martin discussion](https://github.com/johnousterhout/aposd-vs-clean-code). Quotes

@@ -1,0 +1,19 @@
+{
+  "name": "@lambda-factori/runtime",
+  "private": true,
+  "type": "module",
+  "description": "The Pixi runtime every shell loads: host, render, services and plugins.",
+  "exports": {
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@fontsource/fredoka": "catalog:",
+    "@lambda-factori/contracts": "workspace:*",
+    "@lambda-factori/core": "workspace:*",
+    "effect": "catalog:",
+    "pixi.js": "catalog:"
+  }
+}
