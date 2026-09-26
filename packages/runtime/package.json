@@ -13,6 +13,7 @@
     "@fontsource/fredoka": "catalog:",
     "@lambda-factori/contracts": "workspace:*",
     "@lambda-factori/core": "workspace:*",
+    "@lambda-factori/office": "workspace:*",
     "effect": "catalog:",
     "pixi.js": "catalog:"
   }

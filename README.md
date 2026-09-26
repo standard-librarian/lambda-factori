@@ -190,6 +190,7 @@ apps/web              the browser app: index.html, Vite config, main.ts (wires t
 apps/web/public       decks/, fonts/, registry.json: served as-is
 packages/core         pure combinator logic + the level pack; depends only on effect (no Pixi/DOM)
 packages/contracts    data schemas every app shares: Deck, OfficeSpec, TheaterSlide; depends only on effect
+packages/office       the office plugin's HRM interpreter (vm.ts, program.ts); pure, no dependencies
 packages/runtime      what every shell loads: kernel/ (the plugin, scene and slide contracts),
                       platform/ (storage, preload), ui/ (domain-free Pixi kit), host/ (router,
                       render loop, home, sharing), game/ (the combinator game's Effect services),

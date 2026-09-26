@@ -1,0 +1,12 @@
+{
+  "name": "@lambda-factori/office",
+  "private": true,
+  "type": "module",
+  "description": "The office plugin's HRM-style interpreter: a pure VM and its program text format, with no Pixi or DOM.",
+  "exports": {
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  }
+}

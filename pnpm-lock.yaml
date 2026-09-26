@@ -99,6 +99,8 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.117
 
+  packages/office: {}
+
   packages/runtime:
     dependencies:
       '@fontsource/fredoka':
@@ -110,6 +112,9 @@ importers:
       '@lambda-factori/core':
         specifier: workspace:*
         version: link:../core
+      '@lambda-factori/office':
+        specifier: workspace:*
+        version: link:../office
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.117

@@ -19,8 +19,8 @@ import { Performer } from "./Performer.ts"
 import { ProgramStrip } from "./ProgramStrip.ts"
 import { Room } from "./Room.ts"
 import { Speech } from "./Speech.ts"
-import { type Action, check, run, type State, type Trace } from "./vm.ts"
-import { parseProgram, type Value } from "./program.ts"
+import { type Action, check, run, type State, type Trace } from "@lambda-factori/office/vm.ts"
+import { parseProgram, type Value } from "@lambda-factori/office/program.ts"
 
 export const officeSlide = (spec: OfficeSpec, ctx: SlideContext): SlideView => {
   const v = new Container()

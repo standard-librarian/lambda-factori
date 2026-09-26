@@ -12,7 +12,7 @@ import { lerp, type Tweens } from "../../kernel/tween.ts"
 import { commandArt } from "./commandArt.ts"
 import { office } from "./officePalette.ts"
 import { PANEL_X, ROOM_H } from "./layout.ts"
-import type { Line, Op } from "./program.ts"
+import type { Line, Op } from "@lambda-factori/office/program.ts"
 
 const ROW_H = 48
 

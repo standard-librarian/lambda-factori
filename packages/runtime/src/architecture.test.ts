@@ -19,8 +19,12 @@ import { describe, expect, it } from "vitest"
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../../..")
 
-/** Every layer the rule table knows about. Plugins and apps are one layer per id/name. */
-type Layer = "kernel" | "platform" | "ui" | "host" | "game" | "core" | "contracts" | `plugin:${string}` | `app:${string}`
+/** Every layer the rule table knows about. Pure packages, plugins and apps are one layer per name. */
+type Layer = "kernel" | "platform" | "ui" | "host" | "game" | `pure:${string}` | `plugin:${string}` | `app:${string}`
+
+/** Every package under `packages/` except `runtime` is pure domain logic (rule 9): `core`, `contracts`,
+ *  `office`, and any future one, without editing this file to name it. */
+const PURE_PACKAGES = fs.readdirSync(path.join(REPO_ROOT, "packages")).filter((p) => p !== "runtime")
 
 const walk = (dir: string, out: Array<string> = []): Array<string> => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -51,9 +55,8 @@ const layerOf = (relPath: string): Layer | undefined => {
   if (parts[0] === "apps") return `app:${parts[1]}`
   if (parts[0] !== "packages") return undefined
   const pkg = parts[1]
-  if (pkg === "core") return "core"
-  if (pkg === "contracts") return "contracts"
-  if (pkg !== "runtime") return undefined
+  if (pkg === undefined) return undefined
+  if (pkg !== "runtime") return PURE_PACKAGES.includes(pkg) ? `pure:${pkg}` : undefined
   const rest = parts.slice(3) // packages/runtime/src/<rest>
   const top = rest[0]
   if (top === "kernel") return "kernel"
@@ -70,7 +73,7 @@ const resolveSpecifier = (fromFile: string, specifier: string): string | undefin
   if (specifier.startsWith(".")) {
     return path.posix.normalize(path.posix.join(path.posix.dirname(fromFile), specifier))
   }
-  const workspace = /^@lambda-factori\/(core|contracts|runtime)\/(.+)$/.exec(specifier)
+  const workspace = /^@lambda-factori\/([^/]+)\/(.+)$/.exec(specifier)
   if (workspace) return `packages/${workspace[1]}/src/${workspace[2]}`
   return undefined // an npm package, or a node builtin: not one of our layers
 }
@@ -95,11 +98,10 @@ const allowed = (source: Layer, target: Layer, sourceFile: string): boolean => {
     case "platform": return false // rule 2: nothing from the rest of runtime
     case "ui": return target === "kernel" // rule 3: no core, no contracts — the kit is domain-free
     case "host": return target === "kernel" || target === "ui" || target === "platform" // rule 4: never names a plugin
-    case "game": return target === "platform" || target === "core" || target === "contracts" // rule 5: no Pixi
-    case "core": return false // rule 9: only effect and itself
-    case "contracts": return false // rule 9: only effect and itself
+    case "game": return target === "platform" || target === "pure:core" || target === "pure:contracts" // rule 5: no Pixi
     default:
       if (source.startsWith("plugin:")) return target !== "host" && !(typeof target === "string" && target.startsWith("plugin:")) // rule 6
+      if (source.startsWith("pure:")) return target === "pure:contracts" // rule 9: only effect, itself and contracts
       return true // rule 8: apps/*/src is the composition root, free to import anything
   }
 }
@@ -118,7 +120,13 @@ describe("the dependency rule (docs/plans/dependency-rule.md)", () => {
     if (!source) continue
     for (const spec of importsOf(path.join(REPO_ROOT, file))) {
       const resolved = resolveSpecifier(file, spec)
-      if (!resolved) continue // external package or node builtin: always allowed
+      if (!resolved) {
+        // rule 9: a pure package may depend on nothing outside itself but `effect` (plus `vitest`/node builtins in tests).
+        if (source.startsWith("pure:") && spec !== "effect" && spec !== "vitest" && !spec.startsWith("node:")) {
+          found.push({ file, import: spec })
+        }
+        continue
+      }
       const target = layerOf(resolved)
       if (!target) continue // resolves outside a layer this rule covers
       if (!allowed(source, target, file)) found.push({ file, import: spec })

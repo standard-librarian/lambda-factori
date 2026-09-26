@@ -38,8 +38,9 @@ chosen for what makes that cheap. When they conflict, prefer APOSD's depth over 
    from `(run, time)`, so pause, seek and replay can't drift. Avoid hidden mutable state. When
    state is needed, keep it in one place and name it (*Out of the Tar Pit*: avoid, then
    separate).
-5. **Packages are the information-hiding boundary.** `core` and `contracts` depend only on
-   `effect` (no Pixi, no DOM). Anything that renders lives in `runtime`. Apps are thin shells.
+5. **Packages are the information-hiding boundary.** Every package except `runtime` (`core`,
+   `contracts`, `office`, …) is pure: it depends only on `effect`, itself and `contracts` (no
+   Pixi, no DOM). Anything that renders lives in `runtime`. Apps are thin shells.
    Import across packages by name (`@lambda-factori/core/Term.ts`) and relatively within one.
    Don't re-export another module's names; import them from where they live. Within `runtime`,
    the same boundary applies one level down between its folders — see "Dependency rule".
@@ -79,8 +80,9 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
 
 ```
             ┌───────────────────────────────────────────────────────────┐
-  POLICY    │ packages/core, packages/contracts   pure domain + schemas  │  → effect
-  (stable)  │ runtime/kernel/   the ports: Plugin, HostApi, Scene,       │  → nothing in runtime
+  POLICY    │ every packages/* except runtime: pure domain + schemas    │  → effect, itself,
+  (stable)  │ (core, contracts, office, …), one layer `pure:<name>` each│    contracts
+            │ runtime/kernel/   the ports: Plugin, HostApi, Scene,       │  → nothing in runtime
             │                   Slide (SlideView, SlideContext, Mechanic),│  (pixi *types* ok)
             │                   tween                                     │
  ═══════════╪════════════════════ red line ═════════════════════════════╪══════════
@@ -99,12 +101,14 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
 2. `platform/` imports nothing else in `runtime`.
 3. `ui/` imports only `kernel/` — the kit is domain-free (no `core`, no `contracts`).
 4. `host/` imports only `kernel/`, `ui/`, `platform/`. **The host never names a plugin.**
-5. `game/` imports only `platform/`, `core`, `contracts` — no Pixi.
+5. `game/` imports only `platform/`, `core`, `contracts` (the pure packages) — no Pixi.
 6. `plugins/<a>/` never imports `plugins/<b>/` or `host/`. Plugins talk to each other only
    through routes (strings) and kernel ports.
 7. `plugins/<a>/manifest.ts` imports only `kernel/` — it is loaded eagerly, before the chunk.
 8. Only `apps/*/src` names concrete plugins and wires services (the composition root).
-9. `packages/core` and `packages/contracts` import only `effect` and themselves.
+9. Every package under `packages/` except `runtime` is pure: it imports only `effect`, itself
+   and `contracts` — never Pixi or another package. Derived from `readdirSync(packages/)`, so
+   a new pure package is covered without editing the rule table.
 
 ## Recipes
 
@@ -171,7 +175,7 @@ Plugins (`apps/web/src/plugins.ts`, the composition root — see "Dependency rul
     with labels `a:`).
   - It also has presentation verbs: VISIT/PASS/WORK desks, SAY/THINK, BOSS, CLERK
     <desk> "…", HOLD/DROP, NOTE, and PAUSE as a build beat.
-  - The VM is pure: `plugins/office/vm.ts`.
+  - The VM is a pure package: `packages/office/src/vm.ts` (`@lambda-factori/office/vm.ts`).
 - **Third-party plugins:** `#/plugin/<url>` loads an ES module whose default export is a
   `Plugin`. Plugin slide kinds are namespaced (`<plugin>/<mechanic>`) and preloaded before a
   deck opens.
@@ -197,6 +201,9 @@ Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a vers
 - **`packages/contracts`:** the shared schemas: `Deck.ts` (`Slide`, `SlideOf`, `CoreKind`, and
   the migration that still decodes a legacy `kind: "theater"` slide as `combinators/theater`),
   `OfficeSpec.ts`, `TheaterSlide.ts`.
+- **`packages/office`:** the office plugin's HRM interpreter, pure and Pixi-free: `vm.ts`
+  (`run`, `check`) and `program.ts` (the text format). `packages/runtime/src/plugins/office/`
+  holds everything that renders it.
 - **`packages/runtime`:** what every shell loads, laid out by the dependency rule.
   - `kernel/`: the ports every layer depends on and nothing depends on it back — `Plugin.ts`
     (`HostApi`, `PluginManifest`, `Plugin`, `PluginEntry`, `HomeShelf`, `SharedPack`,
