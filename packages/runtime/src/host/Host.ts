@@ -192,6 +192,7 @@ export class Host implements HostApi {
           const mod = (await import(/* @vite-ignore */ parsed.url)) as { default: Plugin }
           if (shadowsBuiltin(this.entries, mod.default.id)) {
             this.toast(`can't load a plugin from a URL: “${mod.default.id}” is already a built-in plugin`)
+            if (!this.scene) this.show(() => new HomeScene(this, this.entries))
             return
           }
           this.plugins.set(mod.default.id, Promise.resolve(mod.default))
