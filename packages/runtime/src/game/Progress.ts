@@ -1,7 +1,12 @@
+/**
+ * One of the combinator game's own services (`game/`, shared by the
+ * combinators and editor plugins, not a generic platform concern): saved
+ * boards and stats per level, persisted in this browser.
+ */
 import { Context, Effect, Layer, Ref, Schema } from "effect"
 import type { Board } from "@lambda-factori/core/Board.ts"
 import type { Stats } from "@lambda-factori/core/Sim.ts"
-import { Storage } from "./Storage.ts"
+import { Storage } from "../platform/Storage.ts"
 
 const Cell = Schema.Struct({ col: Schema.Int, row: Schema.Int })
 

@@ -1,6 +1,6 @@
 /** Program-strip command blocks, HRM-style: a colour per command family, a bold lowercase name, an argument chip. */
 import { Container, Graphics } from "pixi.js"
-import { label } from "../../render/label.ts"
+import { label } from "../../ui/label.ts"
 import { mix, office, shadeOf } from "./officePalette.ts"
 
 export const commandColors = (op: string): { fill: number; ink: number } => {

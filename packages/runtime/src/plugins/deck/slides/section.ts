@@ -1,10 +1,12 @@
 /** The `section` slide: a full-bleed coloured divider with a big number and a subtitle. */
 import { Container, Graphics } from "pixi.js"
-import { label } from "../../../render/label.ts"
-import { skylineArt } from "../../../render/backdrop.ts"
-import { DESIGN_H, DESIGN_W, palette } from "../../../render/theme.ts"
+import { label } from "../../../ui/label.ts"
+import { skylineArt } from "../../../ui/backdrop.ts"
+import { DESIGN_H, DESIGN_W, palette } from "../../../ui/theme.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { color, para, shade, type SlideView, staticSlide } from "./common.ts"
+import { color, shade, staticSlide } from "./common.ts"
+import { para } from "../../../ui/text.ts"
+import type { SlideView } from "../../../kernel/Slide.ts"
 
 export const sectionSlide = (s: SlideOf<"section">): SlideView => {
   const v = new Container()

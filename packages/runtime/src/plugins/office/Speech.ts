@@ -4,7 +4,7 @@
  * Resource Machine: a new line fades everyone else out.
  */
 import type { Container } from "pixi.js"
-import { ease, lerp, type Tweens } from "../../render/tween.ts"
+import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
 import { bubbleArt } from "./bubbleArt.ts"
 import { WORKER_SCALE } from "./layout.ts"
 import type { Room } from "./Room.ts"

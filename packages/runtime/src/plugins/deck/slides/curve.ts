@@ -1,10 +1,12 @@
 /** The `curve` slide: tactical vs strategic progress over time, drawn after APOSD figure 3.1. */
 import { Container, Graphics } from "pixi.js"
-import { label } from "../../../render/label.ts"
-import { DESIGN_W, palette } from "../../../render/theme.ts"
-import { ease } from "../../../render/tween.ts"
+import { label } from "../../../ui/label.ts"
+import { DESIGN_W, palette } from "../../../ui/theme.ts"
+import { ease } from "../../../kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { color, para, Reveal, type SlideContext, type SlideView } from "./common.ts"
+import { color, Reveal } from "./common.ts"
+import { para } from "../../../ui/text.ts"
+import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
 
 /** Illustrative shapes (after APOSD fig. 3.1): cumulative progress over time. */
 const SHAPES = {

@@ -3,12 +3,14 @@
  * the interface; the x-ray step reveals how much machinery each hides.
  */
 import { Container, Graphics } from "pixi.js"
-import { applyArt, sourceArt, tokenArt, W as MACHINE_W } from "../../../render/factoryArt.ts"
-import { label } from "../../../render/label.ts"
-import { DESIGN_W, palette } from "../../../render/theme.ts"
-import { ease, lerp } from "../../../render/tween.ts"
+import { applyArt, sourceArt, tokenArt, W as MACHINE_W } from "../../../ui/factoryArt.ts"
+import { label } from "../../../ui/label.ts"
+import { DESIGN_W, palette } from "../../../ui/theme.ts"
+import { ease, lerp } from "../../../kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { color, CONTENT_TOP, para, Reveal, shade, type SlideContext, type SlideView } from "./common.ts"
+import { color, Reveal, shade } from "./common.ts"
+import { para } from "../../../ui/text.ts"
+import { CONTENT_TOP, type SlideContext, type SlideView } from "../../../kernel/Slide.ts"
 
 export const factorySlide = (s: SlideOf<"factory">, ctx: SlideContext): SlideView => {
   const v = new Container()

@@ -5,16 +5,18 @@
  */
 import { Container, Graphics } from "pixi.js"
 import type { Slide } from "@lambda-factori/contracts/Deck.ts"
-import { paperArt, skylineArt } from "../../render/backdrop.ts"
-import { DESIGN_H, DESIGN_W, palette } from "../../render/theme.ts"
-import { ease, lerp, type Tweens } from "../../render/tween.ts"
+import { MARGIN, type Mechanic, type SlideView } from "../../kernel/Slide.ts"
+import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
+import { paperArt, skylineArt } from "../../ui/backdrop.ts"
+import { DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"
 import { ownsChrome } from "./render.ts"
-import { MARGIN, para, type SlideView, stickyNote } from "./slides/common.ts"
+import { stickyNote } from "./slides/common.ts"
+import { para } from "../../ui/text.ts"
 
 /** Frame `view` for slide `s`. The returned view's `setStep` also drives the sticky note. */
-export const frameSlide = (s: Slide, view: SlideView, tweens: Tweens): { frame: Container; view: SlideView } => {
+export const frameSlide = (s: Slide, view: SlideView, tweens: Tweens, mechanics: ReadonlyMap<string, Mechanic>): { frame: Container; view: SlideView } => {
   const frame = new Container()
-  if (!ownsChrome(s)) {
+  if (!ownsChrome(s, mechanics)) {
     frame.addChild(paperArt(DESIGN_W, DESIGN_H), skylineArt(DESIGN_W, DESIGN_H + 30, 0xe9e2d6))
     if (s.title && s.kind !== "quote") {
       const t = para(s.title, s.title.length > 48 ? 50 : 62, palette.ink, DESIGN_W - MARGIN * 2 - 380, "700")

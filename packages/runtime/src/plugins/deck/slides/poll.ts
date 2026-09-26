@@ -1,10 +1,12 @@
 /** The `poll` slide: big option buttons that count hands (shift-click undoes). */
 import { Container, Graphics, Rectangle } from "pixi.js"
-import { label, relabel } from "../../../render/label.ts"
-import { DESIGN_W, palette } from "../../../render/theme.ts"
-import { ease } from "../../../render/tween.ts"
+import { label, relabel } from "../../../ui/label.ts"
+import { DESIGN_W, palette } from "../../../ui/theme.ts"
+import { ease } from "../../../kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { color, CONTENT_TOP, MARGIN, para, shade, type SlideContext, type SlideView, staticSlide } from "./common.ts"
+import { color, shade, staticSlide } from "./common.ts"
+import { para } from "../../../ui/text.ts"
+import { CONTENT_TOP, MARGIN, type SlideContext, type SlideView } from "../../../kernel/Slide.ts"
 
 export const pollSlide = (s: SlideOf<"poll">, ctx: SlideContext): SlideView => {
   const v = new Container()

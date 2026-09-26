@@ -1,35 +1,15 @@
-import { Container, Graphics, Text, type Ticker } from "pixi.js"
-import type { HostApi } from "../../../engine/Plugin.ts"
-import { fontFor, label } from "../../../render/label.ts"
-import { palette } from "../../../render/theme.ts"
-import { ease, lerp, type Tweens } from "../../../render/tween.ts"
-
-export interface SlideContext {
-  readonly host: HostApi
-  readonly tweens: Tweens
-  readonly ticker: Ticker
-  /** Tell the deck the slide moved itself to build step `step` (e.g. from its own controls). */
-  readonly syncStep?: (step: number) => void
-}
-
 /**
- * A rendered slide. `steps` is the number of build steps after the initial
- * state; the deck calls `setStep(i)` for i in 0…steps as the presenter
- * advances, with `animate` false when jumping (overview, going back).
+ * Small pieces every deck slide kind shares: named colours, the deck's card
+ * and sticky-note art, an avatar, and the reveal-on-step animation. Deck-only
+ * — `para`, the one piece the host also needs for its shared-pack card, lives
+ * in `ui/text.ts` instead.
  */
-export interface SlideView {
-  readonly view: Container
-  readonly steps: number
-  setStep(step: number, animate: boolean): void
-  tick?(dt: number): void
-  /** Whether the slide needs frames right now; slides with `tick` but no `animating` always do. */
-  animating?(): boolean
-  destroy(): void
-}
-
-export const CONTENT_TOP = 190
-export const CONTENT_BOTTOM = 960
-export const MARGIN = 150
+import { Container, Graphics } from "pixi.js"
+import type { SlideView } from "../../../kernel/Slide.ts"
+import { label } from "../../../ui/label.ts"
+import { palette } from "../../../ui/theme.ts"
+import { para } from "../../../ui/text.ts"
+import { ease, lerp, type Tweens } from "../../../kernel/tween.ts"
 
 const named: Record<string, number> = {
   red: palette.red,
@@ -59,25 +39,6 @@ export const shade = (c: number, k = 0.72) => {
   const g = ((c >> 8) & 255) * k
   const b = (c & 255) * k
   return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b)
-}
-
-/** Word-wrapped paragraph text, left aligned at its top-left corner. */
-export const para = (text: string, size: number, fill: number, width: number, weight: "500" | "600" | "700" = "500", align: "left" | "center" = "left") => {
-  const t = new Text({
-    text,
-    style: {
-      fontFamily: fontFor(text),
-      fontSize: size,
-      fill,
-      fontWeight: weight,
-      wordWrap: true,
-      wordWrapWidth: width,
-      lineHeight: size * 1.28,
-      align
-    }
-  })
-  if (align === "center") t.anchor.set(0.5, 0)
-  return t
 }
 
 export const SERIF = "Georgia, 'Times New Roman', serif"

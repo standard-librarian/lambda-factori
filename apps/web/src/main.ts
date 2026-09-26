@@ -1,22 +1,25 @@
-import { Effect, Layer, Stream } from "effect"
-import { exposeDev } from "@lambda-factori/runtime/engine/devHooks.ts"
-import { Host } from "@lambda-factori/runtime/engine/Host.ts"
+import { Effect, Fiber, Layer, Stream } from "effect"
+import { exposeDev } from "@lambda-factori/runtime/platform/devHooks.ts"
+import { Host } from "@lambda-factori/runtime/host/Host.ts"
 import { CustomLevels } from "@lambda-factori/runtime/game/CustomLevels.ts"
-import { Decks } from "@lambda-factori/runtime/game/Decks.ts"
+import { Decks } from "@lambda-factori/runtime/plugins/deck/Decks.ts"
 import { Discovery } from "@lambda-factori/runtime/game/Discovery.ts"
 import { GameEvents } from "@lambda-factori/runtime/game/Events.ts"
 import { Levels } from "@lambda-factori/runtime/game/Levels.ts"
-import { preloadJson } from "@lambda-factori/runtime/game/Preload.ts"
+import { preloadJson } from "@lambda-factori/runtime/platform/Preload.ts"
 import { Progress } from "@lambda-factori/runtime/game/Progress.ts"
-import { Storage } from "@lambda-factori/runtime/game/Storage.ts"
-import { builtins } from "@lambda-factori/runtime/engine/registry.ts"
-import { loadFonts, Pixi, startFonts } from "@lambda-factori/runtime/render/Pixi.ts"
+import { Storage } from "@lambda-factori/runtime/platform/Storage.ts"
+import { loadFonts, Pixi, startFonts } from "@lambda-factori/runtime/ui/Pixi.ts"
+import { builtinPlugins, type Ports } from "./plugins.ts"
 
 // Kick off the slow, independent downloads before anything else: fonts, and the
 // plugin that owns the current route (the host's later import reuses the module).
 startFonts()
 const [first, second] = location.hash.replace(/^#\/?/, "").split("/").map(decodeURIComponent)
-builtins.find((b) => b.id === first)?.load().catch(() => {})
+let resolvePorts!: (ports: Ports) => void
+const ports = new Promise<Ports>((resolve) => (resolvePorts = resolve))
+const entries = builtinPlugins(ports)
+entries.find((e) => e.id === first)?.load().catch(() => {})
 if (first === "deck" && second) preloadJson(`${import.meta.env.BASE_URL}decks/${encodeURIComponent(second)}.json`)
 if (!first) preloadJson(`${import.meta.env.BASE_URL}decks/index.json`)
 
@@ -39,26 +42,36 @@ const main = Effect.gen(function*() {
   const runSync = Effect.runSyncWith(services)
   const runPromise = <A, E>(eff: Effect.Effect<A, E, never>) => Effect.runPromise(eff)
 
-  const host = new Host(app, {
-    pack: levels.pack,
-    progress: () => runSync(progress.get),
-    publish: (e) => void run(events.publish(e)),
-    saveBoard: (id, board) => void run(progress.saveBoard(id, board)),
-    customLevels: () => runSync(custom.all),
-    saveCustomLevel: (level) => runPromise(custom.save(level)),
-    removeCustomLevel: (id) => runPromise(custom.remove(id)),
-    decks: () => runPromise(decks.list),
-    loadDeck: (id) => runPromise(decks.load(id)),
-    saveDeck: (deck) => runPromise(decks.save(deck)),
-    resetDeck: (id) => runPromise(decks.reset(id))
+  resolvePorts({
+    combinators: {
+      pack: levels.pack,
+      progress: () => runSync(progress.get),
+      publish: (e) => void run(events.publish(e)),
+      saveBoard: (id, board) => void run(progress.saveBoard(id, board)),
+      customLevels: () => runSync(custom.all),
+      subscribe: (fn) => {
+        const fiber = run(events.stream.pipe(Stream.runForEach((e) => Effect.sync(() => fn(e)))))
+        return () => run(Fiber.interrupt(fiber))
+      },
+      saveCustomLevel: (level) => runPromise(custom.save(level))
+    },
+    editor: {
+      pack: levels.pack,
+      customLevels: () => runSync(custom.all),
+      saveCustomLevel: (level) => runPromise(custom.save(level)),
+      removeCustomLevel: (id) => runPromise(custom.remove(id))
+    },
+    deck: {
+      list: () => runPromise(decks.list),
+      load: (id) => runPromise(decks.load(id)),
+      save: (deck) => runPromise(decks.save(deck)),
+      reset: (id) => runPromise(decks.reset(id))
+    }
   })
 
-  exposeDev("lfApp", app)
+  new Host(app, entries)
 
-  yield* events.stream.pipe(
-    Stream.runForEach((e) => Effect.sync(() => host.onEvent(e))),
-    Effect.forkScoped
-  )
+  exposeDev("lfApp", app)
   return yield* Effect.never
 })
 

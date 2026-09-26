@@ -1,7 +1,8 @@
 import { Exit, Schema } from "effect"
-import type { HostApi } from "../../engine/Plugin.ts"
+import type { HostApi } from "../../kernel/Plugin.ts"
 import { Deck, Slide } from "@lambda-factori/contracts/Deck.ts"
-import { ensureOverlayStyles } from "../../render/overlay.ts"
+import { ensureOverlayStyles } from "../../ui/overlay.ts"
+import type { DeckLibrary } from "./plugin.ts"
 import { templates } from "./templates.ts"
 
 const decodeSlide = Schema.decodeUnknownExit(Slide)
@@ -14,6 +15,7 @@ const encodeDeck = Schema.encodeSync(Deck)
  */
 export const openSlideEditor = (o: {
   host: HostApi
+  library: DeckLibrary
   deck: () => Deck
   index: () => number
   apply: (deck: Deck, index: number) => void
@@ -95,9 +97,9 @@ export const openSlideEditor = (o: {
     slides.splice(o.index(), 1)
     withSlides(slides, Math.max(0, o.index() - 1))
   }
-  $("data-save").onclick = () => void o.host.services.saveDeck(o.deck()).then(() => o.host.toast("deck saved in this browser"))
+  $("data-save").onclick = () => void o.library.save(o.deck()).then(() => o.host.toast("deck saved in this browser"))
   $("data-reset").onclick = () =>
-    void o.host.services.resetDeck(o.deck().id).then(() => {
+    void o.library.reset(o.deck().id).then(() => {
       o.host.toast("local edits discarded")
       location.reload()
     })
@@ -117,7 +119,7 @@ export const openSlideEditor = (o: {
       error.textContent = String(exit.cause).slice(0, 800)
       return
     }
-    await o.host.services.saveDeck(exit.value)
+    await o.library.save(exit.value)
     o.host.navigate(`deck/${encodeURIComponent(exit.value.id)}/1`)
   }
   const close = () => {

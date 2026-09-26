@@ -343,7 +343,7 @@
       ]
     },
     {
-      "kind": "theater",
+      "kind": "combinators/theater",
       "title": "theater",
       "term": "S K K x",
       "caption": "Step through a reduction: S copies, K drops."

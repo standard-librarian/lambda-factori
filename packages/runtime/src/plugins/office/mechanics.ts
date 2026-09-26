@@ -1,5 +1,5 @@
 import { Exit, Schema } from "effect"
-import type { Mechanic } from "../../engine/mechanics.ts"
+import type { Mechanic } from "../../kernel/Slide.ts"
 import { officeSlide } from "./OfficeSlide.ts"
 import { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
 

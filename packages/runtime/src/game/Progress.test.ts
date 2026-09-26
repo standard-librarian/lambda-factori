@@ -1,7 +1,7 @@
 import { Effect, Layer } from "effect"
 import { describe, expect, it } from "vitest"
 import { Progress } from "./Progress.ts"
-import { Storage } from "./Storage.ts"
+import { Storage } from "../platform/Storage.ts"
 
 const run = <A>(eff: Effect.Effect<A, never, Progress | Storage>) =>
   Effect.runPromise(eff.pipe(Effect.provide(Progress.layer.pipe(Layer.provideMerge(Storage.memory)))))

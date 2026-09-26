@@ -1,3 +1,8 @@
+/**
+ * One of the combinator game's own services (`game/`, shared by the
+ * combinators and editor plugins, not a generic platform concern): the
+ * in-process bus for simulation and progress events.
+ */
 import { Context, Effect, Layer, PubSub, Stream } from "effect"
 import type { SimEvent } from "@lambda-factori/core/Sim.ts"
 

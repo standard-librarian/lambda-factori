@@ -4,11 +4,13 @@
  * Deep modules are tall and narrow; shallow ones are wide and flat.
  */
 import { Container, Graphics } from "pixi.js"
-import { label } from "../../../render/label.ts"
-import { DESIGN_W, palette } from "../../../render/theme.ts"
-import { ease } from "../../../render/tween.ts"
+import { label } from "../../../ui/label.ts"
+import { DESIGN_W, palette } from "../../../ui/theme.ts"
+import { ease } from "../../../kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { color, CONTENT_TOP, para, Reveal, shade, type SlideContext, type SlideView } from "./common.ts"
+import { color, Reveal, shade } from "./common.ts"
+import { para } from "../../../ui/text.ts"
+import { CONTENT_TOP, type SlideContext, type SlideView } from "../../../kernel/Slide.ts"
 
 export const modulesSlide = (s: SlideOf<"modules">, ctx: SlideContext): SlideView => {
   const v = new Container()

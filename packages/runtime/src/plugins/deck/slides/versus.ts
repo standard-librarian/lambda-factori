@@ -1,9 +1,11 @@
 /** The `versus` slide: two positions side by side, and what both agree on. */
 import { Container, Graphics } from "pixi.js"
-import { label } from "../../../render/label.ts"
-import { DESIGN_W, palette } from "../../../render/theme.ts"
+import { label } from "../../../ui/label.ts"
+import { DESIGN_W, palette } from "../../../ui/theme.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { cardArt, color, CONTENT_TOP, MARGIN, para, Reveal, shade, type SlideContext, type SlideView } from "./common.ts"
+import { cardArt, color, Reveal, shade } from "./common.ts"
+import { para } from "../../../ui/text.ts"
+import { CONTENT_TOP, MARGIN, type SlideContext, type SlideView } from "../../../kernel/Slide.ts"
 
 export const versusSlide = (s: SlideOf<"versus">, ctx: SlideContext): SlideView => {
   const v = new Container()

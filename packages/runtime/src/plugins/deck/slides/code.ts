@@ -4,12 +4,14 @@
  * (`analyze.ts` finds them in Java-like code), with metrics chips per pane.
  */
 import { Container, Graphics, Text } from "pixi.js"
-import { label } from "../../../render/label.ts"
-import { DESIGN_W, palette } from "../../../render/theme.ts"
-import { ease, lerp } from "../../../render/tween.ts"
+import { label } from "../../../ui/label.ts"
+import { DESIGN_W, palette } from "../../../ui/theme.ts"
+import { ease, lerp } from "../../../kernel/tween.ts"
 import { joinLines, type SlideOf } from "@lambda-factori/contracts/Deck.ts"
 import { type Analysis, analyze, metricsOf } from "../analyze.ts"
-import { cardArt, CONTENT_TOP, MONO, para, type SlideContext, type SlideView } from "./common.ts"
+import { cardArt, MONO } from "./common.ts"
+import { para } from "../../../ui/text.ts"
+import { CONTENT_TOP, type SlideContext, type SlideView } from "../../../kernel/Slide.ts"
 import { TAGS, highlight } from "./highlight.ts"
 
 const parseRanges = (spec: string | undefined): Set<number> | undefined => {

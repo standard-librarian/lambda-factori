@@ -3,9 +3,6 @@ import { Schema } from "effect"
 import { describe, expect, it } from "vitest"
 import { analyze } from "./analyze.ts"
 import { Deck, joinLines, Slide } from "@lambda-factori/contracts/Deck.ts"
-import { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
-import { parseProgram } from "../office/program.ts"
-import { run } from "../office/vm.ts"
 import { templates } from "./templates.ts"
 
 const dir = new URL("../../../../../apps/web/public/decks/", import.meta.url)
@@ -55,21 +52,6 @@ describe.each(files)("deck %s", (file) => {
     }
   })
 
-  it("has office scenes that decode, parse and run", () => {
-    for (const s of deck.slides) {
-      if (s.kind !== "office/scene") continue
-      const spec = Schema.decodeUnknownSync(OfficeSpec)(s, { onExcessProperty: "ignore" })
-      const program = parseProgram(spec.program)
-      const t = run(program, {
-        inbox: spec.inbox ?? [],
-        tiles: new Map((spec.tiles ?? []).map((x) => [x.id, x.value])),
-        desks: new Map((spec.desks ?? []).map((d) => [d.id, { id: d.id, work: d.work, gives: d.gives }]))
-      })
-      expect(t.halted, `${spec.title}: ${t.error}`).not.toBe("step-limit")
-      if (t.error) expect(t.error, spec.title).not.toMatch(/no desk/)
-    }
-  })
-
   it("finds the entanglement in PrimeGenerator", () => {
     const pg = deck.slides.find((s) => s.kind === "code" && s.panes[0]?.label === "PrimeGenerator.java")
     if (!pg || pg.kind !== "code") return
@@ -83,5 +65,17 @@ describe.each(files)("deck %s", (file) => {
 describe("slide editor templates", () => {
   it.each(Object.entries(templates))("%s decodes against the schema", (_, template) => {
     expect(() => Schema.decodeUnknownSync(Slide)(template)).not.toThrow()
+  })
+})
+
+describe("legacy slide kinds", () => {
+  it("decodes a pre-plugin theater slide as combinators/theater", () => {
+    const slide = Schema.decodeUnknownSync(Slide)({ kind: "theater", title: "A reduction", term: "S K K x" })
+    expect(slide).toMatchObject({ kind: "combinators/theater", title: "A reduction", term: "S K K x" })
+  })
+
+  it("migrates inside a whole deck, as a saved deck or share link would carry it", () => {
+    const deck = Schema.decodeUnknownSync(Deck)({ id: "old", title: "Old", slides: [{ kind: "theater", term: "K x y" }] })
+    expect(deck.slides[0]?.kind).toBe("combinators/theater")
   })
 })

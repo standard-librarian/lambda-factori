@@ -9,18 +9,18 @@
 import { Schema } from "effect"
 import { Container } from "pixi.js"
 import { Deck, joinLines } from "@lambda-factori/contracts/Deck.ts"
-import { exposeDev } from "../../engine/devHooks.ts"
-import type { HostApi } from "../../engine/Plugin.ts"
-import { copyShareLink } from "../../engine/share.ts"
-import type { Scene } from "../../render/Scene.ts"
-import { ease } from "../../render/tween.ts"
+import { exposeDev } from "../../platform/devHooks.ts"
+import type { HostApi } from "../../kernel/Plugin.ts"
+import type { Scene } from "../../kernel/Scene.ts"
+import type { Mechanic, SlideView } from "../../kernel/Slide.ts"
+import { ease } from "../../kernel/tween.ts"
 import { DeckChrome } from "./DeckChrome.ts"
 import { openSlideEditor } from "./editor.ts"
 import { channelName, type DeckMessage } from "./messages.ts"
 import { notesPanel, overviewGrid } from "./overlays.ts"
+import type { DeckLibrary } from "./plugin.ts"
 import { renderSlide } from "./render.ts"
 import { frameSlide } from "./slideFrame.ts"
-import type { SlideView } from "./slides/common.ts"
 
 const encodeDeck = Schema.encodeSync(Deck)
 
@@ -36,15 +36,19 @@ export class DeckScene implements Scene {
   private overview: Container | undefined
   private readonly channel: BroadcastChannel | undefined
   private readonly host: HostApi
+  private readonly library: DeckLibrary
+  private readonly mechanics: ReadonlyMap<string, Mechanic>
   private closeEditor: (() => void) | undefined
 
-  constructor(host: HostApi, deck: Deck, index: number) {
-    this.host = host
-    this.deck = deck
-    this.index = Math.max(0, Math.min(deck.slides.length - 1, index))
-    this.chrome = new DeckChrome(host.tweens, { prev: () => this.prev(), next: () => this.next() })
+  constructor(o: { host: HostApi; library: DeckLibrary; mechanics: ReadonlyMap<string, Mechanic>; deck: Deck; index: number }) {
+    this.host = o.host
+    this.library = o.library
+    this.mechanics = o.mechanics
+    this.deck = o.deck
+    this.index = Math.max(0, Math.min(o.deck.slides.length - 1, o.index))
+    this.chrome = new DeckChrome(o.host.tweens, { prev: () => this.prev(), next: () => this.next() })
     this.view.addChild(this.stage, this.chrome)
-    this.channel = typeof BroadcastChannel === "undefined" ? undefined : new BroadcastChannel(channelName(deck.id))
+    this.channel = typeof BroadcastChannel === "undefined" ? undefined : new BroadcastChannel(channelName(o.deck.id))
     this.channel?.addEventListener("message", (e: MessageEvent<DeckMessage>) => {
       const m = e.data
       if (m.type !== "cmd" || m.deck !== this.deck.id) return
@@ -106,8 +110,8 @@ export class DeckScene implements Scene {
         this.step = step
         this.broadcast()
       }
-    })
-    const { frame, view } = frameSlide(this.slide, rendered, this.host.tweens)
+    }, this.mechanics)
+    const { frame, view } = frameSlide(this.slide, rendered, this.host.tweens, this.mechanics)
     this.stage.addChild(frame)
     this.step = Math.min(this.step, view.steps)
     view.setStep(this.step, false)
@@ -182,6 +186,7 @@ export class DeckScene implements Scene {
     }
     this.closeEditor = openSlideEditor({
       host: this.host,
+      library: this.library,
       deck: () => this.deck,
       index: () => this.index,
       apply: (deck, index) => {
@@ -223,7 +228,7 @@ export class DeckScene implements Scene {
       case "KeyE":
         return this.toggleEditor()
       case "KeyS":
-        void copyShareLink({ type: "deck", data: encodeDeck(this.deck) }).then(() => this.host.toast("share link copied — anyone can play, keep or remix this deck"))
+        void this.host.share({ type: "deck", data: encodeDeck(this.deck) }).then(() => this.host.toast("share link copied — anyone can play, keep or remix this deck"))
         return
       case "Escape":
         if (this.overview) return this.toggleOverview()

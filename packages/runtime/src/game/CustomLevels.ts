@@ -1,6 +1,11 @@
+/**
+ * One of the combinator game's own services (`game/`, shared by the
+ * combinators and editor plugins, not a generic platform concern): levels
+ * made in the level editor, persisted in this browser.
+ */
 import { Context, Effect, Layer, Ref, Schema } from "effect"
 import { Level } from "@lambda-factori/core/Level.ts"
-import { Storage } from "./Storage.ts"
+import { Storage } from "../platform/Storage.ts"
 
 const KEY = "lambda-factori/custom-levels/v1"
 const LevelsJson = Schema.fromJsonString(Schema.Array(Level))

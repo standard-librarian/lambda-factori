@@ -1,13 +1,14 @@
+/**
+ * One of the combinator game's own services (`game/`, shared by the
+ * combinators and editor plugins, not a generic platform concern):
+ * background fiber that turns raw simulation events into progress — new
+ * recipes for the recipe book, level completion and stickers.
+ */
 import { Effect, Layer, Stream } from "effect"
 import { show } from "@lambda-factori/core/Term.ts"
 import { GameEvents } from "./Events.ts"
 import { Levels } from "./Levels.ts"
 import { Progress } from "./Progress.ts"
-
-/**
- * Background fiber that turns raw simulation events into progress: new
- * recipes for the recipe book, level completion and stickers.
- */
 export const Discovery = Layer.effectDiscard(Effect.gen(function*() {
   const events = yield* GameEvents
   const progress = yield* Progress

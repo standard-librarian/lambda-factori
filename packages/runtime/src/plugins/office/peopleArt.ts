@@ -4,7 +4,7 @@
  * a coworker at each desk.
  */
 import { Container, Graphics } from "pixi.js"
-import { label } from "../../render/label.ts"
+import { label } from "../../ui/label.ts"
 import { office, shadeOf } from "./officePalette.ts"
 
 export interface WorkerArt {
