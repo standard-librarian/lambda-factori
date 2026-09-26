@@ -1,3 +1,8 @@
+/**
+ * The combinator game's level pack as an Effect service: the bundled
+ * `levels.json`, decoded once with the LevelPack schema, with lookups by id
+ * and "what comes next".
+ */
 import { Context, Effect, Layer, Schema } from "effect"
 import { LevelPack, type Level } from "@lambda-factori/core/Level.ts"
 import pack from "@lambda-factori/core/data/levels.json" with { type: "json" }

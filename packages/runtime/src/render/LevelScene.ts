@@ -1,3 +1,12 @@
+/**
+ * One level of the combinator game: the factory floor (a `Board` from core),
+ * the machine tray, the bins, and the simulation running on it.
+ *
+ * Sections, in order: building the view · editing (drag machines, draw wires,
+ * all edits go through `edit()` so the board stays pure) · playback (`Sim`
+ * events drive token animations) · level complete (`levelCompletePanel`) ·
+ * the reduction theater for goals, machines and tokens.
+ */
 import { Container, type FederatedPointerEvent, Graphics, Rectangle, type Text } from "pixi.js"
 import * as B from "@lambda-factori/core/Board.ts"
 import { byName, colorOf } from "@lambda-factori/core/Catalogue.ts"
@@ -12,21 +21,20 @@ import {
   binLink,
   type FactoryArt,
   H,
-  archiveArt,
-  usageArt,
   label,
   paperArt,
   relabel,
   skylineArt,
   sourceArt,
-  stickerArt,
   tokenArt,
   W
 } from "./art.ts"
 import type { GameContext, Scene } from "./Scene.ts"
+import { levelCompletePanel } from "./LevelComplete.ts"
 import { StickerPile } from "./StickerPile.ts"
-import { combinatorSpec, goalSpec, termSpec, Theater, type TheaterSpec } from "./Theater.ts"
-import { BOARD_W, CELL, DESIGN_H, DESIGN_W, FAST_FACTOR, palette, TICK_MS, TRAY_X } from "./theme.ts"
+import { Theater } from "./Theater.ts"
+import { combinatorSpec, goalSpec, termSpec, type TheaterSpec } from "./TheaterSpec.ts"
+import { BOARD_W, CELL, DESIGN_H, DESIGN_W, FAST_FACTOR, palette, TICK_MS } from "./theme.ts"
 import { ease, lerp } from "./tween.ts"
 import { Button, icons, ring, Smoke, Toasts } from "./ui.ts"
 
@@ -114,8 +122,8 @@ export class LevelScene implements Scene {
 
     // Tray ------------------------------------------------------------------
     const tray = new Container()
-    tray.x = TRAY_X
-    tray.addChild(new Graphics().rect(0, 0, DESIGN_W - TRAY_X, DESIGN_H).fill(palette.tray).rect(0, 0, 6, DESIGN_H).fill(palette.trayShade))
+    tray.x = BOARD_W // the machine tray starts where the board ends
+    tray.addChild(new Graphics().rect(0, 0, DESIGN_W - BOARD_W, DESIGN_H).fill(palette.tray).rect(0, 0, 6, DESIGN_H).fill(palette.trayShade))
     const world = ctx.pack.worlds.find((w) => w.id === level.world)
     const worldText = label(`${world?.title ?? level.world}`.toLowerCase(), 20, palette.inkSoft, "600", "left")
     worldText.position.set(28, 36)
@@ -720,92 +728,16 @@ export class LevelScene implements Scene {
 
   private showComplete(stats: Stats) {
     this.setMode("paused")
-    const best = this.prevBest
-    const panel = new Container()
-    const dim = new Graphics().rect(0, 0, DESIGN_W, DESIGN_H).fill({ color: palette.ink, alpha: 0.35 })
-    dim.eventMode = "static"
-    panel.addChild(dim)
-    const paper = this.ctx.pack.papers.find((p) => p.id === this.level.paper)
-    const card = new Container()
-    const hasRight = paper !== undefined || (this.level.features ?? [this.level.sticker ?? ""]).some((f) => this.ctx.pack.usage?.[f])
-    const cardX = hasRight ? DESIGN_W / 2 - 290 : BOARD_W / 2
-    card.position.set(cardX, DESIGN_H / 2)
-    card.addChild(new Graphics().roundRect(-330, -250, 660, 500, 28).fill(palette.cream).roundRect(-330, 236, 660, 14, 7).fill(palette.trayShade))
-    const title = label("level complete!", 46, palette.red, "700")
-    title.y = -196
-    card.addChild(title)
-
-    const sticker = this.level.sticker ? byName.get(this.level.sticker) : undefined
-    const glyph = sticker
-      ? stickerArt(sticker.name, sticker.bird, sticker.color, 120)
-      : stickerArt(this.level.targets.map((t) => t.label).join(""), undefined, palette.bin, 120)
-    glyph.position.set(0, -70)
-    card.addChild(glyph)
-    if (sticker) {
-      const rule = label(sticker.rule, 24, palette.inkSoft, "600")
-      rule.y = 22
-      card.addChild(rule)
-    }
-
-    const stat = (name: string, value: number, prev: number | undefined, x: number) => {
-      const n = label(name, 20, palette.inkSoft, "600")
-      n.position.set(x, 64)
-      const v = label(`${value}`, 40, palette.ink, "700")
-      v.position.set(x, 100)
-      const p = label(prev === undefined ? "first clear" : `best ${Math.min(prev, value)}`, 16, palette.inkSoft, "500")
-      p.position.set(x, 132)
-      card.addChild(n, v, p)
-    }
-    stat("machines", stats.machines, best?.machines, -200)
-    stat("cycles", stats.cycles, best?.cycles, 0)
-    stat("term size", stats.size, best?.size, 200)
-
-    const next = this.ctx.pack.levels[this.ctx.pack.levels.findIndex((l) => l.id === this.level.id) + 1]
-    const nextBtn = new Button({ width: 240, height: 64, color: palette.red, shade: palette.redShade, text: next ? "next level" : "menu", fontSize: 26, onTap: () => (next ? this.ctx.play(next.id) : this.ctx.menu()) }, this.ctx.tweens)
-    nextBtn.position.set(130, 184)
-    const keep = new Button({ width: 240, height: 64, color: palette.token, shade: palette.binShade, text: "keep building", fontSize: 26, onTap: () => this.closePanel() }, this.ctx.tweens)
-    keep.position.set(-130, 184)
-    card.addChild(nextBtn, keep)
-    panel.addChild(card)
-    this.view.addChild(panel)
-    this.panel = panel
-
-    card.scale.set(0.6)
-    panel.alpha = 0
-    this.ctx.tweens.add({ duration: 480, ease: ease.outBack, update: (k) => {
-      panel.alpha = Math.min(1, k * 2)
-      card.scale.set(lerp(0.6, 1, k))
-      card.y = DESIGN_H / 2 + (1 - k) * 60
-    } })
-    this.ctx.tweens.add({ delay: 200, duration: 700, ease: ease.outElastic, update: (k) => {
-      glyph.rotation = (1 - k) * -0.6
-      glyph.scale.set(k)
-    } })
-
-    // Right column: the paper that introduced these combinators, and where
-    // they show up in real software.
-    const features = this.level.features ?? (this.level.sticker ? [this.level.sticker] : this.level.targets.map((t) => t.label))
-    const snippets = features.flatMap((f) => this.ctx.pack.usage?.[f] ?? []).slice(0, 2)
-    const right: Array<{ view: Container; h: number }> = []
-    if (paper) right.push({ view: archiveArt(paper, 480, snippets.length ? 400 : 470), h: snippets.length ? 400 : 470 })
-    if (snippets.length) {
-      const u = usageArt(snippets, 480)
-      right.push({ view: u.root, h: u.height })
-    }
-    const total = right.reduce((a, r) => a + r.h, 0) + (right.length - 1) * 40
-    let y = DESIGN_H / 2 - total / 2
-    right.forEach((r, i) => {
-      const px = DESIGN_W / 2 + 340
-      const py = y + r.h / 2
-      y += r.h + 40
-      r.view.position.set(px + 520, py)
-      r.view.rotation = 0.22
-      panel.addChild(r.view)
-      this.ctx.tweens.add({ target: r.view, delay: 450 + i * 180, duration: 650, ease: ease.outBack, update: (k) => {
-        r.view.x = lerp(px + 520, px, k)
-        r.view.rotation = lerp(0.22, i % 2 === 0 ? 0.025 : -0.02, k)
-      } })
+    this.panel = levelCompletePanel({
+      level: this.level,
+      pack: this.ctx.pack,
+      stats,
+      best: this.prevBest,
+      tweens: this.ctx.tweens,
+      onNext: (id) => (id ? this.ctx.play(id) : this.ctx.menu()),
+      onKeep: () => this.closePanel()
     })
+    this.view.addChild(this.panel)
   }
 
   private closePanel() {

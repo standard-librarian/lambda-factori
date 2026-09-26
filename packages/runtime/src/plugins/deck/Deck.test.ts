@@ -2,9 +2,10 @@ import { readdirSync, readFileSync } from "node:fs"
 import { Schema } from "effect"
 import { describe, expect, it } from "vitest"
 import { analyze } from "./analyze.ts"
-import { Deck, joinLines } from "@lambda-factori/contracts/Deck.ts"
+import { Deck, joinLines, Slide } from "@lambda-factori/contracts/Deck.ts"
 import { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
 import { parseProgram, run } from "../office/vm.ts"
+import { templates } from "./templates.ts"
 
 const dir = new URL("../../../../../apps/web/public/decks/", import.meta.url)
 const files = readdirSync(dir).filter((f) => f.endsWith(".json") && f !== "index.json")
@@ -75,5 +76,11 @@ describe.each(files)("deck %s", (file) => {
     expect(a.methods.map((m) => m.name)).toHaveLength(8)
     expect([...a.fields.keys()]).toEqual(["primes", "multiplesOfPrimeFactors"])
     expect(a.writes.some((w) => w.method === "smallestOddNthMultipleNotLessThanCandidate" && w.field === "multiplesOfPrimeFactors")).toBe(true)
+  })
+})
+
+describe("slide editor templates", () => {
+  it.each(Object.entries(templates))("%s decodes against the schema", (_, template) => {
+    expect(() => Schema.decodeUnknownSync(Slide)(template)).not.toThrow()
   })
 })

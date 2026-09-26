@@ -5,7 +5,6 @@ import { ease, lerp } from "../../render/tween.ts"
 import { Button } from "../../render/ui.ts"
 import type { SlideContext, SlideView } from "../deck/slides/common.ts"
 import {
-  BOX,
   beltArt,
   bossArt,
   boxArt,

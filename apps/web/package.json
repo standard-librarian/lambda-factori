@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@lambda-factori/runtime": "workspace:*",
-    "@lambda-factori/core": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {
