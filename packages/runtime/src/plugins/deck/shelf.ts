@@ -5,7 +5,7 @@
  * still loads lazily only when a deck route opens.
  */
 import type { DeckMeta } from "@lambda-factori/contracts/Deck.ts"
-import type { HomeShelf } from "../../kernel/Plugin.ts"
+import type { HomeShelf } from "@lambda-factori/kernel/Plugin.ts"
 import { manifest } from "./manifest.ts"
 
 export const deckShelf = (list: () => Promise<ReadonlyArray<DeckMeta>>): HomeShelf => ({

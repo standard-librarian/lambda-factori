@@ -15,7 +15,7 @@ import { machineArt } from "./machineArt.ts"
 import { center, partial, polyline, portDot } from "./floorGeometry.ts"
 import { relabel } from "../../ui/label.ts"
 import { BOARD_W, CELL, DESIGN_H, palette } from "../../ui/theme.ts"
-import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
+import { ease, lerp, type Tweens } from "@lambda-factori/kernel/tween.ts"
 
 export interface BuildingView {
   readonly building: B.Building

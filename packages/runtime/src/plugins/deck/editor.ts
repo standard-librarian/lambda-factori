@@ -1,6 +1,6 @@
 import { Exit, Schema } from "effect"
-import type { HostApi } from "../../kernel/Plugin.ts"
-import type { Mechanic } from "../../kernel/Slide.ts"
+import type { HostApi } from "@lambda-factori/kernel/Plugin.ts"
+import type { Mechanic } from "@lambda-factori/kernel/Slide.ts"
 import { Deck, Slide } from "@lambda-factori/contracts/Deck.ts"
 import { ensureOverlayStyles } from "../../ui/overlay.ts"
 import type { DeckLibrary } from "./plugin.ts"

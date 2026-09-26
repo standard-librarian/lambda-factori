@@ -5,11 +5,11 @@
 import { Container, Graphics } from "pixi.js"
 import { label } from "../../../ui/label.ts"
 import { DESIGN_W, palette } from "../../../ui/theme.ts"
-import { ease, lerp } from "../../../kernel/tween.ts"
+import { ease, lerp } from "@lambda-factori/kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
 import { avatar, color, Reveal, shade } from "./common.ts"
 import { para } from "../../../ui/text.ts"
-import { CONTENT_TOP, MARGIN, type SlideContext, type SlideView } from "../../../kernel/Slide.ts"
+import { CONTENT_TOP, MARGIN, type SlideContext, type SlideView } from "@lambda-factori/kernel/Slide.ts"
 
 const defaultSpeakers: Record<string, { name: string; color: number; initials: string }> = {
   john: { name: "John Ousterhout", color: palette.blue, initials: "JO" },

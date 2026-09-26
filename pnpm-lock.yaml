@@ -76,6 +76,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@lambda-factori/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
       '@lambda-factori/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
@@ -83,6 +86,22 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.117
     devDependencies:
+      vite:
+        specifier: 'catalog:'
+        version: 8.3.1(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1)
+
+  examples/hello-plugin:
+    dependencies:
+      '@lambda-factori/kernel':
+        specifier: workspace:*
+        version: link:../../packages/kernel
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.117
+    devDependencies:
+      pixi.js:
+        specifier: 'catalog:'
+        version: 8.21.0
       vite:
         specifier: 'catalog:'
         version: 8.3.1(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1)
@@ -99,6 +118,15 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.117
 
+  packages/kernel:
+    dependencies:
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.117
+      pixi.js:
+        specifier: 'catalog:'
+        version: 8.21.0
+
   packages/office: {}
 
   packages/runtime:
@@ -112,6 +140,9 @@ importers:
       '@lambda-factori/core':
         specifier: workspace:*
         version: link:../core
+      '@lambda-factori/kernel':
+        specifier: workspace:*
+        version: link:../kernel
       '@lambda-factori/office':
         specifier: workspace:*
         version: link:../office

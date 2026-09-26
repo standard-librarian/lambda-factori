@@ -5,8 +5,8 @@
  * (`plugins/office/mechanics.ts`), via the shared `defineMechanic` helper.
  */
 import { TheaterSlide } from "@lambda-factori/contracts/TheaterSlide.ts"
-import { defineMechanic } from "../../kernel/mechanic.ts"
-import type { Mechanic } from "../../kernel/Slide.ts"
+import { defineMechanic } from "@lambda-factori/kernel/mechanic.ts"
+import type { Mechanic } from "@lambda-factori/kernel/Slide.ts"
 import { theaterSlide } from "./theaterSlide.ts"
 import { theaterTemplate } from "./theaterTemplate.ts"
 

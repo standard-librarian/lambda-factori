@@ -5,11 +5,11 @@
  * in `ui/text.ts` instead.
  */
 import { Container, Graphics } from "pixi.js"
-import type { SlideView } from "../../../kernel/Slide.ts"
+import type { SlideView } from "@lambda-factori/kernel/Slide.ts"
 import { label } from "../../../ui/label.ts"
 import { palette } from "../../../ui/theme.ts"
 import { para } from "../../../ui/text.ts"
-import { ease, lerp, type Tweens } from "../../../kernel/tween.ts"
+import { ease, lerp, type Tweens } from "@lambda-factori/kernel/tween.ts"
 
 const named: Record<string, number> = {
   red: palette.red,

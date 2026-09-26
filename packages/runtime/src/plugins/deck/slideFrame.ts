@@ -5,8 +5,8 @@
  */
 import { Container, Graphics } from "pixi.js"
 import type { Slide } from "@lambda-factori/contracts/Deck.ts"
-import { MARGIN, type Mechanic, type SlideView } from "../../kernel/Slide.ts"
-import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
+import { MARGIN, type Mechanic, type SlideView } from "@lambda-factori/kernel/Slide.ts"
+import { ease, lerp, type Tweens } from "@lambda-factori/kernel/tween.ts"
 import { paperArt, skylineArt } from "../../ui/backdrop.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"
 import { ownsChrome } from "./render.ts"

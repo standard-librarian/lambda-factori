@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
+    "@lambda-factori/kernel": "workspace:*",
     "@lambda-factori/runtime": "workspace:*",
     "effect": "catalog:"
   },

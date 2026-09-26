@@ -7,7 +7,7 @@
  */
 import { Exit, Schema } from "effect"
 import { Deck, type DeckMeta } from "@lambda-factori/contracts/Deck.ts"
-import type { HostApi, PackPreview, Plugin } from "../../kernel/Plugin.ts"
+import type { HostApi, PackPreview, Plugin } from "@lambda-factori/kernel/Plugin.ts"
 import { DeckScene } from "./DeckScene.ts"
 import { manifest } from "./manifest.ts"
 import { openPresenter } from "./presenter.ts"

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { PluginEntry } from "../kernel/Plugin.ts"
+import type { PluginEntry } from "@lambda-factori/kernel/Plugin.ts"
 import { parseMechanicKind, parseRoute, resolveOwner, segments, shadowsBuiltin } from "./routes.ts"
 
 const entry = (id: string, packTypes?: ReadonlyArray<string>): PluginEntry => ({

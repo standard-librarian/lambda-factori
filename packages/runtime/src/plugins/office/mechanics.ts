@@ -1,5 +1,5 @@
-import { defineMechanic } from "../../kernel/mechanic.ts"
-import type { Mechanic } from "../../kernel/Slide.ts"
+import { defineMechanic } from "@lambda-factori/kernel/mechanic.ts"
+import type { Mechanic } from "@lambda-factori/kernel/Slide.ts"
 import { officeSlide } from "./OfficeSlide.ts"
 import { sceneTemplate } from "./sceneTemplate.ts"
 import { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"

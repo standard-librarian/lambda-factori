@@ -6,7 +6,7 @@
  * this needs Pixi or a running app, so it's tested as a table, not through
  * screenshots.
  */
-import type { PluginEntry } from "../kernel/Plugin.ts"
+import type { PluginEntry } from "@lambda-factori/kernel/Plugin.ts"
 
 /** The segments of a hash route, decoded and with empty segments dropped
  * (`#/deck/x/1` → `["deck","x","1"]`, `#/` and `#` → `[]`). */

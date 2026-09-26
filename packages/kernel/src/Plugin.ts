@@ -21,6 +21,12 @@ export interface SharedPack {
 
 export interface HostApi {
   readonly app: Application
+  /** The host's own copy of pixi.js, for a plugin to construct scenes and slide views with. A
+   * plugin loaded from a URL (`#/plugin/<url>`) can't `import` pixi.js as a value itself — a
+   * second bundled copy is fragile and ~500KB — so it imports only pixi.js's types and builds
+   * everything through this instead (e.g. `new host.pixi.Graphics()`, or `ctx.host.pixi` inside
+   * a mechanic's `render`, since `SlideContext.host` is this same `HostApi`). */
+  readonly pixi: typeof import("pixi.js")
   readonly tweens: Tweens
   /** Replace the current scene (cross-fades). */
   show(make: () => Scene): void

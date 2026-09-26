@@ -12,7 +12,7 @@ import { archiveArt, usageArt } from "./archive.ts"
 import { label } from "../../ui/label.ts"
 import { stickerArt } from "../../ui/factoryArt.ts"
 import { BOARD_W, DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"
-import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
+import { ease, lerp, type Tweens } from "@lambda-factori/kernel/tween.ts"
 import { Button } from "../../ui/Button.ts"
 
 export interface LevelCompleteOptions {

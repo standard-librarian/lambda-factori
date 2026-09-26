@@ -10,7 +10,7 @@
  */
 import { Container, Graphics } from "pixi.js"
 import type { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
-import type { SlideContext, SlideView } from "../../kernel/Slide.ts"
+import type { SlideContext, SlideView } from "@lambda-factori/kernel/Slide.ts"
 import { Button } from "../../ui/Button.ts"
 import { label } from "../../ui/label.ts"
 import { FLOOR, ROOM_H } from "./layout.ts"

@@ -3,7 +3,7 @@
  * no card on the home screen, only the `office/scene` mechanic it lends the
  * deck (see `mechanics.ts` and `plugin.ts`).
  */
-import type { PluginManifest } from "../../kernel/Plugin.ts"
+import type { PluginManifest } from "@lambda-factori/kernel/Plugin.ts"
 
 export const manifest: PluginManifest = {
   id: "office",

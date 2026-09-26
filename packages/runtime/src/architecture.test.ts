@@ -19,14 +19,25 @@ import { describe, expect, it } from "vitest"
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../../..")
 
-/** Every layer the rule table knows about. Pure packages, plugins and apps are one layer per name. */
-type Layer = "kernel" | "platform" | "ui" | "host" | "game" | `pure:${string}` | `plugin:${string}` | `app:${string}`
+/** Every layer the rule table knows about. Pure packages, plugins, examples and apps are one layer per name. */
+type Layer =
+  | "kernel"
+  | "platform"
+  | "ui"
+  | "host"
+  | "game"
+  | `pure:${string}`
+  | `plugin:${string}`
+  | `app:${string}`
+  | `example:${string}`
 
-/** Every package under `packages/` except `runtime` is pure domain logic (rule 9): `core`, `contracts`,
- *  `office`, and any future one, without editing this file to name it. */
+/** Every package under `packages/` except `runtime` and `kernel` is pure domain logic (rule 9):
+ *  `core`, `contracts`, `office`, and any future one, without editing this file to name it.
+ *  `runtime` is the impure host; `kernel` is its own layer (mapped explicitly below) because,
+ *  unlike a pure package, it may reach `pixi.js` — for types only. */
 const PURE_PACKAGES = fs
   .readdirSync(path.join(REPO_ROOT, "packages"), { withFileTypes: true })
-  .filter((entry) => entry.isDirectory() && entry.name !== "runtime")
+  .filter((entry) => entry.isDirectory() && entry.name !== "runtime" && entry.name !== "kernel")
   .map((entry) => entry.name)
 
 const walk = (dir: string, out: Array<string> = []): Array<string> => {
@@ -43,26 +54,30 @@ const walk = (dir: string, out: Array<string> = []): Array<string> => {
 const sourceFiles = (): Array<string> => {
   const roots = [
     ...fs.readdirSync(path.join(REPO_ROOT, "packages")).map((p) => `packages/${p}/src`),
-    ...fs.readdirSync(path.join(REPO_ROOT, "apps")).map((p) => `apps/${p}/src`)
+    ...fs.readdirSync(path.join(REPO_ROOT, "apps")).map((p) => `apps/${p}/src`),
+    ...(fs.existsSync(path.join(REPO_ROOT, "examples"))
+      ? fs.readdirSync(path.join(REPO_ROOT, "examples")).map((p) => `examples/${p}/src`)
+      : [])
   ].filter((rel) => fs.existsSync(path.join(REPO_ROOT, rel)))
   return roots.flatMap((rel) => walk(path.join(REPO_ROOT, rel)).map((f) => path.relative(REPO_ROOT, f).split(path.sep).join("/")))
 }
 
 /**
  * Classify a repo-relative path into a layer, or `undefined` if it's outside
- * the packages/apps this rule covers (an npm package, a node builtin, or a
+ * the packages/apps/examples this rule covers (an npm package, a node builtin, or a
  * package with no layer rules of its own — those imports are always allowed).
  */
 const layerOf = (relPath: string): Layer | undefined => {
   const parts = relPath.split("/")
   if (parts[0] === "apps") return `app:${parts[1]}`
+  if (parts[0] === "examples") return `example:${parts[1]}`
   if (parts[0] !== "packages") return undefined
   const pkg = parts[1]
   if (pkg === undefined) return undefined
+  if (pkg === "kernel") return "kernel"
   if (pkg !== "runtime") return PURE_PACKAGES.includes(pkg) ? `pure:${pkg}` : undefined
   const rest = parts.slice(3) // packages/runtime/src/<rest>
   const top = rest[0]
-  if (top === "kernel") return "kernel"
   if (top === "platform") return "platform"
   if (top === "ui") return "ui"
   if (top === "host") return "host"
@@ -105,8 +120,27 @@ const allowed = (source: Layer, target: Layer, sourceFile: string): boolean => {
     default:
       if (source.startsWith("plugin:")) return target !== "host" && !(typeof target === "string" && target.startsWith("plugin:")) // rule 6
       if (source.startsWith("pure:")) return target === "pure:contracts" // rule 9: only effect, itself and contracts
+      if (source.startsWith("example:")) return target === "kernel" // a third-party plugin example: only the SDK
       return true // rule 8: apps/*/src is the composition root, free to import anything
   }
+}
+
+/** Whether every import of "pixi.js" in `text` is type-only (`import type ...from "pixi.js"`, or
+ * a named import where every specifier is written `type X`). Kernel may reach pixi.js only for
+ * types — a value import would pull in a real Pixi renderer, which a third-party plugin loaded
+ * from a URL can't share with the host's copy. */
+const pixiImportIsTypeOnly = (text: string): boolean => {
+  const re = /\bimport\s+(type\s+)?(\*\s+as\s+[\w$]+|[\w$]+|\{[^}]*\})\s+from\s+["']pixi\.js["']/g
+  for (const m of text.matchAll(re)) {
+    const [, typeKeyword, clause] = m
+    if (typeKeyword) continue
+    if (clause!.startsWith("{")) {
+      const names = clause!.slice(1, -1).split(",").map((s) => s.trim()).filter(Boolean)
+      if (names.every((n) => n.startsWith("type "))) continue
+    }
+    return false
+  }
+  return true
 }
 
 interface Violation {
@@ -127,6 +161,13 @@ describe("the dependency rule (docs/plans/dependency-rule.md)", () => {
         // rule 9: a pure package may depend on nothing outside itself but `effect` (plus `vitest`/node builtins in tests).
         if (source.startsWith("pure:") && spec !== "effect" && !spec.startsWith("effect/") && spec !== "vitest" && !spec.startsWith("node:")) {
           found.push({ file, import: spec })
+        }
+        // kernel: nothing of ours, and externally only `effect`/`effect/*` and pixi.js's types.
+        if (source === "kernel" && spec !== "effect" && !spec.startsWith("effect/") && spec !== "pixi.js" && spec !== "vitest" && !spec.startsWith("node:")) {
+          found.push({ file, import: spec })
+        }
+        if (source === "kernel" && spec === "pixi.js" && !pixiImportIsTypeOnly(fs.readFileSync(path.join(REPO_ROOT, file), "utf8"))) {
+          found.push({ file, import: `${spec} (value import)` })
         }
         continue
       }

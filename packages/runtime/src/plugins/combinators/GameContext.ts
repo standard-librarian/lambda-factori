@@ -9,7 +9,7 @@ import type { Board } from "@lambda-factori/core/Board.ts"
 import type { LevelPack } from "@lambda-factori/core/Level.ts"
 import type { GameEvent } from "../../game/Events.ts"
 import type { SaveData } from "../../game/Progress.ts"
-import type { Tweens } from "../../kernel/tween.ts"
+import type { Tweens } from "@lambda-factori/kernel/tween.ts"
 
 export interface GameContext {
   readonly app: Application

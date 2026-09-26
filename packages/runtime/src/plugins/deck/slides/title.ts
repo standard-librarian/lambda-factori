@@ -7,7 +7,7 @@ import { DESIGN_H, DESIGN_W, palette } from "../../../ui/theme.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
 import { staticSlide } from "./common.ts"
 import { para } from "../../../ui/text.ts"
-import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
+import type { SlideContext, SlideView } from "@lambda-factori/kernel/Slide.ts"
 
 export const titleSlide = (s: SlideOf<"title">, ctx: SlideContext): SlideView => {
   const v = new Container()
