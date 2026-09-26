@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { check, parseProgram, run, type World } from "./vm.ts"
+import { check, run, type World } from "./vm.ts"
+import { parseProgram } from "./program.ts"
 
 const world = (inbox: Array<number | string>, tiles: Record<string, number | string | undefined> = {}, desks: World["desks"] = new Map()): World => ({
   inbox,

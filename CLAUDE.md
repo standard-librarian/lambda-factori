@@ -26,6 +26,13 @@ chosen for what makes that cheap. When they conflict, prefer APOSD's depth over 
    `TheaterSpec.ts`), not because it's long, and never into 3-line pass-throughs (Parnas:
    decompose by the decisions you hide, not by the order things run in). Keep representations
    private: no getters that hand out internal maps or arrays.
+   - **One module, one job.** If its header needs "and" between unrelated things, it's two
+     modules.
+   - **One slide kind per file**, so kind → file is obvious.
+   - **Pure parts get their own file and tests:** the clock (`lineTimeline.ts`), text formats
+     (`levelText.ts`), specs (`TheaterSpec.ts`).
+   - **Size:** most files are under ~250 lines. Something longer is fine only if it's one
+     coherent thing, like a schema list or an algorithm.
 4. **Pure core, effects at the edges.** Logic lives in `packages/core` as pure functions with
    tests. Scenes and slides make what's on screen a function of state, e.g. `line.ts` renders
    from `(run, time)`, so pause, seek and replay can't drift. Avoid hidden mutable state. When
@@ -124,18 +131,40 @@ Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a vers
 - **`apps/mobile-capacitor`:** experiment. The web build as an iOS app (Capacitor 8, SPM).
   - `pnpm --filter @lambda-factori/mobile-capacitor sync`, then `build:sim`.
   - `LF_START="?perf#/deck/…"` opens a route with the frame-stats probe on.
-- **`packages/core`:** pure logic (terms, reduction, trace, board, sim, levels, recipe search)
-  and `data/levels.json`.
+- **`packages/core`:** pure logic (terms, reduction, trace, board with wire routing over
+  `MinHeap`, sim, levels, recipe search) and `data/levels.json`.
 - **`packages/contracts`:** the shared schemas, `Deck.ts` (`Slide`, `SlideOf`, `CoreKind`) and
   `OfficeSpec.ts`.
 - **`packages/runtime`:** what every shell loads.
   - `engine/`: Host (stage, router, render loop), plugin contract, home screen, sharing,
     `devHooks.ts`, `perfProbe.ts`.
-  - `render/`: shared Pixi art, UI, tweens, the reduction Theater (`TheaterSpec.ts` decides
-    what it shows), and the game's scenes.
+  - `render/`: shared Pixi pieces and the game's scenes.
+    - Art and UI: `label` (optically centred text), `factoryArt`, `backdrop`, `archive`,
+      `Button`, `icons`, `Toasts`, `effects`, and `PlaybackBar`.
+    - The theater: `Theater` (the modal), `TermRow` (term layout and the rewrite animation),
+      and `TheaterSpec` (what to show).
+    - A level is split into:
+      - `LevelScene`: state and mode;
+      - `BoardView`: the drawn floor;
+      - `BoardEditor`: pointer editing;
+      - `SimAnimator`: how simulation events look;
+      - `LevelTray`, `LevelComplete` and `floorGeometry`.
   - `game/`: Effect services: Levels, Progress, CustomLevels, Decks, GameEvents, Storage.
-  - `plugins/`: combinators, editor, deck (`DeckScene`, `render.ts` registry, `templates.ts`,
-    `slides/`, the slide editor on E, the presenter window on P), office.
+  - `plugins/`: combinators, editor, deck, office.
+    - **editor:** `levelText` (the pure model, tested), `form` (the DOM), `plugin`.
+    - **deck:**
+      - `DeckScene`: navigation and keys;
+      - `DeckChrome`, `slideFrame`, `overlays`, `messages` (the presenter protocol);
+      - `render.ts`: the kind registry, plus `templates.ts`;
+      - `slides/`: one kind per file, plus `lineTimeline` and `highlight`;
+      - the slide editor on E and the presenter window on P.
+    - **office:**
+      - `OfficeSlide`: beats and controls;
+      - `Room`, `ProgramStrip`, `Speech`;
+      - `Performer` (the moving state and motions) and `perform` (per-command
+        choreography);
+      - `program` (the text format), `vm` (the interpreter), `layout`, and the art files
+        (`roomArt`, `peopleArt`, `bubbleArt`, `commandArt`, `officePalette`).
 - **`scripts/search.ts`:** recipe search, e.g. `pnpm search Ψ S,K,B,C,W,I 8` or
   `pnpm search "and: 0001" S,K,I,C 6`.
 - **`scripts/drive.ts`:** headless Playwright play-tester. Actions use 1920×1080 design

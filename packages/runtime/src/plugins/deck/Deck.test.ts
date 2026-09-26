@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest"
 import { analyze } from "./analyze.ts"
 import { Deck, joinLines, Slide } from "@lambda-factori/contracts/Deck.ts"
 import { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
-import { parseProgram, run } from "../office/vm.ts"
+import { parseProgram } from "../office/program.ts"
+import { run } from "../office/vm.ts"
 import { templates } from "./templates.ts"
 
 const dir = new URL("../../../../../apps/web/public/decks/", import.meta.url)
