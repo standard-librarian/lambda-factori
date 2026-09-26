@@ -145,7 +145,8 @@ export default plugin
 - **Getting Pixi.** A plugin never `import`s `pixi.js` as a *value* — a plugin loaded from a URL
   can't share the host's copy, and a second bundled one is fragile and ~500KB. It `import type`s
   from `pixi.js` for types, and builds real objects through `HostApi.pixi`, the host's own
-  pixi.js: `new host.pixi.Graphics()` in `open`, or `ctx.host.pixi` inside a mechanic's `render`
+  constructors (`PixiKit`: `Container`, `Graphics`, `Text`, `Rectangle`, a curated subset so
+  the host keeps tree-shaking pixi.js): `new host.pixi.Graphics()` in `open`, or `ctx.host.pixi` inside a mechanic's `render`
   (`SlideContext.host` is the same `HostApi`).
 - **`mechanics`.** Slide kinds a plugin lends the deck, keyed by name (the deck slide kind is
   `"<id>/<name>"`, e.g. `office/scene`). Build one with `defineMechanic` (from

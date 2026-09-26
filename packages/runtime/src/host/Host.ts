@@ -1,6 +1,5 @@
-import * as PIXI from "pixi.js"
-import { type Application, Container, Graphics } from "pixi.js"
-import type { HostApi, Plugin, PluginEntry, SharedPack } from "@lambda-factori/kernel/Plugin.ts"
+import { type Application, Container, Graphics, Rectangle, Text } from "pixi.js"
+import type { HostApi, PixiKit, Plugin, PluginEntry, SharedPack } from "@lambda-factori/kernel/Plugin.ts"
 import type { Scene } from "@lambda-factori/kernel/Scene.ts"
 import type { Mechanic } from "@lambda-factori/kernel/Slide.ts"
 import { Tweens } from "@lambda-factori/kernel/tween.ts"
@@ -24,9 +23,9 @@ const IDLE_FRAME_MS = 250
 export class Host implements HostApi {
   readonly tweens = new Tweens()
   readonly app: Application
-  /** Handed to every plugin as `host.pixi`: the host's own pixi.js, so a third-party plugin
-   * (which can only `import type` from it) builds Pixi objects without bundling a second copy. */
-  readonly pixi = PIXI
+  /** Handed to every plugin as `host.pixi`: the host's own Pixi constructors, so a third-party
+   * plugin (which can only `import type` from pixi.js) builds objects without a second copy. */
+  readonly pixi: PixiKit = { Container, Graphics, Text, Rectangle }
   /** Every configured plugin (built-in and third-party): not part of `HostApi` (a plugin never
    * sees another plugin's manifest), only handed to the host's own screens (`HomeScene`,
    * `OpenScene`) that need the whole table. */
