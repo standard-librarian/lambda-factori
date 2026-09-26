@@ -2,36 +2,24 @@
  * The plugin contract. λ factori's host knows nothing about combinators or
  * slides: everything the user can open (the combinator game, the level
  * editor, a slide deck) is a plugin, loaded lazily at runtime and addressed by
- * a hash route `#/<plugin>/<path…>`.
+ * a hash route `#/<plugin>/<path…>`. A plugin declares its own port — the
+ * capabilities it needs from the composition root (`apps/web/src/plugins.ts`)
+ * — instead of sharing one fat interface with every other plugin.
  */
 import type { Application } from "pixi.js"
-import type { Board } from "@lambda-factori/core/Board.ts"
-import type { Level, LevelPack } from "@lambda-factori/core/Level.ts"
-import type { GameEvent } from "../game/Events.ts"
-import type { SaveData } from "../game/Progress.ts"
 import type { Scene } from "./Scene.ts"
+import type { Mechanic } from "./Slide.ts"
 import type { Tweens } from "./tween.ts"
-import type { Deck, DeckMeta } from "@lambda-factori/contracts/Deck.ts"
 
-/** Bridges from the imperative UI to the Effect services. */
-export interface Services {
-  readonly pack: LevelPack
-  progress(): SaveData
-  publish(event: GameEvent): void
-  saveBoard(levelId: string, board: Board): void
-  customLevels(): ReadonlyArray<Level>
-  saveCustomLevel(level: Level): Promise<void>
-  removeCustomLevel(id: string): Promise<void>
-  decks(): Promise<ReadonlyArray<DeckMeta>>
-  loadDeck(id: string): Promise<Deck>
-  saveDeck(deck: Deck): Promise<void>
-  resetDeck(id: string): Promise<void>
+/** A pack shared as a `#/open/<payload>` link: a deck, or a level pack. */
+export interface SharedPack {
+  readonly type: "deck" | "levels"
+  readonly data: unknown
 }
 
 export interface HostApi {
   readonly app: Application
   readonly tweens: Tweens
-  readonly services: Services
   /** Replace the current scene (cross-fades). */
   show(make: () => Scene): void
   /** Navigate to a route; opens the owning plugin. */
@@ -40,20 +28,27 @@ export interface HostApi {
   replaceRoute(route: string): void
   home(): void
   toast(text: string): void
+  /** Copy a share link for `pack` to the clipboard, and return it. */
+  share(pack: SharedPack): Promise<string>
+  /** Resolve plugin slide kinds ("<plugin>/<mechanic>"), loading their plugins first. Throws a readable error for an unknown kind. */
+  mechanics(kinds: ReadonlyArray<string>): Promise<ReadonlyMap<string, Mechanic>>
 }
 
 export interface PluginManifest {
   readonly id: string
   readonly title: string
   readonly subtitle: string
-  readonly kind: "game" | "tool" | "deck"
+  /** A `library` plugin contributes mechanics but has no route and no home-screen card (e.g. `office`). */
+  readonly kind: "game" | "tool" | "deck" | "library"
   readonly color: number
   readonly shade: number
 }
 
 export interface Plugin extends PluginManifest {
-  /** Open the plugin at `path` (the route segments after its id). */
-  open(host: HostApi, path: ReadonlyArray<string>): void | Promise<void>
+  /** Open the plugin at `path` (the route segments after its id). Omitted by `library` plugins, which have no route. */
+  open?(host: HostApi, path: ReadonlyArray<string>): void | Promise<void>
+  /** Slide kinds this plugin lends the deck, keyed by name (the deck slide kind is "<id>/<name>"). */
+  readonly mechanics?: Readonly<Record<string, Mechanic>>
 }
 
 export interface PluginEntry extends PluginManifest {

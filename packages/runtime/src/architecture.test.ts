@@ -50,10 +50,11 @@ const sourceFiles = (): Array<string> => {
  * the packages/apps this rule covers (an npm package, a node builtin, or a
  * package with no layer rules of its own — those imports are always allowed).
  *
- * `game/Storage.ts` and `game/Preload.ts` count as `platform` (the plan's
- * transitional mapping, ahead of the phase-4 rename); every other `game/`
- * file is the combinator game's own services. `engine/` counts as `host`,
- * `render/` as `ui`, until phase 4 renames the folders.
+ * `platform/` is real already (`devHooks.ts`); `game/Storage.ts` and
+ * `game/Preload.ts` also count as `platform` (the plan's transitional
+ * mapping, ahead of the phase-4 rename that moves them there too) — every
+ * other `game/` file is the combinator game's own services. `engine/` counts
+ * as `host`, `render/` as `ui`, until phase 4 renames those two folders.
  */
 const layerOf = (relPath: string): Layer | undefined => {
   const parts = relPath.split("/")
@@ -66,6 +67,7 @@ const layerOf = (relPath: string): Layer | undefined => {
   const rest = parts.slice(3) // packages/runtime/src/<rest>
   const top = rest[0]
   if (top === "kernel") return "kernel"
+  if (top === "platform") return "platform"
   if (top === "render") return "ui"
   if (top === "engine") return "host"
   if (top === "game") return rest[1] === "Storage.ts" || rest[1] === "Preload.ts" ? "platform" : "game"
@@ -124,13 +126,6 @@ interface Violation {
  * so this list can never silently grow or go stale.
  */
 const KNOWN_VIOLATIONS: ReadonlyArray<Violation> = [
-  // kernel/ still carries the fat `Services`/`GameEvent` shapes the plan replaces in phase 2.
-  { file: "packages/runtime/src/kernel/Plugin.ts", import: "../game/Events.ts" },
-  { file: "packages/runtime/src/kernel/Plugin.ts", import: "../game/Progress.ts" },
-  { file: "packages/runtime/src/kernel/Plugin.ts", import: "@lambda-factori/core/Board.ts" },
-  { file: "packages/runtime/src/kernel/Plugin.ts", import: "@lambda-factori/core/Level.ts" },
-  { file: "packages/runtime/src/kernel/Plugin.ts", import: "@lambda-factori/contracts/Deck.ts" },
-  { file: "packages/runtime/src/kernel/Scene.ts", import: "../game/Events.ts" },
   // ui/ still holds the combinator game's own scenes (phase 4 moves them into plugins/combinators/).
   { file: "packages/runtime/src/render/LevelScene.ts", import: "@lambda-factori/core/Board.ts" },
   { file: "packages/runtime/src/render/LevelScene.ts", import: "@lambda-factori/core/Catalogue.ts" },
@@ -170,21 +165,15 @@ const KNOWN_VIOLATIONS: ReadonlyArray<Violation> = [
   // A deck test reaches into the office plugin's pure VM directly, ahead of any pack sharing.
   { file: "packages/runtime/src/plugins/deck/Deck.test.ts", import: "../office/program.ts" },
   { file: "packages/runtime/src/plugins/deck/Deck.test.ts", import: "../office/vm.ts" },
-  // host/ (engine/) still decodes plugin data, imports a plugin's helper, and names plugins via registry.ts.
-  { file: "packages/runtime/src/engine/Host.ts", import: "../game/Events.ts" },
+  // host/ (engine/) still decodes plugin data and imports a plugin's helper directly (phase 3:
+  // OpenScene becomes a generic pack card, resolved through a plugin's `previewPack`).
   { file: "packages/runtime/src/engine/OpenScene.ts", import: "@lambda-factori/core/Level.ts" },
   { file: "packages/runtime/src/engine/OpenScene.ts", import: "@lambda-factori/contracts/Deck.ts" },
   { file: "packages/runtime/src/engine/OpenScene.ts", import: "../plugins/deck/slides/common.ts" },
-  { file: "packages/runtime/src/engine/registry.ts", import: "../plugins/combinators/plugin.ts" },
-  { file: "packages/runtime/src/engine/registry.ts", import: "../plugins/editor/plugin.ts" },
-  { file: "packages/runtime/src/engine/registry.ts", import: "../plugins/deck/plugin.ts" },
-  { file: "packages/runtime/src/engine/mechanics.ts", import: "../plugins/office/mechanics.ts" },
-  // plugins/* still reach into engine/ (host) for devHooks, share and the mechanics registry.
-  { file: "packages/runtime/src/plugins/deck/DeckScene.ts", import: "../../engine/devHooks.ts" },
-  { file: "packages/runtime/src/plugins/deck/DeckScene.ts", import: "../../engine/share.ts" },
-  { file: "packages/runtime/src/plugins/deck/plugin.ts", import: "../../engine/mechanics.ts" },
-  { file: "packages/runtime/src/plugins/deck/render.ts", import: "../../engine/mechanics.ts" },
-  { file: "packages/runtime/src/plugins/editor/form.ts", import: "../../engine/share.ts" }
+  // Host.ts also carries HostDeps, the few capabilities HomeScene/OpenScene still need directly
+  // (phase 3 replaces this with the generic entries/shelf/previewPack shape).
+  { file: "packages/runtime/src/engine/Host.ts", import: "@lambda-factori/core/Level.ts" },
+  { file: "packages/runtime/src/engine/Host.ts", import: "@lambda-factori/contracts/Deck.ts" }
 ]
 
 describe("the dependency rule (docs/plans/dependency-rule.md)", () => {

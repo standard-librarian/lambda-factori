@@ -6,26 +6,26 @@
 import { Exit, Schema } from "effect"
 import { catalogue } from "@lambda-factori/core/Catalogue.ts"
 import { Level } from "@lambda-factori/core/Level.ts"
-import { copyShareLink } from "../../engine/share.ts"
 import type { HostApi } from "../../kernel/Plugin.ts"
 import { ensureOverlayStyles } from "../../render/overlay.ts"
 import { blankLevel, type LevelFields, recipeReport, showTargets, validateLevel } from "./levelText.ts"
+import type { LevelLibrary } from "./plugin.ts"
 
 const encodeLevel = Schema.encodeSync(Level)
 const decodeLevels = Schema.decodeUnknownExit(Schema.Array(Level))
 
 /** Mount the form; returns a function that removes it. */
-export const mountLevelForm = (host: HostApi, initialId: string | undefined): (() => void) => {
+export const mountLevelForm = (host: HostApi, library: LevelLibrary, initialId: string | undefined): (() => void) => {
   ensureOverlayStyles()
   const root = document.createElement("div")
   root.className = "lf-panel"
   Object.assign(root.style, { top: "22%", left: "5%", right: "5%", bottom: "5%" })
-  const papers = host.services.pack.papers
+  const papers = library.pack.papers
   root.innerHTML = `
     <header><b>your levels</b>
       <select data-pick></select>
       <button data-new>new</button>
-      <select data-copy><option value="">copy a built-in level…</option>${host.services.pack.levels.map((l) => `<option value="${l.id}">${l.title}</option>`).join("")}</select>
+      <select data-copy><option value="">copy a built-in level…</option>${library.pack.levels.map((l) => `<option value="${l.id}">${l.title}</option>`).join("")}</select>
       <button data-close>✕ home</button>
     </header>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;min-height:0">
@@ -75,7 +75,7 @@ export const mountLevelForm = (host: HostApi, initialId: string | undefined): ((
     status.textContent = ""
   }
   const refreshPicker = (selected?: string) => {
-    const levels = host.services.customLevels()
+    const levels = library.customLevels()
     $<HTMLSelectElement>("data-pick").innerHTML = levels.length
       ? levels.map((l) => `<option value="${l.id}" ${l.id === selected ? "selected" : ""}>${l.title}</option>`).join("")
       : `<option value="">(none yet)</option>`
@@ -104,7 +104,7 @@ export const mountLevelForm = (host: HostApi, initialId: string | undefined): ((
   const save = async () => {
     const level = read()
     if (!level) return undefined
-    await host.services.saveCustomLevel(level)
+    await library.saveCustomLevel(level)
     refreshPicker(level.id)
     host.toast(`saved “${level.title}”`)
     return level
@@ -114,17 +114,17 @@ export const mountLevelForm = (host: HostApi, initialId: string | undefined): ((
   $("data-play").onclick = () => void save().then((l) => l && host.navigate(`combinators/test/${encodeURIComponent(l.id)}`))
   $("data-new").onclick = () => fill(blankLevel())
   $<HTMLSelectElement>("data-pick").onchange = (e) => {
-    const l = host.services.customLevels().find((x) => x.id === (e.target as HTMLSelectElement).value)
+    const l = library.customLevels().find((x) => x.id === (e.target as HTMLSelectElement).value)
     if (l) fill(l)
   }
   $<HTMLSelectElement>("data-copy").onchange = (e) => {
-    const src = host.services.pack.levels.find((x) => x.id === (e.target as HTMLSelectElement).value)
+    const src = library.pack.levels.find((x) => x.id === (e.target as HTMLSelectElement).value)
     if (src) fill(new Level({ ...src, id: `${src.id}-copy`, world: "custom", title: `${src.title} (copy)` }))
   }
   $("data-delete").onclick = () => {
-    void host.services.removeCustomLevel(field("data-id").value.trim()).then(() => {
+    void library.removeCustomLevel(field("data-id").value.trim()).then(() => {
       refreshPicker()
-      fill(host.services.customLevels()[0] ?? blankLevel())
+      fill(library.customLevels()[0] ?? blankLevel())
       host.toast("deleted")
     })
   }
@@ -137,10 +137,10 @@ export const mountLevelForm = (host: HostApi, initialId: string | undefined): ((
   }
   $("data-share").onclick = () => {
     const level = read()
-    if (level) void copyShareLink({ type: "levels", data: [encodeLevel(level)] }).then(() => host.toast("share link copied"))
+    if (level) void host.share({ type: "levels", data: [encodeLevel(level)] }).then(() => host.toast("share link copied"))
   }
   $("data-export").onclick = () => {
-    const blob = new Blob([JSON.stringify(host.services.customLevels().map((l) => encodeLevel(l)), null, 2)], { type: "application/json" })
+    const blob = new Blob([JSON.stringify(library.customLevels().map((l) => encodeLevel(l)), null, 2)], { type: "application/json" })
     const a = document.createElement("a")
     a.href = URL.createObjectURL(blob)
     a.download = "lambda-factori-levels.json"
@@ -155,13 +155,13 @@ export const mountLevelForm = (host: HostApi, initialId: string | undefined): ((
       error.textContent = String(exit.cause).slice(0, 600)
       return
     }
-    for (const l of exit.value) await host.services.saveCustomLevel(new Level({ ...l, world: "custom" }))
+    for (const l of exit.value) await library.saveCustomLevel(new Level({ ...l, world: "custom" }))
     refreshPicker()
     host.toast(`imported ${exit.value.length} level${exit.value.length === 1 ? "" : "s"}`)
   }
   $("data-close").onclick = () => host.home()
 
-  const existing = host.services.customLevels()
+  const existing = library.customLevels()
   refreshPicker(initialId)
   fill(existing.find((l) => l.id === initialId) ?? existing[0] ?? blankLevel())
   return () => root.remove()

@@ -1,21 +1,36 @@
 import { type Application, Container, Graphics } from "pixi.js"
-import type { GameEvent } from "../game/Events.ts"
+import type { Level } from "@lambda-factori/core/Level.ts"
+import type { Deck, DeckMeta } from "@lambda-factori/contracts/Deck.ts"
+import type { HostApi, Plugin, PluginEntry, SharedPack } from "../kernel/Plugin.ts"
 import type { Scene } from "../kernel/Scene.ts"
-import { DESIGN_H, DESIGN_W, palette } from "../render/theme.ts"
+import type { Mechanic } from "../kernel/Slide.ts"
 import { Tweens } from "../kernel/tween.ts"
+import { DESIGN_H, DESIGN_W, palette } from "../render/theme.ts"
 import { Toasts } from "../render/Toasts.ts"
+import { countDevFrame } from "../platform/devHooks.ts"
 import { HomeScene } from "./HomeScene.ts"
 import { OpenScene } from "./OpenScene.ts"
-import { countDevFrame } from "./devHooks.ts"
 import { perfProbe } from "./perfProbe.ts"
-import type { HostApi, Plugin, Services } from "../kernel/Plugin.ts"
-import { builtins } from "./registry.ts"
+import { copyShareLink } from "./share.ts"
 
 /** Idle heartbeat: even a static scene is redrawn this often, to catch untweened changes. */
 const IDLE_FRAME_MS = 250
 
 const segments = (hash: string) =>
   hash.replace(/^#\/?/, "").split("/").filter((s) => s.length > 0).map(decodeURIComponent)
+
+/**
+ * The few capabilities `HomeScene` and `OpenScene` still need directly
+ * (rather than through a plugin's own port), because they aren't plugins
+ * themselves. Phase 3 of the dependency-rule plan replaces this with the
+ * generic `entries`/`shelf`/`previewPack` shape from `kernel/Plugin.ts`; until
+ * then it's the one place that shape is missing.
+ */
+export interface HostDeps {
+  listDecks(): Promise<ReadonlyArray<DeckMeta>>
+  saveDeck(deck: Deck): Promise<void>
+  saveCustomLevel(level: Level): Promise<void>
+}
 
 /**
  * Owns the Pixi stage: a fixed 1920×1080 design surface letterboxed into the
@@ -25,20 +40,23 @@ const segments = (hash: string) =>
 export class Host implements HostApi {
   readonly tweens = new Tweens()
   readonly app: Application
-  readonly services: Services
+  readonly entries: ReadonlyArray<PluginEntry>
+  private readonly deps: HostDeps
   private readonly root = new Container()
   private readonly fade = new Graphics().rect(0, 0, DESIGN_W, DESIGN_H).fill(palette.paper)
   private readonly toasts: Toasts
   private readonly bars = new Graphics()
   private scene: Scene | undefined
+  /** Loaded plugins, by id: every configured entry plus any third-party plugin opened by URL. */
   private readonly plugins = new Map<string, Promise<Plugin>>()
   private ignoreHash: string | undefined
   /** Set by input and by anything that changes the stage outside a tween; cleared on render. */
   private dirty = true
 
-  constructor(app: Application, services: Services) {
+  constructor(app: Application, entries: ReadonlyArray<PluginEntry>, deps: HostDeps) {
     this.app = app
-    this.services = services
+    this.entries = entries
+    this.deps = deps
     this.fade.alpha = 0
     this.fade.eventMode = "none"
     this.toasts = new Toasts(this.tweens)
@@ -118,10 +136,6 @@ export class Host implements HostApi {
     this.tweens.add({ duration: 160, update: (k) => (this.fade.alpha = k), done: swap })
   }
 
-  onEvent(e: GameEvent) {
-    this.scene?.onEvent?.(e)
-  }
-
   toast(text: string) {
     this.toasts.show(text)
   }
@@ -142,10 +156,41 @@ export class Host implements HostApi {
     this.ignoreHash = undefined
   }
 
+  share(pack: SharedPack): Promise<string> {
+    return copyShareLink(pack)
+  }
+
+  async mechanics(kinds: ReadonlyArray<string>): Promise<ReadonlyMap<string, Mechanic>> {
+    const map = new Map<string, Mechanic>()
+    for (const kind of new Set(kinds.filter((k) => k.includes("/")))) {
+      const [id, name] = kind.split("/") as [string, string]
+      const loading = this.plugin(id)
+      if (!loading) throw new Error(`no plugin provides slide kind “${kind}”`)
+      const plugin = await loading
+      const m = plugin.mechanics?.[name]
+      if (!m) throw new Error(`plugin “${id}” has no mechanic “${name}”`)
+      map.set(kind, m)
+    }
+    return map
+  }
+
+  /** Home-screen-only capabilities, until phase 3 replaces them with `entries`/`shelf`. */
+  listDecks(): Promise<ReadonlyArray<DeckMeta>> {
+    return this.deps.listDecks()
+  }
+
+  saveDeck(deck: Deck): Promise<void> {
+    return this.deps.saveDeck(deck)
+  }
+
+  saveCustomLevel(level: Level): Promise<void> {
+    return this.deps.saveCustomLevel(level)
+  }
+
   private plugin(id: string): Promise<Plugin> | undefined {
     const cached = this.plugins.get(id)
     if (cached) return cached
-    const entry = builtins.find((b) => b.id === id)
+    const entry = this.entries.find((b) => b.id === id)
     if (!entry) return undefined
     const loading = entry.load()
     this.plugins.set(id, loading)
@@ -170,18 +215,21 @@ export class Host implements HostApi {
         return
       }
       if (id === "plugin" && rest[0]) {
-        // A third-party plugin: an ES module whose default export is a Plugin.
+        // A third-party plugin: an ES module whose default export is a Plugin. It joins the
+        // same table as the built-ins, so a deck can also resolve mechanics from it.
         const mod = (await import(/* @vite-ignore */ rest[0])) as { default: Plugin }
-        await mod.default.open(this, rest.slice(1))
+        this.plugins.set(mod.default.id, Promise.resolve(mod.default))
+        await mod.default.open?.(this, rest.slice(1))
         return
       }
       const loading = this.plugin(id)
-      if (!loading) {
+      const plugin = loading && (await loading)
+      if (!plugin?.open) {
         this.toast(`no plugin called “${id}”`)
         this.show(() => new HomeScene(this))
         return
       }
-      await (await loading).open(this, rest)
+      await plugin.open(this, rest)
     } catch (e) {
       console.error(e)
       this.toast(`couldn't open ${id}: ${e instanceof Error ? e.message : String(e)}`)

@@ -10,7 +10,7 @@ import { ease, lerp } from "../kernel/tween.ts"
 import { Button } from "../render/Button.ts"
 import { icons } from "../render/icons.ts"
 import { para } from "../plugins/deck/slides/common.ts"
-import type { HostApi } from "../kernel/Plugin.ts"
+import type { Host } from "./Host.ts"
 import { decodePack } from "./share.ts"
 
 const decodeDeck = Schema.decodeUnknownExit(Deck)
@@ -20,9 +20,9 @@ const decodeLevels = Schema.decodeUnknownExit(Schema.Array(Level))
 /** The landing screen for a shared link: what it is, who made it, and what to do with it. */
 export class OpenScene implements Scene {
   readonly view = new Container()
-  private readonly host: HostApi
+  private readonly host: Host
 
-  constructor(host: HostApi, payload: string, from: "link" | "url" = "link") {
+  constructor(host: Host, payload: string, from: "link" | "url" = "link") {
     this.host = host
     this.view.addChild(paperArt(DESIGN_W, DESIGN_H), skylineArt(DESIGN_W, DESIGN_H - 10))
     const card = new Container()
@@ -103,11 +103,11 @@ export class OpenScene implements Scene {
   }
 
   private keep(deck: Deck) {
-    return this.host.services.saveDeck(deck)
+    return this.host.saveDeck(deck)
   }
 
   private async keepLevels(levels: ReadonlyArray<Level>) {
-    for (const l of levels) await this.host.services.saveCustomLevel(new Level({ ...l, world: "custom" }))
+    for (const l of levels) await this.host.saveCustomLevel(new Level({ ...l, world: "custom" }))
   }
 
   destroy() {

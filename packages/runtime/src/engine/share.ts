@@ -2,8 +2,11 @@
  * Serverless sharing: any pack (a deck, a level pack) is JSON, deflated and
  * base64url-encoded into a link `#/open/<payload>`. Anyone who opens the link
  * gets the pack locally and can play it, keep it, or remix it — like
- * PuzzleScript or Factorio blueprint strings, no backend required.
+ * PuzzleScript or Factorio blueprint strings, no backend required. Plugins
+ * reach this through `HostApi.share`, implemented by `Host` with
+ * `copyShareLink` below; they never import this module directly.
  */
+import type { SharedPack } from "../kernel/Plugin.ts"
 
 const toB64Url = (bytes: Uint8Array) => {
   let s = ""
@@ -20,11 +23,6 @@ const fromB64Url = (s: string) => {
 
 const pipe = async (bytes: Uint8Array<ArrayBuffer>, stream: CompressionStream | DecompressionStream) =>
   new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer())
-
-export interface SharedPack {
-  readonly type: "deck" | "levels"
-  readonly data: unknown
-}
 
 export const encodePack = async (pack: SharedPack): Promise<string> =>
   toB64Url(await pipe(new TextEncoder().encode(JSON.stringify(pack)), new CompressionStream("deflate-raw")))

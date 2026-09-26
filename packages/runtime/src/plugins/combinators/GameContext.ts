@@ -18,6 +18,8 @@ export interface GameContext {
   progress(): SaveData
   publish(event: GameEvent): void
   saveBoard(levelId: string, board: Board): void
+  /** Subscribe to game events; call the returned function to unsubscribe. */
+  subscribe(fn: (event: GameEvent) => void): () => void
   menu(): void
   play(levelId: string): void
   book(page?: "recipes" | "stickers" | "papers"): void

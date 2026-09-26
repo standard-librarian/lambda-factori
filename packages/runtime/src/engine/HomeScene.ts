@@ -6,8 +6,7 @@ import { logo } from "../render/MenuScene.ts"
 import type { Scene } from "../kernel/Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../render/theme.ts"
 import { ease, lerp } from "../kernel/tween.ts"
-import type { HostApi } from "../kernel/Plugin.ts"
-import { builtins } from "./registry.ts"
+import type { Host } from "./Host.ts"
 import { addRegistry, loadRegistries } from "./registry-community.ts"
 
 interface CardSpec {
@@ -22,12 +21,12 @@ interface CardSpec {
 /** The launcher: every plugin and every deck as a card on the factory floor. */
 export class HomeScene implements Scene {
   readonly view = new Container()
-  private readonly host: HostApi
+  private readonly host: Host
   private readonly cards = new Container()
   private time = 0
   private readonly decor: Array<Container> = []
 
-  constructor(host: HostApi) {
+  constructor(host: Host) {
     this.host = host
     this.view.addChild(paperArt(DESIGN_W, DESIGN_H), skylineArt(DESIGN_W, DESIGN_H - 10))
     const l = logo()
@@ -47,14 +46,15 @@ export class HomeScene implements Scene {
     this.view.addChild(this.cards)
 
     const tools: Array<CardSpec> = [
-      ...builtins.filter((b) => b.kind !== "deck").map<CardSpec>((b) => ({
+      // Library plugins (e.g. office) only lend the deck a mechanic; they have no card of their own.
+      ...host.entries.filter((b) => b.kind !== "deck" && b.kind !== "library").map<CardSpec>((b) => ({
         title: b.title, subtitle: b.subtitle, color: b.color, shade: b.shade, tag: `${b.kind} · plugin`, route: b.id
       })),
       { title: "add a registry", subtitle: "follow someone's shared decks and levels by URL", color: palette.inkSoft, shade: palette.ink, tag: "community", route: "" }
     ]
     this.layoutRow("plugins & tools", tools, 790)
 
-    void host.services.decks().then((decks) => {
+    void host.listDecks().then((decks) => {
       if (this.view.destroyed) return
       this.layoutRow("your decks", decks.map((d) => ({
         title: d.title,

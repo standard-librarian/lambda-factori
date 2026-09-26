@@ -1,5 +1,5 @@
-import { Effect, Layer, Stream } from "effect"
-import { exposeDev } from "@lambda-factori/runtime/engine/devHooks.ts"
+import { Effect, Fiber, Layer, Stream } from "effect"
+import { exposeDev } from "@lambda-factori/runtime/platform/devHooks.ts"
 import { Host } from "@lambda-factori/runtime/engine/Host.ts"
 import { CustomLevels } from "@lambda-factori/runtime/game/CustomLevels.ts"
 import { Decks } from "@lambda-factori/runtime/game/Decks.ts"
@@ -9,14 +9,17 @@ import { Levels } from "@lambda-factori/runtime/game/Levels.ts"
 import { preloadJson } from "@lambda-factori/runtime/game/Preload.ts"
 import { Progress } from "@lambda-factori/runtime/game/Progress.ts"
 import { Storage } from "@lambda-factori/runtime/game/Storage.ts"
-import { builtins } from "@lambda-factori/runtime/engine/registry.ts"
 import { loadFonts, Pixi, startFonts } from "@lambda-factori/runtime/render/Pixi.ts"
+import { builtinPlugins, type Ports } from "./plugins.ts"
 
 // Kick off the slow, independent downloads before anything else: fonts, and the
 // plugin that owns the current route (the host's later import reuses the module).
 startFonts()
 const [first, second] = location.hash.replace(/^#\/?/, "").split("/").map(decodeURIComponent)
-builtins.find((b) => b.id === first)?.load().catch(() => {})
+let resolvePorts!: (ports: Ports) => void
+const ports = new Promise<Ports>((resolve) => (resolvePorts = resolve))
+const entries = builtinPlugins(ports)
+entries.find((e) => e.id === first)?.load().catch(() => {})
 if (first === "deck" && second) preloadJson(`${import.meta.env.BASE_URL}decks/${encodeURIComponent(second)}.json`)
 if (!first) preloadJson(`${import.meta.env.BASE_URL}decks/index.json`)
 
@@ -39,26 +42,38 @@ const main = Effect.gen(function*() {
   const runSync = Effect.runSyncWith(services)
   const runPromise = <A, E>(eff: Effect.Effect<A, E, never>) => Effect.runPromise(eff)
 
-  const host = new Host(app, {
-    pack: levels.pack,
-    progress: () => runSync(progress.get),
-    publish: (e) => void run(events.publish(e)),
-    saveBoard: (id, board) => void run(progress.saveBoard(id, board)),
-    customLevels: () => runSync(custom.all),
-    saveCustomLevel: (level) => runPromise(custom.save(level)),
-    removeCustomLevel: (id) => runPromise(custom.remove(id)),
-    decks: () => runPromise(decks.list),
-    loadDeck: (id) => runPromise(decks.load(id)),
+  resolvePorts({
+    combinators: {
+      pack: levels.pack,
+      progress: () => runSync(progress.get),
+      publish: (e) => void run(events.publish(e)),
+      saveBoard: (id, board) => void run(progress.saveBoard(id, board)),
+      customLevels: () => runSync(custom.all),
+      subscribe: (fn) => {
+        const fiber = run(events.stream.pipe(Stream.runForEach((e) => Effect.sync(() => fn(e)))))
+        return () => run(Fiber.interrupt(fiber))
+      }
+    },
+    editor: {
+      pack: levels.pack,
+      customLevels: () => runSync(custom.all),
+      saveCustomLevel: (level) => runPromise(custom.save(level)),
+      removeCustomLevel: (id) => runPromise(custom.remove(id))
+    },
+    deck: {
+      load: (id) => runPromise(decks.load(id)),
+      save: (deck) => runPromise(decks.save(deck)),
+      reset: (id) => runPromise(decks.reset(id))
+    }
+  })
+
+  new Host(app, entries, {
+    listDecks: () => runPromise(decks.list),
     saveDeck: (deck) => runPromise(decks.save(deck)),
-    resetDeck: (id) => runPromise(decks.reset(id))
+    saveCustomLevel: (level) => runPromise(custom.save(level))
   })
 
   exposeDev("lfApp", app)
-
-  yield* events.stream.pipe(
-    Stream.runForEach((e) => Effect.sync(() => host.onEvent(e))),
-    Effect.forkScoped
-  )
   return yield* Effect.never
 })
 

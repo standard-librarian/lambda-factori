@@ -56,10 +56,12 @@ export class LevelScene implements Scene {
   private theater: Theater | undefined
   private readonly ctx: GameContext
   private readonly level: Level
+  private readonly unsubscribe: () => void
 
   constructor(ctx: GameContext, level: Level) {
     this.ctx = ctx
     this.level = level
+    this.unsubscribe = ctx.subscribe((e) => this.onEvent(e))
     const saved = ctx.progress().boards[level.id]
     this.board = saved && saved.buildings.filter((b) => b.kind === "bin").length === level.targets.length
       ? (saved as B.Board)
@@ -211,7 +213,8 @@ export class LevelScene implements Scene {
     this.setMode("running", this.speed)
   }
 
-  onEvent(e: GameEvent) {
+  /** Not part of `Scene`: subscribed directly to the game's events (see the constructor). */
+  private onEvent(e: GameEvent) {
     if (e._tag === "RecipeDiscovered") {
       const c = byName.get(e.name)
       const text = e.first ? `discovered ${e.name}${c ? ` — the ${c.bird.toLowerCase()}` : ""} · ${e.recipe}` : `new "${e.name}" recipe · ${e.recipe}`
@@ -245,6 +248,7 @@ export class LevelScene implements Scene {
   }
 
   destroy() {
+    this.unsubscribe()
     this.view.destroy({ children: true })
   }
 }
