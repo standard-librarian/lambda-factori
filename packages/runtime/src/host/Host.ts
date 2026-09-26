@@ -9,13 +9,11 @@ import { countDevFrame } from "../platform/devHooks.ts"
 import { HomeScene } from "./HomeScene.ts"
 import { OpenScene } from "./OpenScene.ts"
 import { perfProbe } from "./perfProbe.ts"
+import { parseMechanicKind, parseRoute, shadowsBuiltin } from "./routes.ts"
 import { copyShareLink } from "./share.ts"
 
 /** Idle heartbeat: even a static scene is redrawn this often, to catch untweened changes. */
 const IDLE_FRAME_MS = 250
-
-const segments = (hash: string) =>
-  hash.replace(/^#\/?/, "").split("/").filter((s) => s.length > 0).map(decodeURIComponent)
 
 /**
  * Owns the Pixi stage: a fixed 1920×1080 design surface letterboxed into the
@@ -148,13 +146,14 @@ export class Host implements HostApi {
 
   async mechanics(kinds: ReadonlyArray<string>): Promise<ReadonlyMap<string, Mechanic>> {
     const map = new Map<string, Mechanic>()
-    for (const kind of new Set(kinds.filter((k) => k.includes("/")))) {
-      const [id, name] = kind.split("/") as [string, string]
-      const loading = this.plugin(id)
+    for (const kind of new Set(kinds)) {
+      const parsed = parseMechanicKind(kind)
+      if (!parsed) continue
+      const loading = this.plugin(parsed.id)
       if (!loading) throw new Error(`no plugin provides slide kind “${kind}”`)
       const plugin = await loading
-      const m = plugin.mechanics?.[name]
-      if (!m) throw new Error(`plugin “${id}” has no mechanic “${name}”`)
+      const m = plugin.mechanics?.[parsed.name]
+      if (!m) throw new Error(`plugin “${parsed.id}” has no mechanic “${parsed.name}”`)
       map.set(kind, m)
     }
     return map
@@ -171,41 +170,49 @@ export class Host implements HostApi {
   }
 
   private async route() {
-    const [id, ...rest] = segments(location.hash)
-    if (id === undefined) {
-      this.show(() => new HomeScene(this, this.entries))
-      return
-    }
+    const parsed = parseRoute(location.hash)
+    // Named per route shape, for the catch block's toast: the plugin id or third-party URL the
+    // user tried to open (home and pack links never fail this way, but need a label too).
+    const label = parsed._tag === "Plugin" ? parsed.id : parsed._tag === "ThirdParty" ? parsed.url : parsed._tag.toLowerCase()
     try {
-      if (id === "import" && rest[0]) {
-        const url = rest.join("/")
-        this.show(() => new OpenScene(this, this.entries, url, "url"))
-        return
+      switch (parsed._tag) {
+        case "Home":
+          this.show(() => new HomeScene(this, this.entries))
+          return
+        case "Import":
+          this.show(() => new OpenScene(this, this.entries, parsed.url, "url"))
+          return
+        case "Open":
+          this.show(() => new OpenScene(this, this.entries, parsed.payload))
+          return
+        case "ThirdParty": {
+          // A third-party plugin: an ES module whose default export is a Plugin. It joins the
+          // same table as the built-ins, so a deck can also resolve mechanics from it — but it
+          // must never claim a built-in's id and silently replace it.
+          const mod = (await import(/* @vite-ignore */ parsed.url)) as { default: Plugin }
+          if (shadowsBuiltin(this.entries, mod.default.id)) {
+            this.toast(`can't load a plugin from a URL: “${mod.default.id}” is already a built-in plugin`)
+            return
+          }
+          this.plugins.set(mod.default.id, Promise.resolve(mod.default))
+          await mod.default.open?.(this, parsed.path)
+          return
+        }
+        case "Plugin": {
+          const loading = this.plugin(parsed.id)
+          const plugin = loading && (await loading)
+          if (!plugin?.open) {
+            this.toast(`no plugin called “${parsed.id}”`)
+            this.show(() => new HomeScene(this, this.entries))
+            return
+          }
+          await plugin.open(this, parsed.path)
+          return
+        }
       }
-      if (id === "open" && rest[0]) {
-        const payload = rest[0]
-        this.show(() => new OpenScene(this, this.entries, payload))
-        return
-      }
-      if (id === "plugin" && rest[0]) {
-        // A third-party plugin: an ES module whose default export is a Plugin. It joins the
-        // same table as the built-ins, so a deck can also resolve mechanics from it.
-        const mod = (await import(/* @vite-ignore */ rest[0])) as { default: Plugin }
-        this.plugins.set(mod.default.id, Promise.resolve(mod.default))
-        await mod.default.open?.(this, rest.slice(1))
-        return
-      }
-      const loading = this.plugin(id)
-      const plugin = loading && (await loading)
-      if (!plugin?.open) {
-        this.toast(`no plugin called “${id}”`)
-        this.show(() => new HomeScene(this, this.entries))
-        return
-      }
-      await plugin.open(this, rest)
     } catch (e) {
       console.error(e)
-      this.toast(`couldn't open ${id}: ${e instanceof Error ? e.message : String(e)}`)
+      this.toast(`couldn't open ${label}: ${e instanceof Error ? e.message : String(e)}`)
       if (!this.scene) this.show(() => new HomeScene(this, this.entries))
     }
   }
