@@ -1,5 +1,7 @@
 # Plan: the dependency rule (invert the host ↔ plugin arrows)
 
+**Status: phases 1–5 done.**
+
 Goal: make λ factori cheaper to change, more modular and more general, following *A Philosophy
 of Software Design* (deep modules, information hiding, no change amplification, no unknown
 unknowns) and Clean Architecture's **dependency rule**: source-code dependencies cross the

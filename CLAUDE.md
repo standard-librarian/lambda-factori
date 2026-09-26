@@ -41,7 +41,8 @@ chosen for what makes that cheap. When they conflict, prefer APOSD's depth over 
 5. **Packages are the information-hiding boundary.** `core` and `contracts` depend only on
    `effect` (no Pixi, no DOM). Anything that renders lives in `runtime`. Apps are thin shells.
    Import across packages by name (`@lambda-factori/core/Term.ts`) and relatively within one.
-   Don't re-export another module's names; import them from where they live.
+   Don't re-export another module's names; import them from where they live. Within `runtime`,
+   the same boundary applies one level down between its folders — see "Dependency rule".
 6. **Names are search keys.** Use one precise name per concept, the same name everywhere
    (schema field, variable, CSS class), and names specific enough to grep. Don't create two
    names for one value (the `TRAY_X` alias of `BOARD_W` was removed for this reason).
@@ -69,6 +70,42 @@ Keep these cleanups small, confined to the code you're already in, behaviour-pre
 covered by `pnpm check`. Mention them in the commit message. Don't rewrite unrelated modules on
 the way. If you find a bigger design problem, finish the task, then propose the fix separately.
 
+## Dependency rule
+
+Source-code imports point only from details toward policy, never the other way — the opposite
+of how control flows at runtime (`main → Host → plugin → Pixi`). Enforced by
+`packages/runtime/src/architecture.test.ts` (part of `pnpm check`), the only place the rule
+table lives, with no allowlist: a new violation, of any size, fails the build.
+
+```
+            ┌───────────────────────────────────────────────────────────┐
+  POLICY    │ packages/core, packages/contracts   pure domain + schemas  │  → effect
+  (stable)  │ runtime/kernel/   the ports: Plugin, HostApi, Scene,       │  → nothing in runtime
+            │                   Slide (SlideView, SlideContext, Mechanic),│  (pixi *types* ok)
+            │                   tween                                     │
+ ═══════════╪════════════════════ red line ═════════════════════════════╪══════════
+  DETAILS   │ runtime/platform/ Storage, Preload, devHooks (browser)     │  → nothing in runtime
+ (volatile) │ runtime/ui/       domain-free Pixi kit                     │  → kernel
+            │ runtime/host/     Host, router, HomeScene, OpenScene,      │  → kernel, ui, platform
+            │                   share codec, community registry, perf    │
+            │ runtime/game/     the combinator game's Effect services    │  → platform, core, contracts
+            │ runtime/plugins/<id>/  one plugin each                     │  → kernel, ui, platform, game,
+            │                                                            │    core, contracts, itself
+            │ apps/*/src        composition root                        │  → anything
+            └───────────────────────────────────────────────────────────┘
+```
+
+1. `kernel/` imports nothing else in `runtime`, and nothing from `core`/`contracts`.
+2. `platform/` imports nothing else in `runtime`.
+3. `ui/` imports only `kernel/` — the kit is domain-free (no `core`, no `contracts`).
+4. `host/` imports only `kernel/`, `ui/`, `platform/`. **The host never names a plugin.**
+5. `game/` imports only `platform/`, `core`, `contracts` — no Pixi.
+6. `plugins/<a>/` never imports `plugins/<b>/` or `host/`. Plugins talk to each other only
+   through routes (strings) and kernel ports.
+7. `plugins/<a>/manifest.ts` imports only `kernel/` — it is loaded eagerly, before the chunk.
+8. Only `apps/*/src` names concrete plugins and wires services (the composition root).
+9. `packages/core` and `packages/contracts` import only `effect` and themselves.
+
 ## Recipes
 
 - **Add a core slide kind:**
@@ -79,13 +116,30 @@ the way. If you find a bigger design problem, finish the task, then propose the 
   3. Write the renderer in `plugins/deck/slides/`. It returns a `SlideView`: `steps`,
      `setStep`, optional `tick`/`animating`.
   4. Add a slide to the mechanics tour deck, and a test if the kind has data invariants.
-- **Add a plugin slide mechanic** (`<plugin>/<name>`): export a `Mechanic` from the plugin and
-  register its loader in `packages/runtime/src/engine/mechanics.ts`. Validate its fields with
-  its own schema, as `office/scene` does with `@lambda-factori/contracts/OfficeSpec.ts`.
+- **Add a plugin slide mechanic** (`<plugin>/<name>`): export a `mechanics: Record<string,
+  Mechanic>` from the plugin and spread it onto the `Plugin` object returned by `plugin.ts`
+  (see `plugins/office/mechanics.ts`, `plugins/combinators/mechanics.ts`). `HostApi.mechanics`
+  resolves a deck's `<plugin>/<name>` kinds by loading the owning plugin — nothing to register
+  elsewhere. Validate the slide's fields with its own schema in `packages/contracts`, as
+  `office/scene` does with `OfficeSpec.ts` (`combinators/theater` does the same with
+  `TheaterSlide.ts`).
 - **Add a plugin:**
-  1. Implement `Plugin` (`engine/Plugin.ts`).
-  2. List a lazy `load` in `engine/registry.ts`.
-  3. Its routes are `#/<id>/…`.
+  1. Give it a folder under `plugins/<id>/` with a `manifest.ts` (`id`, `title`, `subtitle`,
+     `kind`, `color`, `shade`, and `packTypes` if it shares anything) and a `plugin.ts` that
+     spreads the manifest onto a `Plugin` (`kernel/Plugin.ts`).
+  2. List one entry in `apps/web/src/plugins.ts` — the only file that names concrete plugins —
+     with a lazy `load` that imports `plugin.ts` and constructs it with its own port.
+  3. Its routes are `#/<id>/…`. A `library` plugin (like `office`) has no route, only
+     `mechanics`.
+- **Add a share pack type:** add it to the plugin's manifest `packTypes` and implement
+  `previewPack(type, data, host)` on the `Plugin`, returning `{ title, subtitle, meta, actions
+  }` (throw a readable message on bad data — `OpenScene` shows it as "this pack doesn't match
+  the format"). `OpenScene` finds the owning entry by matching `packTypes` alone; the host
+  never decodes the pack itself.
+- **Add a home-screen shelf:** give the plugin's entry, in `apps/web/src/plugins.ts`, a
+  `shelf: { title, cards() }` (`kernel/Plugin.ts`'s `HomeShelf`; see `plugins/deck/shelf.ts`).
+  `HomeScene` renders one row per entry that has a shelf, titled by the shelf itself — never a
+  title it guesses from `kind`.
 - **Add a level:** add it to `packages/core/src/data/levels.json`. Find the smallest recipe with
   `pnpm search <name> <atoms> <depth>`. Tests decode the pack.
 - **Add or edit a deck:** put the JSON in `apps/web/public/decks/<id>.json` and list it in
@@ -93,14 +147,17 @@ the way. If you find a bigger design problem, finish the task, then propose the 
 
 ## Map
 
-Plugins (`packages/runtime/src/engine/registry.ts`):
+Plugins (`apps/web/src/plugins.ts`, the composition root — see "Dependency rule"):
 - **`combinators`:** the combinator-logic factory game (start from S and K, derive the birds, up
   to APL/BQN trains and Church booleans). Routes: `#/combinators`, `/level/<id>`,
-  `/book/<page>`, `/test/<id>` (playtest from the editor).
+  `/book/<page>`, `/test/<id>` (playtest from the editor). Shares level packs
+  (`packTypes: ["levels"]`) and lends the deck one slide mechanic, `combinators/theater`, an
+  inline reduction theater.
 - **`editor`:** level creation mode: validate, find the smallest recipe, save, playtest,
   import/export.
 - **`deck`:** slide decks as runtime data, in `apps/web/public/decks/<id>.json` and listed in
-  its `index.json`. Routes: `#/deck/<id>/<n>`, `#/deck/<id>/presenter`.
+  its `index.json`. Routes: `#/deck/<id>/<n>`, `#/deck/<id>/presenter`. Shares decks
+  (`packTypes: ["deck"]`) and lends the home screen its "your decks" shelf.
   - Factory-style kinds:
     - `factory`: modules as buildings, with an x-ray step;
     - `decisions`: a Parnas change map, where `secretly` gems are unknown unknowns;
@@ -108,7 +165,8 @@ Plugins (`packages/runtime/src/engine/registry.ts`):
       playback bar.
   - Slides can move the deck's step with `ctx.syncStep`, and report `animating()` so
     render-on-demand knows when they need frames.
-- **`office`:** a Human Resource Machine-style mechanic, the slide kind `office/scene`.
+- **`office`:** a `library` plugin (no route, no home-screen card): a Human Resource
+  Machine-style mechanic, the slide kind `office/scene`.
   - It runs an HRM-format program (INBOX/OUTBOX/COPYFROM/COPYTO/ADD/SUB/BUMP/JUMP/JUMPZ/JUMPN,
     with labels `a:`).
   - It also has presentation verbs: VISIT/PASS/WORK desks, SAY/THINK, BOSS, CLERK
@@ -118,7 +176,9 @@ Plugins (`packages/runtime/src/engine/registry.ts`):
   `Plugin`. Plugin slide kinds are namespaced (`<plugin>/<mechanic>`) and preloaded before a
   deck opens.
 
-Sharing (no backend):
+Sharing (no backend): a pack is `{ type, data }`; the host matches `type` against a plugin's
+`packTypes` and asks that plugin's `previewPack` what to show — it never decodes a deck or a
+level pack itself (`host/OpenScene.ts`).
 - `#/open/<deflate+base64url pack>` share links: S in a deck, or "copy share link" in the
   editor;
 - `#/import/<url>` for hosted JSON packs;
@@ -127,37 +187,50 @@ Sharing (no backend):
 
 Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a version catalog):
 - **`apps/web`:** the browser app: `index.html`, `vite.config.ts`, `src/main.ts` (wires the
-  Effect layers), and `public/` (decks, fonts, registry.json). This is what GitHub Pages serves.
+  Effect layers) and `src/plugins.ts` (the composition root), and `public/` (decks, fonts,
+  registry.json). This is what GitHub Pages serves.
 - **`apps/mobile-capacitor`:** experiment. The web build as an iOS app (Capacitor 8, SPM).
   - `pnpm --filter @lambda-factori/mobile-capacitor sync`, then `build:sim`.
   - `LF_START="?perf#/deck/…"` opens a route with the frame-stats probe on.
 - **`packages/core`:** pure logic (terms, reduction, trace, board with wire routing over
   `MinHeap`, sim, levels, recipe search) and `data/levels.json`.
-- **`packages/contracts`:** the shared schemas, `Deck.ts` (`Slide`, `SlideOf`, `CoreKind`) and
-  `OfficeSpec.ts`.
-- **`packages/runtime`:** what every shell loads.
-  - `engine/`: Host (stage, router, render loop), plugin contract, home screen, sharing,
-    `devHooks.ts`, `perfProbe.ts`.
-  - `render/`: shared Pixi pieces and the game's scenes.
-    - Art and UI: `label` (optically centred text), `factoryArt`, `backdrop`, `archive`,
-      `Button`, `icons`, `Toasts`, `effects`, and `PlaybackBar`.
-    - The theater: `Theater` (the modal), `TermRow` (term layout and the rewrite animation),
-      and `TheaterSpec` (what to show).
-    - A level is split into:
-      - `LevelScene`: state and mode;
-      - `BoardView`: the drawn floor;
-      - `BoardEditor`: pointer editing;
-      - `SimAnimator`: how simulation events look;
-      - `LevelTray`, `LevelComplete` and `floorGeometry`.
-  - `game/`: Effect services: Levels, Progress, CustomLevels, Decks, GameEvents, Storage.
+- **`packages/contracts`:** the shared schemas: `Deck.ts` (`Slide`, `SlideOf`, `CoreKind`, and
+  the migration that still decodes a legacy `kind: "theater"` slide as `combinators/theater`),
+  `OfficeSpec.ts`, `TheaterSlide.ts`.
+- **`packages/runtime`:** what every shell loads, laid out by the dependency rule.
+  - `kernel/`: the ports every layer depends on and nothing depends on it back — `Plugin.ts`
+    (`HostApi`, `PluginManifest`, `Plugin`, `PluginEntry`, `HomeShelf`, `SharedPack`,
+    `PackPreview`), `Scene.ts`, `Slide.ts` (`SlideContext`, `SlideView`, `Mechanic`), `tween.ts`.
+  - `platform/`: browser details shared by nothing else in `runtime`: `Storage`, `Preload`,
+    `devHooks.ts`.
+  - `ui/`: the domain-free Pixi kit — `label` (optically centred text), `factoryArt` (the
+    building/bin/token shapes, all colours passed in; the one piece that needs the combinator
+    catalogue, `machineArt`, lives in the combinators plugin instead), `backdrop`, `Button`,
+    `icons`, `Toasts`, `PlaybackBar`, `logo`, `overlay`, `text`, `theme`, and `Pixi` (the
+    Application service).
+  - `host/`: `Host` (stage, router, render loop), `HomeScene`, `OpenScene` (the generic pack
+    card), the share codec (`share.ts`), the community registry, `perfProbe.ts`. Never names a
+    plugin.
+  - `game/`: the combinator game's own Effect services, shared by the combinators and editor
+    plugins: `Levels`, `Progress`, `CustomLevels`, `GameEvents`, `Discovery`.
   - `plugins/`: combinators, editor, deck, office.
+    - **combinators:** `manifest`, `plugin` (its port is `CombinatorsPort`), `GameContext` (the
+      game's own window onto the host); `mechanics.ts` + `theaterSlide.ts` (the
+      `combinators/theater` mechanic) and `Theater`/`TheaterSpec`/`TermRow` (the reduction
+      theater modal, opened from a level or the book); `machineArt` (the one factory-art piece
+      that needs the catalogue); and the game's scenes —
+      `LevelScene`: state and mode;
+      `BoardView`: the drawn floor;
+      `BoardEditor`: pointer editing;
+      `SimAnimator`: how simulation events look;
+      `LevelTray`, `LevelComplete`, `floorGeometry`, `StickerPile`, `BookScene`, `MenuScene`,
+      `archive`.
     - **editor:** `levelText` (the pure model, tested), `form` (the DOM), `plugin`.
-    - **deck:**
-      - `DeckScene`: navigation and keys;
-      - `DeckChrome`, `slideFrame`, `overlays`, `messages` (the presenter protocol);
-      - `render.ts`: the kind registry, plus `templates.ts`;
-      - `slides/`: one kind per file, plus `lineTimeline` and `highlight`;
-      - the slide editor on E and the presenter window on P.
+    - **deck:** `Decks` (the `DeckLibrary` backend), `shelf` (the home screen's "your decks"
+      row), `DeckScene` (navigation and keys), `DeckChrome`, `slideFrame`, `overlays`,
+      `messages` (the presenter protocol), `render.ts` (the kind registry) plus `templates.ts`,
+      `slides/` (one kind per file, plus `lineTimeline` and `highlight`), the slide editor on E
+      and the presenter window on P.
     - **office:**
       - `OfficeSlide`: beats and controls;
       - `Room`, `ProgramStrip`, `Speech`;
@@ -171,7 +244,7 @@ Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a vers
   coordinates.
   - Env: `THROTTLE=4` (CPU), `LATENCY=80` (network), `VIDEO=<dir>` (record), `VW`/`VH`
     (viewport).
-  - Dev hooks (`engine/devHooks.ts`): `lfDeck.goto(i, step)`, `lfApp`, and `lfFrames`
+  - Dev hooks (`platform/devHooks.ts`): `lfDeck.goto(i, step)`, `lfApp`, and `lfFrames`
     (frames rendered).
 - **Rendering is on demand** (`Host`): a frame is drawn while tweens run, while a scene with
   `tick` animates (override with `animating()`), after input, and on a 4 Hz heartbeat.
