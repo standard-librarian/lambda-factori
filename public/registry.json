@@ -1,0 +1,30 @@
+{
+  "name": "λ factori community",
+  "entries": [
+    {
+      "kind": "deck",
+      "title": "Week 1 · Complexity is the enemy",
+      "subtitle": "Track B intro, APOSD ch. 1–6, Parnas 1972, Out of the Tar Pit — as factories, belts and change maps",
+      "author": "Medhat",
+      "tags": [
+        "software design",
+        "APOSD",
+        "Parnas",
+        "Out of the Tar Pit",
+        "Track B"
+      ],
+      "url": "decks/week1-complexity.json"
+    },
+    {
+      "kind": "plugin",
+      "title": "combinator factory",
+      "subtitle": "a Word Factori-style game: derive every bird from S and K, up to APL trains and NAND adders",
+      "author": "λ factori",
+      "tags": [
+        "game",
+        "combinatory logic"
+      ],
+      "route": "combinators"
+    }
+  ]
+}

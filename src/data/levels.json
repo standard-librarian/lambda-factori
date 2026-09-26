@@ -1,0 +1,1468 @@
+{
+  "worlds": [
+    {
+      "id": "schonfinkel",
+      "title": "Schönfinkel",
+      "subtitle": "1924 · all you need is S and K"
+    },
+    {
+      "id": "curry",
+      "title": "Curry",
+      "subtitle": "B, C, K, W · the working birds"
+    },
+    {
+      "id": "apl",
+      "title": "Iverson",
+      "subtitle": "APL · tacit trains are combinators"
+    },
+    {
+      "id": "bqn",
+      "title": "Lochbaum",
+      "subtitle": "BQN · every modifier is a bird"
+    },
+    {
+      "id": "church",
+      "title": "Church",
+      "subtitle": "booleans are choices · true = K, false = KI"
+    },
+    {
+      "id": "nand",
+      "title": "Nisan & Schocken",
+      "subtitle": "NAND → gates → adders · the road to Tetris"
+    }
+  ],
+  "papers": [
+    {
+      "id": "schonfinkel1924",
+      "authors": "Moses Schönfinkel",
+      "year": 1924,
+      "title": "Über die Bausteine der mathematischen Logik",
+      "venue": "Mathematische Annalen 92, 305–316",
+      "note": "“On the building blocks of mathematical logic.” Presented in Göttingen in 1920. It introduces I, C (our K), T (our C), Z (our B) and S, and shows that S and C alone are enough. Combinatory logic starts here."
+    },
+    {
+      "id": "curry1930",
+      "authors": "Haskell B. Curry",
+      "year": 1930,
+      "title": "Grundlagen der kombinatorischen Logik",
+      "venue": "American Journal of Mathematics 52, 509–536 & 789–834",
+      "note": "Curry's Göttingen dissertation independently rebuilds combinatory logic on B, C, K and W. W duplicates an argument, B composes, C swaps and K discards."
+    },
+    {
+      "id": "curryFeys1958",
+      "authors": "Haskell B. Curry & Robert Feys",
+      "year": 1958,
+      "title": "Combinatory Logic, Volume I",
+      "venue": "North-Holland, Amsterdam",
+      "note": "The standard reference on the subject. Among many others it defines Φ (the “formalizing” combinator, APL's fork) and Ψ (APL's ⍥ and BQN's ○)."
+    },
+    {
+      "id": "smullyan1985",
+      "authors": "Raymond Smullyan",
+      "year": 1985,
+      "title": "To Mock a Mockingbird and Other Logic Puzzles",
+      "venue": "Alfred A. Knopf, New York",
+      "note": "A book of puzzles set in an enchanted forest where every combinator is a bird: the Starling, Kestrel, Mockingbird, Thrush, Vireo, Dove and friends. The names stuck."
+    },
+    {
+      "id": "iverson1962",
+      "authors": "Kenneth E. Iverson",
+      "year": 1962,
+      "title": "A Programming Language",
+      "venue": "John Wiley & Sons, New York",
+      "note": "The book whose title became the language's name: APL. It presents the notation first as mathematics and only later as a programming language."
+    },
+    {
+      "id": "iverson1980",
+      "authors": "Kenneth E. Iverson",
+      "year": 1980,
+      "title": "Notation as a Tool of Thought",
+      "venue": "Communications of the ACM 23(8), 444–465 · Turing Award Lecture",
+      "note": "Iverson's case that good notation makes you think better. Composing primitives such as +/ and × into bigger ideas is the heart of the lecture."
+    },
+    {
+      "id": "iverson1987",
+      "authors": "Kenneth E. Iverson",
+      "year": 1987,
+      "title": "A Dictionary of APL",
+      "venue": "APL Quote Quad 18(1), 5–40",
+      "note": "A rethink of APL's operators. Commute ⍨ appears: f⍨ ⍵ is ⍵ f ⍵ (the Warbler W), and ⍺ f⍨ ⍵ is ⍵ f ⍺ (the Cardinal C)."
+    },
+    {
+      "id": "iversonMcdonnell1989",
+      "authors": "Kenneth E. Iverson & Eugene E. McDonnell",
+      "year": 1989,
+      "title": "Phrasal Forms",
+      "venue": "APL89 Conference Proceedings · APL Quote Quad 19(4)",
+      "note": "Introduces hooks and forks. (f g h) ⍵ is (f ⍵) g (h ⍵), which is Curry's Φ, and the hook (f g) ⍵ is ⍵ f (g ⍵), which is Schönfinkel's S. J adopted both, and Dyalog added trains in 2014."
+    },
+    {
+      "id": "dyalog2020",
+      "authors": "Dyalog Ltd.",
+      "year": 2020,
+      "title": "Dyalog APL 18.0",
+      "venue": "Release notes: Atop ⍤ and Over ⍥",
+      "note": "Version 18.0 gave APL named operators for two more birds: f⍤g (atop, the Blackbird B₁ when used dyadically) and f⍥g (over, Curry's Ψ)."
+    },
+    {
+      "id": "lochbaum2020",
+      "authors": "Marshall Lochbaum",
+      "year": 2020,
+      "title": "BQN: finally, an APL for your flying saucer",
+      "venue": "mlochbaum.github.io/BQN",
+      "note": "A modern array language that is open about its combinators. ∘ atop, ○ over, ⊸ before, ⟜ after and ˜ self/swap are each a single combinator, and trains work as in APL."
+    },
+    {
+      "id": "hoekstra2022",
+      "authors": "Conor Hoekstra",
+      "year": 2022,
+      "title": "Combinatory Logic and Combinators in Array Languages",
+      "venue": "ARRAY 2022 · ACM SIGPLAN Workshop on Libraries, Languages and Compilers for Array Programming",
+      "note": "Lines up the birds against APL, J and BQN, showing that tacit array programming is combinatory logic written in glyphs."
+    },
+    {
+      "id": "boole1854",
+      "authors": "George Boole",
+      "year": 1854,
+      "title": "An Investigation of the Laws of Thought",
+      "venue": "Walton and Maberly, London",
+      "note": "The algebra of logic: and, or and not as operations you can calculate with. Every gate in this world is Boole's."
+    },
+    {
+      "id": "sheffer1913",
+      "authors": "Henry M. Sheffer",
+      "year": 1913,
+      "title": "A Set of Five Independent Postulates for Boolean Algebras, with Application to Logical Constants",
+      "venue": "Transactions of the American Mathematical Society 14(4), 481–488",
+      "note": "Shows that a single operation, the “stroke” (not-and), is enough for all of Boolean algebra. Schönfinkel opens his 1924 paper by doing the same trick for logic, then for functions."
+    },
+    {
+      "id": "shannon1938",
+      "authors": "Claude E. Shannon",
+      "year": 1938,
+      "title": "A Symbolic Analysis of Relay and Switching Circuits",
+      "venue": "Transactions of the AIEE 57(12), 713–723",
+      "note": "Shannon's master's thesis: Boolean algebra describes switching circuits, so circuits can be designed by calculation. Adders included."
+    },
+    {
+      "id": "church1941",
+      "authors": "Alonzo Church",
+      "year": 1941,
+      "title": "The Calculi of Lambda-Conversion",
+      "venue": "Annals of Mathematics Studies 6, Princeton University Press",
+      "note": "Data as functions: a boolean is something that chooses between two things, a number is something that repeats. True is K, false is KI."
+    },
+    {
+      "id": "nisan2005",
+      "authors": "Noam Nisan & Shimon Schocken",
+      "year": 2005,
+      "title": "The Elements of Computing Systems",
+      "venue": "MIT Press · nand2tetris.org",
+      "note": "Build a whole computer, and then Tetris on it, starting from a single NAND gate. Not, And, Or, Xor, Mux, then adders, an ALU, memory and a CPU."
+    }
+  ],
+  "levels": [
+    {
+      "id": "kite",
+      "world": "schonfinkel",
+      "title": "first flight",
+      "blurb": "Build something that ignores its first argument and returns the second.",
+      "hint": "S K",
+      "sources": [
+        "S",
+        "K"
+      ],
+      "targets": [
+        {
+          "label": "KI",
+          "params": "xy",
+          "body": "y"
+        }
+      ],
+      "paper": "schonfinkel1924"
+    },
+    {
+      "id": "idiot",
+      "world": "schonfinkel",
+      "title": "the idiot bird",
+      "blurb": "I x = x. Schönfinkel showed it isn't primitive at all.",
+      "hint": "S K K",
+      "sources": [
+        "S",
+        "K"
+      ],
+      "targets": [
+        {
+          "label": "I",
+          "params": "x",
+          "body": "x"
+        }
+      ],
+      "sticker": "I",
+      "paper": "schonfinkel1924"
+    },
+    {
+      "id": "ski",
+      "world": "schonfinkel",
+      "title": "S K I",
+      "blurb": "Your first word. Two letters are free; one you have to make.",
+      "sources": [
+        "S",
+        "K"
+      ],
+      "targets": [
+        {
+          "label": "S",
+          "params": "xyz",
+          "body": "x z (y z)"
+        },
+        {
+          "label": "K",
+          "params": "xy",
+          "body": "x"
+        },
+        {
+          "label": "I",
+          "params": "x",
+          "body": "x"
+        }
+      ],
+      "paper": "schonfinkel1924"
+    },
+    {
+      "id": "bluebird",
+      "world": "schonfinkel",
+      "title": "composition",
+      "blurb": "B x y z = x (y z). Feed z through y, then through x.",
+      "hint": "S (K S) K",
+      "sources": [
+        "S",
+        "K"
+      ],
+      "targets": [
+        {
+          "label": "B",
+          "params": "xyz",
+          "body": "x (y z)"
+        }
+      ],
+      "sticker": "B",
+      "paper": "schonfinkel1924"
+    },
+    {
+      "id": "mockingbird",
+      "world": "schonfinkel",
+      "title": "mirror, mirror",
+      "blurb": "M x = x x. A bird that sings its own song back to itself.",
+      "hint": "S I I",
+      "sources": [
+        "S",
+        "K",
+        "I"
+      ],
+      "targets": [
+        {
+          "label": "M",
+          "params": "x",
+          "body": "x x"
+        }
+      ],
+      "sticker": "M",
+      "paper": "smullyan1985"
+    },
+    {
+      "id": "thrush",
+      "world": "schonfinkel",
+      "title": "turnabout",
+      "blurb": "T x y = y x. Hand x to whoever comes next.",
+      "hint": "S (K (S I)) K",
+      "sources": [
+        "S",
+        "K",
+        "I"
+      ],
+      "targets": [
+        {
+          "label": "T",
+          "params": "xy",
+          "body": "y x"
+        }
+      ],
+      "sticker": "T",
+      "paper": "smullyan1985"
+    },
+    {
+      "id": "cardinal",
+      "world": "curry",
+      "title": "the cardinal",
+      "blurb": "C x y z = x z y. Swap the last two arguments.",
+      "hint": "S (B B S) (K K)",
+      "sources": [
+        "S",
+        "K",
+        "B"
+      ],
+      "targets": [
+        {
+          "label": "C",
+          "params": "xyz",
+          "body": "x z y"
+        }
+      ],
+      "sticker": "C",
+      "paper": "schonfinkel1924"
+    },
+    {
+      "id": "warbler",
+      "world": "curry",
+      "title": "say it twice",
+      "blurb": "W x y = x y y. Duplicate an argument.",
+      "hint": "C S I — or S S (S K) with only Schönfinkel's birds.",
+      "sources": [
+        "S",
+        "K",
+        "I",
+        "C"
+      ],
+      "targets": [
+        {
+          "label": "W",
+          "params": "xy",
+          "body": "x y y"
+        }
+      ],
+      "sticker": "W",
+      "paper": "curry1930"
+    },
+    {
+      "id": "vireo",
+      "world": "curry",
+      "title": "pairs",
+      "blurb": "V x y z = z x y. Hold two values until a selector arrives.",
+      "hint": "B C T",
+      "sources": [
+        "B",
+        "C",
+        "T"
+      ],
+      "targets": [
+        {
+          "label": "V",
+          "params": "xyz",
+          "body": "z x y"
+        }
+      ],
+      "sticker": "V",
+      "paper": "smullyan1985"
+    },
+    {
+      "id": "bckw",
+      "world": "curry",
+      "title": "B C K W",
+      "blurb": "Curry's basis, spelled out from Schönfinkel's.",
+      "sources": [
+        "S",
+        "K",
+        "I"
+      ],
+      "targets": [
+        {
+          "label": "B",
+          "params": "xyz",
+          "body": "x (y z)"
+        },
+        {
+          "label": "C",
+          "params": "xyz",
+          "body": "x z y"
+        },
+        {
+          "label": "K",
+          "params": "xy",
+          "body": "x"
+        },
+        {
+          "label": "W",
+          "params": "xy",
+          "body": "x y y"
+        }
+      ],
+      "paper": "curry1930"
+    },
+    {
+      "id": "tacks",
+      "world": "apl",
+      "title": "⊣ ⊢",
+      "blurb": "APL's tacks are Kestrels: ⍺ ⊣ ⍵ is ⍺, ⍺ ⊢ ⍵ is ⍵.",
+      "sources": [
+        "K",
+        "I"
+      ],
+      "targets": [
+        {
+          "label": "⊣",
+          "params": "ab",
+          "body": "a"
+        },
+        {
+          "label": "⊢",
+          "params": "ab",
+          "body": "b"
+        }
+      ],
+      "paper": "iverson1962"
+    },
+    {
+      "id": "selfie",
+      "world": "apl",
+      "title": "double it +⍨",
+      "blurb": "f⍨ ⍵ is ⍵ f ⍵: commute used monadically is the Warbler. +⍨ doubles.",
+      "hint": "W +",
+      "sources": [
+        "W",
+        "+",
+        "×"
+      ],
+      "targets": [
+        {
+          "label": "+⍨",
+          "params": "w",
+          "body": "+ w w"
+        }
+      ],
+      "paper": "iverson1987"
+    },
+    {
+      "id": "commute",
+      "world": "apl",
+      "title": "swap it -⍨",
+      "blurb": "⍺ f⍨ ⍵ is ⍵ f ⍺: commute used dyadically is the Cardinal.",
+      "hint": "C -",
+      "sources": [
+        "C",
+        "-",
+        "÷"
+      ],
+      "targets": [
+        {
+          "label": "-⍨",
+          "params": "ab",
+          "body": "- b a"
+        }
+      ],
+      "paper": "iverson1987"
+    },
+    {
+      "id": "atop",
+      "world": "apl",
+      "title": "atop ⍤",
+      "blurb": "⍺ (f⍤g) ⍵ = f (⍺ g ⍵). The Blackbird composes after a dyad.",
+      "hint": "B B B",
+      "sources": [
+        "B"
+      ],
+      "targets": [
+        {
+          "label": "⍤",
+          "params": "fgab",
+          "body": "f (g a b)"
+        }
+      ],
+      "sticker": "B₁",
+      "paper": "dyalog2020"
+    },
+    {
+      "id": "sumsq",
+      "world": "apl",
+      "title": "sum of squares",
+      "blurb": "+/×⍨ ⍵: square each with ×⍨, then sum with +/. Two birds, one pipeline.",
+      "hint": "B +/ (W ×)",
+      "sources": [
+        "B",
+        "W",
+        "+/",
+        "×"
+      ],
+      "targets": [
+        {
+          "label": "+/×⍨",
+          "params": "w",
+          "body": "+/ (× w w)"
+        }
+      ],
+      "paper": "iverson1980"
+    },
+    {
+      "id": "fork",
+      "world": "apl",
+      "title": "the fork",
+      "blurb": "(f g h) ⍵ = (f ⍵) g (h ⍵). Iverson's fork is Curry's Phoenix Φ.",
+      "hint": "B (B S) B",
+      "sources": [
+        "S",
+        "B"
+      ],
+      "targets": [
+        {
+          "label": "Φ",
+          "params": "gfhw",
+          "body": "g (f w) (h w)"
+        }
+      ],
+      "sticker": "Φ",
+      "paper": "iversonMcdonnell1989"
+    },
+    {
+      "id": "average",
+      "world": "apl",
+      "title": "avg ← +/ ÷ ≢",
+      "blurb": "The most famous train: sum divided by count.",
+      "hint": "Φ ÷ +/ ≢",
+      "sources": [
+        "Φ",
+        "÷",
+        "+/",
+        "≢"
+      ],
+      "targets": [
+        {
+          "label": "avg",
+          "params": "w",
+          "body": "÷ (+/ w) (≢ w)"
+        }
+      ],
+      "paper": "iversonMcdonnell1989"
+    },
+    {
+      "id": "range",
+      "world": "apl",
+      "title": "range ⌈/-⌊/",
+      "blurb": "Largest minus smallest, as a fork: (⌈/ ⍵) - (⌊/ ⍵).",
+      "hint": "Φ - ⌈/ ⌊/",
+      "sources": [
+        "Φ",
+        "-",
+        "⌈/",
+        "⌊/"
+      ],
+      "targets": [
+        {
+          "label": "range",
+          "params": "w",
+          "body": "- (⌈/ w) (⌊/ w)"
+        }
+      ],
+      "paper": "iversonMcdonnell1989"
+    },
+    {
+      "id": "palindrome",
+      "world": "apl",
+      "title": "palindrome? ≡∘⌽",
+      "blurb": "A hook: does ⍵ match its reverse? (f g) ⍵ = ⍵ f (g ⍵) is the Starling.",
+      "hint": "S ≡ ⌽",
+      "sources": [
+        "S",
+        "B",
+        "≡",
+        "⌽"
+      ],
+      "targets": [
+        {
+          "label": "pal?",
+          "params": "w",
+          "body": "≡ w (⌽ w)"
+        }
+      ],
+      "paper": "iversonMcdonnell1989"
+    },
+    {
+      "id": "over",
+      "world": "apl",
+      "title": "over ⍥",
+      "blurb": "⍺ (f⍥g) ⍵ = (g ⍺) f (g ⍵). Curry's Ψ pre-processes both sides.",
+      "hint": "C (W S (B B (C B)))",
+      "sources": [
+        "B",
+        "C",
+        "W",
+        "S"
+      ],
+      "targets": [
+        {
+          "label": "⍥",
+          "params": "fgab",
+          "body": "f (g a) (g b)"
+        }
+      ],
+      "sticker": "Ψ",
+      "paper": "curryFeys1958"
+    },
+    {
+      "id": "dyadic-fork",
+      "world": "apl",
+      "title": "⍺ (f g h) ⍵",
+      "blurb": "The dyadic fork, Φ₁. Two phoenixes and a bluebird.",
+      "hint": "B Φ Φ",
+      "sources": [
+        "B",
+        "Φ"
+      ],
+      "targets": [
+        {
+          "label": "Φ₁",
+          "params": "gfhab",
+          "body": "g (f a b) (h a b)"
+        }
+      ],
+      "sticker": "Φ₁",
+      "paper": "iversonMcdonnell1989"
+    },
+    {
+      "id": "difference-of-squares",
+      "world": "apl",
+      "title": "⍺ (+×-) ⍵",
+      "blurb": "(⍺+⍵)×(⍺-⍵) as a dyadic train. Feed the Pheasant three functions.",
+      "hint": "Φ₁ × + -",
+      "sources": [
+        "Φ₁",
+        "×",
+        "+",
+        "-"
+      ],
+      "targets": [
+        {
+          "label": "+×-",
+          "params": "ab",
+          "body": "× (+ a b) (- a b)"
+        }
+      ],
+      "paper": "iversonMcdonnell1989"
+    },
+    {
+      "id": "bqn-after",
+      "world": "bqn",
+      "title": "after ⟜",
+      "blurb": "𝔽⟜𝔾 𝕩 is 𝕩 𝔽 (𝔾 𝕩). ∾⟜⌽ joins a list to its reverse. Another Starling.",
+      "hint": "S ∾ ⌽",
+      "sources": [
+        "S",
+        "K",
+        "∾",
+        "⌽"
+      ],
+      "targets": [
+        {
+          "label": "∾⟜⌽",
+          "params": "w",
+          "body": "∾ w (⌽ w)"
+        }
+      ],
+      "paper": "lochbaum2020"
+    },
+    {
+      "id": "sigma",
+      "world": "bqn",
+      "title": "before ⊸",
+      "blurb": "𝔽⊸𝔾 𝕩 is (𝔽 𝕩) 𝔾 𝕩: the mirror image of after. Call it Σ and build it.",
+      "hint": "C (B S C)",
+      "sources": [
+        "S",
+        "B",
+        "C"
+      ],
+      "targets": [
+        {
+          "label": "Σ",
+          "params": "xyz",
+          "body": "y (x z) z"
+        }
+      ],
+      "sticker": "Σ",
+      "paper": "hoekstra2022"
+    },
+    {
+      "id": "bqn-before",
+      "world": "bqn",
+      "title": "palindrome? ⌽⊸≡",
+      "blurb": "BQN's palindrome test: reverse first, then match against the original.",
+      "hint": "Σ ⌽ ≡",
+      "sources": [
+        "Σ",
+        "≡",
+        "⌽"
+      ],
+      "targets": [
+        {
+          "label": "⌽⊸≡",
+          "params": "w",
+          "body": "≡ (⌽ w) w"
+        }
+      ],
+      "paper": "lochbaum2020"
+    },
+    {
+      "id": "dove",
+      "world": "bqn",
+      "title": "the dove",
+      "blurb": "D x y z w = x y (z w): leave the left argument alone, transform the right.",
+      "hint": "B B",
+      "sources": [
+        "B",
+        "K"
+      ],
+      "targets": [
+        {
+          "label": "D",
+          "params": "xyzw",
+          "body": "x y (z w)"
+        }
+      ],
+      "sticker": "D",
+      "paper": "smullyan1985"
+    },
+    {
+      "id": "bqn-dyadic-after",
+      "world": "bqn",
+      "title": "𝕨 ∾⟜⌽ 𝕩",
+      "blurb": "Called dyadically, 𝕨 𝔽⟜𝔾 𝕩 is 𝕨 𝔽 (𝔾 𝕩): a Dove, once a Cardinal moves 𝔾 into its slot.",
+      "hint": "C (D ∾) ⌽",
+      "sources": [
+        "D",
+        "C",
+        "∾",
+        "⌽"
+      ],
+      "targets": [
+        {
+          "label": "∾⟜⌽",
+          "params": "ab",
+          "body": "∾ a (⌽ b)"
+        }
+      ],
+      "paper": "lochbaum2020"
+    },
+    {
+      "id": "delta",
+      "world": "bqn",
+      "title": "before, dyadic",
+      "blurb": "𝕨 𝔽⊸𝔾 𝕩 is (𝔽 𝕨) 𝔾 𝕩: transform only the left argument. Call it Δ.",
+      "hint": "C B",
+      "sources": [
+        "B",
+        "C"
+      ],
+      "targets": [
+        {
+          "label": "Δ",
+          "params": "xyzw",
+          "body": "y (x z) w"
+        }
+      ],
+      "sticker": "Δ",
+      "paper": "hoekstra2022"
+    },
+    {
+      "id": "bqn-dyadic-before",
+      "world": "bqn",
+      "title": "𝕨 ⌽⊸∾ 𝕩",
+      "blurb": "Reverse the left list, then join: (⌽ 𝕨) ∾ 𝕩.",
+      "hint": "Δ ⌽ ∾",
+      "sources": [
+        "Δ",
+        "∾",
+        "⌽"
+      ],
+      "targets": [
+        {
+          "label": "⌽⊸∾",
+          "params": "ab",
+          "body": "∾ (⌽ a) b"
+        }
+      ],
+      "paper": "lochbaum2020"
+    },
+    {
+      "id": "bqn-over",
+      "world": "bqn",
+      "title": "same length? =○≠",
+      "blurb": "𝕨 𝔽○𝔾 𝕩 is (𝔾 𝕨) 𝔽 (𝔾 𝕩). Over is Ψ in BQN too.",
+      "hint": "Ψ = ≠",
+      "sources": [
+        "Ψ",
+        "=",
+        "≠"
+      ],
+      "targets": [
+        {
+          "label": "=○≠",
+          "params": "ab",
+          "body": "= (≠ a) (≠ b)"
+        }
+      ],
+      "paper": "lochbaum2020"
+    },
+    {
+      "id": "bqn-train",
+      "world": "bqn",
+      "title": "2-train ¬=",
+      "blurb": "𝕨 (𝔽 𝔾) 𝕩 is 𝔽 (𝕨 𝔾 𝕩). “Not equal” as an atop train.",
+      "hint": "B₁ ¬ =",
+      "sources": [
+        "B₁",
+        "¬",
+        "="
+      ],
+      "targets": [
+        {
+          "label": "¬=",
+          "params": "ab",
+          "body": "¬ (= a b)"
+        }
+      ],
+      "paper": "lochbaum2020"
+    },
+    {
+      "id": "bqn-average",
+      "world": "bqn",
+      "title": "+´÷≠",
+      "blurb": "The average again, in BQN: sum-fold +´ divided by length ≠.",
+      "hint": "Φ ÷ +´ ≠",
+      "sources": [
+        "Φ",
+        "÷",
+        "+´",
+        "≠"
+      ],
+      "targets": [
+        {
+          "label": "+´÷≠",
+          "params": "w",
+          "body": "÷ (+´ w) (≠ w)"
+        }
+      ],
+      "paper": "lochbaum2020"
+    },
+    {
+      "id": "church-bools",
+      "world": "church",
+      "title": "true, false",
+      "blurb": "Church's booleans choose: true picks the first option, false the second. The bins try each on 1 and 0.",
+      "sources": [
+        "S",
+        "K",
+        "I"
+      ],
+      "targets": [
+        {
+          "label": "⊤",
+          "truth": "1"
+        },
+        {
+          "label": "⊥",
+          "truth": "0"
+        }
+      ],
+      "features": [
+        "⊤",
+        "⊥"
+      ],
+      "paper": "church1941"
+    },
+    {
+      "id": "church-not",
+      "world": "church",
+      "title": "not",
+      "blurb": "Not swaps the two options. You already know a bird that swaps.",
+      "hint": "C",
+      "sources": [
+        "C",
+        "I",
+        "K"
+      ],
+      "targets": [
+        {
+          "label": "~",
+          "truth": "10"
+        }
+      ],
+      "features": [
+        "~",
+        "C"
+      ],
+      "paper": "church1941"
+    },
+    {
+      "id": "church-and",
+      "world": "church",
+      "title": "and",
+      "blurb": "p and q: if p then q, else p (which is false anyway).",
+      "hint": "S C I",
+      "sources": [
+        "S",
+        "C",
+        "I",
+        "K"
+      ],
+      "targets": [
+        {
+          "label": "∧",
+          "truth": "0001"
+        }
+      ],
+      "features": [
+        "∧"
+      ],
+      "paper": "boole1854"
+    },
+    {
+      "id": "church-or",
+      "world": "church",
+      "title": "or",
+      "blurb": "p or q: if p then p (which is true), else q.",
+      "hint": "S I I",
+      "sources": [
+        "S",
+        "I",
+        "K",
+        "C"
+      ],
+      "targets": [
+        {
+          "label": "∨",
+          "truth": "0111"
+        }
+      ],
+      "features": [
+        "∨"
+      ],
+      "paper": "boole1854"
+    },
+    {
+      "id": "church-if",
+      "world": "church",
+      "title": "if-then-else",
+      "blurb": "if c then a else b. With Church booleans the condition already does the choosing…",
+      "hint": "S K K",
+      "sources": [
+        "S",
+        "K"
+      ],
+      "targets": [
+        {
+          "label": "if",
+          "truth": "01010011"
+        }
+      ],
+      "features": [
+        "I"
+      ],
+      "paper": "church1941"
+    },
+    {
+      "id": "church-xor",
+      "world": "church",
+      "title": "exactly one",
+      "blurb": "Xor: true when exactly one input is true.",
+      "hint": "S (C I C) ⊥",
+      "sources": [
+        "S",
+        "C",
+        "I",
+        "⊥"
+      ],
+      "targets": [
+        {
+          "label": "⊻",
+          "truth": "0110"
+        }
+      ],
+      "features": [
+        "⊻"
+      ],
+      "paper": "shannon1938"
+    },
+    {
+      "id": "church-nand",
+      "world": "church",
+      "title": "Sheffer's stroke",
+      "blurb": "Not-and: false only when both are true. From this one gate, everything.",
+      "hint": "C (C I C) (K ⊤)",
+      "sources": [
+        "C",
+        "I",
+        "K",
+        "⊤"
+      ],
+      "targets": [
+        {
+          "label": "⊼",
+          "truth": "1110"
+        }
+      ],
+      "sticker": "⊼",
+      "features": [
+        "⊼"
+      ],
+      "paper": "sheffer1913"
+    },
+    {
+      "id": "nand-not",
+      "world": "nand",
+      "title": "Not from Nand",
+      "blurb": "nand2tetris chip #1: Not(in) = Nand(in, in). Feed one wire to both inputs.",
+      "hint": "W ⊼",
+      "sources": [
+        "⊼",
+        "W",
+        "B",
+        "C"
+      ],
+      "targets": [
+        {
+          "label": "Not",
+          "truth": "10"
+        }
+      ],
+      "features": [
+        "⊼",
+        "W"
+      ],
+      "paper": "sheffer1913"
+    },
+    {
+      "id": "nand-and",
+      "world": "nand",
+      "title": "And from Nand",
+      "blurb": "And(a, b) = Not(Nand(a, b)). Compose after a two-input chip: the Blackbird.",
+      "hint": "B₁ (W ⊼) ⊼",
+      "sources": [
+        "⊼",
+        "W",
+        "B₁"
+      ],
+      "targets": [
+        {
+          "label": "And",
+          "truth": "0001"
+        }
+      ],
+      "features": [
+        "B₁",
+        "∧"
+      ],
+      "paper": "nisan2005"
+    },
+    {
+      "id": "nand-or",
+      "world": "nand",
+      "title": "Or from Nand",
+      "blurb": "Or(a, b) = Nand(Not a, Not b). Pre-process both inputs the same way: that's Psi.",
+      "hint": "Ψ ⊼ (W ⊼)",
+      "sources": [
+        "⊼",
+        "W",
+        "Ψ"
+      ],
+      "targets": [
+        {
+          "label": "Or",
+          "truth": "0111"
+        }
+      ],
+      "features": [
+        "Ψ",
+        "∨"
+      ],
+      "paper": "nisan2005"
+    },
+    {
+      "id": "nand-xor",
+      "world": "nand",
+      "title": "Xor",
+      "blurb": "Xor(a, b) = And(Or(a, b), Nand(a, b)). A dyadic fork of the chips you've built.",
+      "hint": "Φ₁ ∧ ∨ ⊼",
+      "sources": [
+        "∧",
+        "∨",
+        "⊼",
+        "Φ₁"
+      ],
+      "targets": [
+        {
+          "label": "Xor",
+          "truth": "0110"
+        }
+      ],
+      "features": [
+        "Φ₁",
+        "⊻"
+      ],
+      "paper": "nisan2005"
+    },
+    {
+      "id": "nand-mux",
+      "world": "nand",
+      "title": "Mux",
+      "blurb": "Mux(a, b, sel): sel ? b : a. In hardware it's gates; with Church booleans it's just wiring.",
+      "hint": "B C (C C)",
+      "sources": [
+        "B",
+        "C",
+        "S",
+        "I"
+      ],
+      "targets": [
+        {
+          "label": "Mux",
+          "truth": "00011011"
+        }
+      ],
+      "features": [
+        "C",
+        "B"
+      ],
+      "paper": "nisan2005"
+    },
+    {
+      "id": "half-adder",
+      "world": "nand",
+      "title": "HalfAdder",
+      "blurb": "Your first chip with two outputs: sum = a ⊻ b, carry = a ∧ b.",
+      "sources": [
+        "⊻",
+        "∧"
+      ],
+      "targets": [
+        {
+          "label": "sum",
+          "truth": "0110"
+        },
+        {
+          "label": "carry",
+          "truth": "0001"
+        }
+      ],
+      "features": [
+        "⊻",
+        "∧"
+      ],
+      "paper": "shannon1938"
+    },
+    {
+      "id": "full-adder",
+      "world": "nand",
+      "title": "FullAdder",
+      "blurb": "Add three bits: sum is a ⊻ b ⊻ c, carry is the majority vote. Chain these and you have an ALU's adder.",
+      "hint": "B₁ ⊻ ⊻",
+      "sources": [
+        "⊻",
+        "B₁",
+        "S",
+        "C"
+      ],
+      "targets": [
+        {
+          "label": "sum",
+          "truth": "01101001"
+        },
+        {
+          "label": "carry",
+          "truth": "00010111"
+        }
+      ],
+      "features": [
+        "B₁",
+        "S"
+      ],
+      "paper": "nisan2005"
+    }
+  ],
+  "usage": {
+    "S": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "-- the function Applicative: (f <*> g) x = f x (g x)",
+          "pairs = zip <*> tail",
+          "pairs [1,2,3]  -- [(1,2),(2,3)]"
+        ],
+        "note": "S feeds the same argument to both functions."
+      },
+      {
+        "lang": "BQN",
+        "code": [
+          "∾⟜⌽ \"abc\"  # \"abccba\""
+        ],
+        "note": "BQN's after ⟜, used monadically, is S."
+      }
+    ],
+    "K": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "map (const 0) [1, 2, 3]  -- [0, 0, 0]"
+        ],
+        "note": "const is K: keep the first argument, ignore the second."
+      },
+      {
+        "lang": "JavaScript",
+        "code": [
+          "items.map(() => 0)",
+          "_.constant(42)  // lodash"
+        ],
+        "note": "Every callback that ignores its argument is a K."
+      }
+    ],
+    "KI": [
+      {
+        "lang": "JavaScript",
+        "code": [
+          "xs.reduce((_, x) => x)  // last element"
+        ],
+        "note": "(a, b) => b is the Kite: keep the second."
+      }
+    ],
+    "I": [
+      {
+        "lang": "JavaScript",
+        "code": [
+          "[[1, 2], [3]].flatMap(x => x)  // [1, 2, 3]"
+        ],
+        "note": "flatMap(identity) flattens one level."
+      },
+      {
+        "lang": "Haskell",
+        "code": [
+          "filter id [True, False, True]  -- [True, True]"
+        ],
+        "note": "id is I."
+      }
+    ],
+    "B": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "countWords = length . words"
+        ],
+        "note": "(.) is the Bluebird: composition."
+      },
+      {
+        "lang": "JavaScript",
+        "code": [
+          "const countWords = compose(length, words)  // Ramda"
+        ],
+        "note": "compose(f, g)(x) = f(g(x))."
+      }
+    ],
+    "C": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "sortBy (flip compare) xs  -- descending"
+        ],
+        "note": "flip is the Cardinal."
+      }
+    ],
+    "W": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "join (*) 7  -- 49"
+        ],
+        "note": "join for functions duplicates the argument: W."
+      },
+      {
+        "lang": "APL",
+        "code": [
+          "×⍨ 7  ⍝ 49"
+        ],
+        "note": "Commute used monadically is W."
+      }
+    ],
+    "T": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "[1..10] & filter even & sum  -- 30"
+        ],
+        "note": "(&) is the Thrush; F# and Elixir spell it |>."
+      }
+    ],
+    "M": [
+      {
+        "lang": "JavaScript",
+        "code": [
+          "const fact = (f => f(f))(",
+          "  self => n => n <= 1 ? 1 : n * self(self)(n - 1))",
+          "fact(5)  // 120"
+        ],
+        "note": "Self-application gives recursion without names."
+      }
+    ],
+    "V": [
+      {
+        "lang": "JavaScript",
+        "code": [
+          "const pair = a => b => f => f(a)(b)",
+          "const fst = p => p(a => b => a)"
+        ],
+        "note": "The Vireo holds two values until a selector arrives."
+      }
+    ],
+    "B₁": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "(.:) = (.) . (.)",
+          "dot = sum .: zipWith (*)",
+          "dot [1,2] [3,4]  -- 11"
+        ],
+        "note": "The Blackbird composes after a two-argument function."
+      }
+    ],
+    "Φ": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "liftA2 (&&) even (> 10) 12  -- True"
+        ],
+        "note": "liftA2 on functions is the Phoenix: the monadic fork."
+      },
+      {
+        "lang": "APL",
+        "code": [
+          "avg ← +/ ÷ ≢"
+        ],
+        "note": "An APL fork."
+      }
+    ],
+    "Ψ": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "import Data.Function (on)",
+          "sortBy (compare `on` snd) pairs"
+        ],
+        "note": "on is Psi: pre-process both arguments."
+      },
+      {
+        "lang": "BQN",
+        "code": [
+          "\"abc\" =○≠ \"xyz\"  # 1"
+        ],
+        "note": "Over ○."
+      }
+    ],
+    "Φ₁": [
+      {
+        "lang": "J",
+        "code": [
+          "3 (+ * -) 2  NB. 5"
+        ],
+        "note": "A dyadic fork: (a+b)×(a−b)."
+      }
+    ],
+    "Σ": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "(reverse >>= (==)) \"abba\"  -- True"
+        ],
+        "note": "Bind for functions is Σ: (f >>= k) x = k (f x) x."
+      },
+      {
+        "lang": "BQN",
+        "code": [
+          "⌽⊸≡ \"abba\"  # 1"
+        ],
+        "note": "Before ⊸."
+      }
+    ],
+    "D": [
+      {
+        "lang": "BQN",
+        "code": [
+          "\"ab\" ∾⟜⌽ \"cd\"  # \"abdc\""
+        ],
+        "note": "Dyadic after: transform only the right argument."
+      }
+    ],
+    "Δ": [
+      {
+        "lang": "Haskell",
+        "code": [
+          "import Control.Arrow ((>>>))",
+          "(show >>> length) 12345  -- 5"
+        ],
+        "note": "Left-to-right composition, as in BQN's dyadic before."
+      }
+    ],
+    "⊤": [
+      {
+        "lang": "JavaScript",
+        "code": [
+          "const T = a => b => a",
+          "const F = a => b => b"
+        ],
+        "note": "A boolean is a choice: cond ? a : b is cond(a)(b)."
+      }
+    ],
+    "⊥": [
+      {
+        "lang": "JavaScript",
+        "code": [
+          "const F = a => b => b  // the Kite"
+        ],
+        "note": "Church's false is KI."
+      }
+    ],
+    "~": [
+      {
+        "lang": "JavaScript",
+        "code": [
+          "const not = p => a => b => p(b)(a)"
+        ],
+        "note": "Not is the Cardinal: swap the options."
+      }
+    ],
+    "∧": [
+      {
+        "lang": "JavaScript",
+        "code": [
+          "const and = p => q => p(q)(p)"
+        ],
+        "note": "S C I, or S S K."
+      }
+    ],
+    "∨": [
+      {
+        "lang": "JavaScript",
+        "code": [
+          "const or = p => q => p(p)(q)"
+        ],
+        "note": "S I I."
+      }
+    ],
+    "⊻": [
+      {
+        "lang": "C",
+        "code": [
+          "unsigned sum = a ^ b, carry = a & b;  // half adder"
+        ],
+        "note": "Xor is the sum bit of an adder."
+      }
+    ],
+    "⊼": [
+      {
+        "lang": "nand2tetris HDL",
+        "code": [
+          "CHIP Not {",
+          "    IN in; OUT out;",
+          "    PARTS: Nand(a=in, b=in, out=out);",
+          "}"
+        ],
+        "note": "The first chip in nand2tetris: Not from Nand, i.e. W ⊼."
+      }
+    ]
+  }
+}

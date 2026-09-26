@@ -1,0 +1,410 @@
+{
+  "id": "mechanics-tour",
+  "title": "Mechanics tour",
+  "subtitle": "every slide kind, one example each",
+  "author": "λ factori",
+  "date": "2026-09-26",
+  "slides": [
+    {
+      "kind": "title",
+      "title": "λ factori mechanics tour",
+      "subtitle": "every slide kind, one example each",
+      "byline": "λ factori",
+      "date": "edit me: press E"
+    },
+    {
+      "kind": "section",
+      "number": "1",
+      "title": "Words",
+      "subtitle": "text, quotes, conversations",
+      "color": "blue"
+    },
+    {
+      "kind": "bullets",
+      "title": "bullets",
+      "items": [
+        {
+          "text": "Items build one per step",
+          "tag": "build"
+        },
+        {
+          "text": "Sub-points and tags",
+          "sub": [
+            "like this one"
+          ]
+        },
+        "Plain strings work too"
+      ],
+      "notes": "Press N for speaker notes."
+    },
+    {
+      "kind": "quote",
+      "quote": "Simplicity is prerequisite for reliability.",
+      "by": "Edsger W. Dijkstra",
+      "source": "EWD498, 1975"
+    },
+    {
+      "kind": "dialogue",
+      "title": "dialogue",
+      "context": "A context card sets up the conversation.",
+      "lines": [
+        {
+          "who": "ada",
+          "text": "Speakers alternate sides."
+        },
+        {
+          "who": "alan",
+          "text": "And bubbles build one per step."
+        }
+      ],
+      "speakers": {
+        "ada": {
+          "name": "Ada",
+          "color": "plum"
+        },
+        "alan": {
+          "name": "Alan",
+          "color": "teal"
+        }
+      }
+    },
+    {
+      "kind": "versus",
+      "title": "versus",
+      "left": {
+        "name": "Tactical",
+        "color": "red",
+        "points": [
+          "ship now",
+          "patch later"
+        ]
+      },
+      "right": {
+        "name": "Strategic",
+        "color": "green",
+        "points": [
+          "invest 10–20%",
+          "fix design problems"
+        ]
+      },
+      "agree": [
+        "working code matters"
+      ]
+    },
+    {
+      "kind": "poll",
+      "question": "poll: click an option to count hands",
+      "options": [
+        {
+          "label": "yes",
+          "color": "green"
+        },
+        {
+          "label": "no",
+          "color": "red"
+        }
+      ]
+    },
+    {
+      "kind": "section",
+      "number": "2",
+      "title": "Factories",
+      "subtitle": "modules, decisions, belts",
+      "color": "orange"
+    },
+    {
+      "kind": "modules",
+      "title": "modules",
+      "modules": [
+        {
+          "name": "deep",
+          "interface": 2,
+          "functionality": 40,
+          "color": "green"
+        },
+        {
+          "name": "shallow",
+          "interface": 8,
+          "functionality": 8,
+          "color": "red"
+        }
+      ],
+      "caption": "Width is the interface; area is what it hides."
+    },
+    {
+      "kind": "factory",
+      "title": "factory",
+      "modules": [
+        {
+          "name": "few ports, much inside",
+          "ports": [
+            "open",
+            "read",
+            "close"
+          ],
+          "inner": 18,
+          "color": "blue"
+        },
+        {
+          "name": "many ports, little inside",
+          "ports": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f"
+          ],
+          "inner": 3,
+          "color": "red"
+        }
+      ],
+      "caption": "The last step x-rays the buildings."
+    },
+    {
+      "kind": "decisions",
+      "title": "decisions",
+      "decisions": [
+        {
+          "id": "fmt",
+          "label": "file format"
+        },
+        {
+          "id": "cache",
+          "label": "caching"
+        }
+      ],
+      "layouts": [
+        {
+          "label": "by time",
+          "modules": [
+            {
+              "name": "Reader",
+              "knows": [
+                "fmt"
+              ]
+            },
+            {
+              "name": "Writer",
+              "knows": [
+                "fmt"
+              ],
+              "secretly": [
+                "cache"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "by knowledge",
+          "modules": [
+            {
+              "name": "File",
+              "knows": [
+                "fmt",
+                "cache"
+              ]
+            },
+            {
+              "name": "App",
+              "knows": []
+            }
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "label": "the file format",
+          "decision": "fmt"
+        },
+        {
+          "label": "caching",
+          "decision": "cache"
+        }
+      ],
+      "caption": "Each step makes a change and counts who must edit; hidden gems are unknown unknowns."
+    },
+    {
+      "kind": "line",
+      "title": "line",
+      "machines": [
+        {
+          "name": "parse",
+          "icon": "p"
+        },
+        {
+          "name": "count()",
+          "icon": "+",
+          "state": "n = 0",
+          "color": "orange"
+        }
+      ],
+      "runs": [
+        {
+          "input": "hello",
+          "outputs": [
+            "hello",
+            "hello #1"
+          ],
+          "states": [
+            "",
+            "n = 1"
+          ]
+        },
+        {
+          "input": "hello",
+          "outputs": [
+            "hello",
+            "hello #2"
+          ],
+          "states": [
+            "",
+            "n = 2"
+          ],
+          "xray": true,
+          "caption": "Same input, different output: the x-ray run opens the hidden state."
+        }
+      ]
+    },
+    {
+      "kind": "curve",
+      "title": "curve",
+      "series": [
+        {
+          "label": "tactical",
+          "shape": "tactical",
+          "color": "red"
+        },
+        {
+          "label": "strategic",
+          "shape": "strategic",
+          "color": "green"
+        }
+      ]
+    },
+    {
+      "kind": "measure",
+      "title": "measure",
+      "before": "before",
+      "after": "after",
+      "rows": [
+        {
+          "metric": "methods",
+          "before": 8,
+          "after": 1
+        },
+        {
+          "metric": "shared fields",
+          "before": 2,
+          "after": 0
+        }
+      ]
+    },
+    {
+      "kind": "section",
+      "number": "3",
+      "title": "Code and reduction",
+      "color": "teal"
+    },
+    {
+      "kind": "code",
+      "title": "code",
+      "panes": [
+        {
+          "label": "Counter.java",
+          "analyze": true,
+          "metrics": true,
+          "code": [
+            "public class Counter {",
+            "    private static int count;",
+            "",
+            "    public static int next() {",
+            "        bump();",
+            "        return count;",
+            "    }",
+            "",
+            "    private static void bump() {",
+            "        count++;",
+            "    }",
+            "}"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "Steps highlight lines…",
+          "lines": "4-7"
+        },
+        {
+          "caption": "…and draw call and hidden-state arcs.",
+          "lines": "4-11",
+          "arcs": "both"
+        }
+      ]
+    },
+    {
+      "kind": "theater",
+      "title": "theater",
+      "term": "S K K x",
+      "caption": "Step through a reduction: S copies, K drops."
+    },
+    {
+      "kind": "section",
+      "number": "4",
+      "title": "Plugged mechanics",
+      "subtitle": "slide kinds contributed by plugins",
+      "color": "plum"
+    },
+    {
+      "kind": "office/scene",
+      "title": "office/scene",
+      "caption": "An HRM-style worker runs a program: every page hard-codes the colour, so one change means five edits.",
+      "program": [
+        "INBOX",
+        "WORK page1",
+        "WORK page2",
+        "WORK page3",
+        "WORK page4",
+        "WORK page5",
+        "OUTBOX",
+        "THINK One colour change, five edits."
+      ],
+      "desks": [
+        {
+          "id": "page1",
+          "work": "stamp:+"
+        },
+        {
+          "id": "page2",
+          "work": "stamp:+"
+        },
+        {
+          "id": "page3",
+          "work": "stamp:+"
+        },
+        {
+          "id": "page4",
+          "work": "stamp:+"
+        },
+        {
+          "id": "page5",
+          "work": "stamp:+"
+        }
+      ],
+      "inbox": [
+        "blue"
+      ],
+      "stats": [
+        "steps",
+        "trips"
+      ]
+    },
+    {
+      "kind": "section",
+      "number": "?",
+      "title": "Make your own",
+      "subtitle": "E edits this slide · S copies a share link",
+      "color": "ink"
+    }
+  ]
+}

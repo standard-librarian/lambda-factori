@@ -1,0 +1,2264 @@
+{
+  "id": "week1-complexity",
+  "title": "Week 1 · Complexity is the enemy",
+  "subtitle": "Track B intro · APOSD ch. 1–6 · Parnas 1972 · Out of the Tar Pit",
+  "author": "Medhat",
+  "date": "2026-09-26",
+  "slides": [
+    {
+      "kind": "title",
+      "title": "Complexity is the enemy",
+      "subtitle": "Track B · Week 1 — Design, Modeling & Architecture",
+      "byline": "Medhat",
+      "date": "Ousterhout · Parnas · Moseley & Marks",
+      "notes": "Week 1 of Track B. The core is the three readings; the Ousterhout ↔ Uncle Bob debate appears once, where it sharpens chapter 4."
+    },
+    {
+      "kind": "section",
+      "title": "Track B: Design, Modeling & Architecture",
+      "subtitle": "12 weeks + a 2-week capstone",
+      "color": "ink",
+      "number": "B",
+      "notes": "A quick map of the track before Week 1."
+    },
+    {
+      "kind": "bullets",
+      "title": "What this track is about",
+      "items": [
+        {
+          "text": "Platform-shaped work — where modeling mistakes become permanent"
+        },
+        {
+          "text": "Two halves: designing and modeling (weeks 1–6), then architecture (weeks 7–12)"
+        },
+        {
+          "text": "Unusually video-rich: several canonical items are talks, not books"
+        },
+        {
+          "text": "5–7 h/week reading and watching · 2–3 h/week refactoring real code"
+        },
+        {
+          "text": "Every week: read · watch · present"
+        }
+      ],
+      "notes": "From the track document. The halves are my grouping of the weekly topics."
+    },
+    {
+      "kind": "bullets",
+      "title": "Weeks 1–6: designing and modeling",
+      "items": [
+        {
+          "text": "Complexity is the enemy",
+          "tag": "wk 1",
+          "sub": [
+            "deep vs shallow modules, information leakage, tactical vs strategic"
+          ]
+        },
+        {
+          "text": "Simplicity, values, and thinking",
+          "tag": "wk 2",
+          "sub": [
+            "simple vs easy, complecting, value-oriented design"
+          ]
+        },
+        {
+          "text": "Coupling, cohesion, connascence",
+          "tag": "wk 3",
+          "sub": [
+            "a precise vocabulary for “this code is tangled”"
+          ]
+        },
+        {
+          "text": "DDD strategic design",
+          "tag": "wk 4",
+          "sub": [
+            "bounded contexts, ubiquitous language, context maps"
+          ]
+        },
+        {
+          "text": "DDD tactical design",
+          "tag": "wk 5",
+          "sub": [
+            "aggregates, entities, value objects, invariants"
+          ]
+        },
+        {
+          "text": "Type-driven domain modeling",
+          "tag": "wk 6",
+          "sub": [
+            "make illegal states unrepresentable · parse, don't validate"
+          ]
+        }
+      ],
+      "notes": "Topic lines from the track document."
+    },
+    {
+      "kind": "bullets",
+      "title": "Weeks 7–12: architecture, then a capstone",
+      "items": [
+        {
+          "text": "Hexagonal / Clean / Onion",
+          "tag": "wk 7",
+          "sub": [
+            "ports and adapters properly understood, the dependency rule"
+          ]
+        },
+        {
+          "text": "Enterprise and integration patterns",
+          "tag": "wk 8"
+        },
+        {
+          "text": "Service decomposition and contracts",
+          "tag": "wk 9",
+          "sub": [
+            "when microservices pay, the distributed monolith"
+          ]
+        },
+        {
+          "text": "Designing for failure",
+          "tag": "wk 10",
+          "sub": [
+            "circuit breakers, bulkheads, backpressure, timeouts"
+          ]
+        },
+        {
+          "text": "Evolutionary architecture",
+          "tag": "wk 11",
+          "sub": [
+            "fitness functions, strangler fig, expand/contract"
+          ]
+        },
+        {
+          "text": "Communicating design",
+          "tag": "wk 12",
+          "sub": [
+            "ADRs, C4, RFCs, writing culture"
+          ]
+        },
+        {
+          "text": "Capstone: rewrite a domain layer from a bounded-context model",
+          "tag": "13–14"
+        }
+      ],
+      "notes": "Week 1 sets the vocabulary for all of this: complexity, depth, information hiding, state."
+    },
+    {
+      "kind": "bullets",
+      "title": "Week 1",
+      "items": [
+        {
+          "text": "Ousterhout, A Philosophy of Software Design, ch. 1–6",
+          "tag": "read"
+        },
+        {
+          "text": "Parnas, On the Criteria To Be Used in Decomposing Systems into Modules (1972)",
+          "tag": "read"
+        },
+        {
+          "text": "Moseley & Marks, Out of the Tar Pit (2006)",
+          "tag": "read"
+        },
+        {
+          "text": "Stanford CS190, lectures 1–3",
+          "tag": "watch"
+        },
+        {
+          "text": "Find the shallowest module you know. Show what a deep version looks like.",
+          "tag": "present"
+        }
+      ],
+      "notes": "Three readings, 1972 → 2006 → 2018, one enemy."
+    },
+    {
+      "kind": "bullets",
+      "title": "Three readings, one enemy",
+      "items": [
+        {
+          "text": "1972 · Parnas: decompose by the decisions you hide, not by the flowchart",
+          "tag": "Parnas"
+        },
+        {
+          "text": "2006 · Moseley & Marks: most complexity is accidental — mostly state and control",
+          "tag": "Tar Pit"
+        },
+        {
+          "text": "2018 · Ousterhout: complexity is whatever makes a system hard to understand and modify",
+          "tag": "APOSD"
+        }
+      ],
+      "notes": "The order of the talk: APOSD first (the vocabulary), then Parnas (where it came from), then the Tar Pit (a different diagnosis)."
+    },
+    {
+      "kind": "bullets",
+      "title": "CS190 lecture 1 — Introduction",
+      "items": [
+        {
+          "text": "“This may be the only course in the world dedicated entirely to software design”"
+        },
+        {
+          "text": "Goal: “enhance design awareness”",
+          "sub": [
+            "“Provide vocabulary for talking about design”",
+            "“Develop critical skills: recognize good and bad designs (red flags)”"
+          ]
+        },
+        {
+          "text": "“Lots of little things: complexity is incremental”",
+          "sub": [
+            "“Most important overall goal for design: reduce apparent complexity”"
+          ]
+        },
+        {
+          "text": "“Software design is a continuous process: different from other kinds of engineering”"
+        },
+        {
+          "text": "Studio format: build → get criticism → rewrite",
+          "sub": [
+            "“It's about the code, not the person”",
+            "“Growth mindset: making mistakes is OK”"
+          ]
+        }
+      ],
+      "notes": "Quotes from the lecture notes at web.stanford.edu/~ouster/cs190-winter24/lectures/intro (Winter 2024). The notes page, not the video."
+    },
+    {
+      "kind": "bullets",
+      "title": "CS190 lectures 2–3: Raft",
+      "items": [
+        {
+          "text": "Replicated state machines: a log of commands, applied once safely replicated"
+        },
+        {
+          "text": "One leader; followers are “totally passive”; terms detect stale information"
+        },
+        {
+          "text": "“Election Safety: at most one server can be elected leader in a given term”"
+        },
+        {
+          "text": "Commit “As soon as replicated on majority? Unsafe!” — only a current-term entry on a majority"
+        },
+        {
+          "text": "“Follow Figure 2 exactly! Every tiny detail matters.”"
+        }
+      ],
+      "notes": "Why Raft in a design course: projects 1–2 implement it in C++, in teams of two, and get rewritten after criticism. Ousterhout co-designed Raft. Notes: web.stanford.edu/~ouster/cs190-winter24/lectures/raft."
+    },
+    {
+      "kind": "section",
+      "title": "A Philosophy of Software Design",
+      "subtitle": "John Ousterhout · chapters 1–6",
+      "color": "blue",
+      "number": "01"
+    },
+    {
+      "kind": "quote",
+      "quote": "The most fundamental problem in computer science is problem decomposition: how to take a complex problem and divide it up into pieces that can be solved independently.",
+      "by": "John Ousterhout",
+      "source": "A Philosophy of Software Design, 2nd ed., preface",
+      "notes": "He notes he can't find a single university class where this is the central topic — hence CS190."
+    },
+    {
+      "kind": "bullets",
+      "title": "Ch. 1 — two ways to fight complexity",
+      "items": [
+        {
+          "text": "Eliminate it",
+          "sub": [
+            "“The first approach is to eliminate complexity by making code simpler and more obvious.”"
+          ]
+        },
+        {
+          "text": "Encapsulate it",
+          "sub": [
+            "“The second approach to complexity is to encapsulate it, so that programmers can work on a system without being exposed to all of its complexity at once.”"
+          ]
+        },
+        {
+          "text": "Design never stops",
+          "sub": [
+            "“Incremental development means that software design is never done.”"
+          ]
+        }
+      ],
+      "notes": "The waterfall discussion in ch. 1: you can't see a large design well enough up front, so patches pile up. Incremental development means continuous redesign."
+    },
+    {
+      "kind": "quote",
+      "quote": "Complexity is anything related to the structure of a software system that makes it hard to understand and modify the system.",
+      "by": "John Ousterhout",
+      "source": "A Philosophy of Software Design, 2nd ed., §2.1",
+      "notes": "Practical, not theoretical: it is about what a developer experiences at a particular point in time when trying to achieve a particular goal."
+    },
+    {
+      "kind": "bullets",
+      "title": "Complexity is weighted by attention",
+      "items": [
+        {
+          "text": "C = Σₚ cₚ · tₚ",
+          "sub": [
+            "the complexity of each part, weighted by the fraction of time developers spend on it"
+          ]
+        },
+        "“Isolating complexity in a place where it will never be seen is almost as good as eliminating the complexity entirely.”",
+        "“Complexity is more apparent to readers than writers. If you write a piece of code and it seems simple to you, but other people think it is complex, then it is complex.”"
+      ],
+      "notes": "§2.1. The formula is crude on purpose."
+    },
+    {
+      "kind": "decisions",
+      "title": "Ch. 2 — one Web site, two symptoms",
+      "decisions": [
+        {
+          "id": "bg",
+          "label": "banner colour",
+          "color": "blue"
+        },
+        {
+          "id": "emph",
+          "label": "emphasis shade",
+          "color": "orange"
+        }
+      ],
+      "layouts": [
+        {
+          "label": "(a) colour on every page",
+          "modules": [
+            {
+              "name": "page 1",
+              "knows": [
+                "bg"
+              ]
+            },
+            {
+              "name": "page 2",
+              "knows": [
+                "bg"
+              ]
+            },
+            {
+              "name": "page 3",
+              "knows": [
+                "bg"
+              ]
+            },
+            {
+              "name": "page 4",
+              "knows": [
+                "bg"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "(b) one shared bannerBg",
+          "modules": [
+            {
+              "name": "bannerBg",
+              "knows": [
+                "bg"
+              ]
+            },
+            {
+              "name": "pages 1–4",
+              "knows": [],
+              "count": 4
+            }
+          ]
+        },
+        {
+          "label": "(c) …and a few darker shades",
+          "modules": [
+            {
+              "name": "bannerBg",
+              "knows": [
+                "bg"
+              ]
+            },
+            {
+              "name": "pages 1, 2, 4",
+              "knows": [],
+              "count": 3
+            },
+            {
+              "name": "page 3",
+              "knows": [
+                "emph"
+              ],
+              "secretly": [
+                "bg"
+              ]
+            }
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "label": "the banner colour",
+          "decision": "bg"
+        }
+      ],
+      "unit": "page",
+      "caption": "APOSD figure 2.1: a Web site whose pages all show a coloured banner.",
+      "notes": [
+        "(a) change amplification: every page must be edited.",
+        "(b) one edit.",
+        "(c) looks like (b), but page 3 hard-codes a darker shade of the banner colour. Unfortunately, developers are unlikely to realize this, so they may change the central bannerBg variable without updating the emphasis color."
+      ]
+    },
+    {
+      "kind": "quote",
+      "quote": "Of the three manifestations of complexity, unknown unknowns are the worst. An unknown unknown means that there is something you need to know, but there is no way for you to find out what it is, or even whether there is an issue.",
+      "by": "John Ousterhout",
+      "source": "A Philosophy of Software Design, 2nd ed., §2.2",
+      "notes": "The third symptom, cognitive load, is how much a developer needs to know to complete a task — and fewer lines of code don't necessarily mean less of it."
+    },
+    {
+      "kind": "bullets",
+      "title": "Ch. 2 — causes",
+      "items": [
+        {
+          "text": "“Complexity is caused by two things: dependencies and obscurity.”"
+        },
+        {
+          "text": "Dependency",
+          "sub": [
+            "a dependency exists when a given piece of code cannot be understood and modified in isolation;"
+          ]
+        },
+        {
+          "text": "Obscurity",
+          "sub": [
+            "Obscurity occurs when important information is not obvious."
+          ]
+        },
+        {
+          "text": "“Complexity isn’t caused by a single catastrophic error; it accumulates in lots of small chunks.”"
+        }
+      ],
+      "notes": "Dependencies lead to change amplification and a high cognitive load. Obscurity creates unknown unknowns, and also contributes to cognitive load. Hence the “zero tolerance” philosophy of ch. 3."
+    },
+    {
+      "kind": "curve",
+      "title": "Ch. 3 — working code isn’t enough",
+      "xLabel": "time",
+      "yLabel": "progress",
+      "series": [
+        {
+          "label": "tactical",
+          "shape": "tactical",
+          "color": "red"
+        },
+        {
+          "label": "strategic",
+          "shape": "strategic",
+          "color": "green"
+        }
+      ],
+      "caption": "Your primary goal must be to produce a great design, which also happens to work.",
+      "notes": "After figure 3.1 — Ousterhout: “this figure is intended only as a qualitative illustration”. His guess for the payback point is 6–18 months."
+    },
+    {
+      "kind": "bullets",
+      "title": "Tactical vs strategic",
+      "items": [
+        {
+          "text": "The tactical tornado",
+          "sub": [
+            "a prolific programmer who pumps out code far faster than others but works in a totally tactical fashion."
+          ]
+        },
+        {
+          "text": "Invest 10–20% of your time",
+          "sub": [
+            "the best approach is to make lots of small investments on a continual basis."
+          ]
+        },
+        {
+          "text": "Technical debt",
+          "sub": [
+            "Unlike financial debt, most technical debt is never fully repaid: you’ll keep paying and paying forever."
+          ]
+        },
+        {
+          "text": "“Move fast and break things” → “Move fast with solid infrastructure”",
+          "sub": [
+            "Facebook's motto change; Google and VMware grew up strategic"
+          ]
+        }
+      ],
+      "notes": "Ch. 3. The investments can be proactive (try a couple of designs) or reactive (fix a design problem when you find it)."
+    },
+    {
+      "kind": "modules",
+      "title": "Ch. 4 — modules should be deep",
+      "modules": [
+        {
+          "name": "Unix file I/O",
+          "interface": 5,
+          "functionality": 100,
+          "note": "five system calls; hundreds of thousands of lines behind them",
+          "color": "green"
+        },
+        {
+          "name": "addNullValueForAttribute",
+          "interface": 4,
+          "functionality": 4,
+          "note": "data.put(attribute, null) — its interface is its implementation",
+          "color": "red"
+        }
+      ],
+      "caption": "Width is the interface: what every caller pays. Area is the functionality it hides. (illustrative sizes)",
+      "notes": "Module depth is a way of thinking about cost versus benefit. The benefit provided by a module is its functionality. The cost of a module (in terms of system complexity) is its interface."
+    },
+    {
+      "kind": "code",
+      "title": "Deep and shallow, in code",
+      "panes": [
+        {
+          "label": "Unix I/O — the whole interface",
+          "code": [
+            "int open(const char* path, int flags, mode_t permissions);",
+            "ssize_t read(int fd, void* buffer, size_t count);",
+            "ssize_t write(int fd, const void* buffer, size_t count);",
+            "off_t lseek(int fd, off_t offset, int referencePosition);",
+            "int close(int fd);"
+          ]
+        },
+        {
+          "label": "a shallow method",
+          "code": [
+            "private void addNullValueForAttribute(String attribute) {",
+            "    data.put(attribute, null);",
+            "}"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "There are only five basic system calls for I/O, with simple signatures:"
+        },
+        {
+          "caption": "Implementations of the Unix I/O interface have evolved radically over the years, but the five basic kernel calls have not changed."
+        },
+        {
+          "caption": "It is no simpler to think about the interface than to think about the full implementation.",
+          "pane": 1
+        }
+      ],
+      "notes": "§4.4–4.5. The garbage collector is the other deep example: it has no interface at all."
+    },
+    {
+      "kind": "factory",
+      "title": "Classitis: Java vs Unix file input",
+      "modules": [
+        {
+          "name": "Java: three objects",
+          "ports": [
+            "FileInputStream",
+            "BufferedInputStream",
+            "ObjectInputStream"
+          ],
+          "inner": 3,
+          "count": "3 objects to create and wire",
+          "caption": "forget the middle one and there's no buffering",
+          "color": "red"
+        },
+        {
+          "name": "Unix: one call to start",
+          "ports": [
+            "open",
+            "read",
+            "write",
+            "lseek",
+            "close"
+          ],
+          "inner": 24,
+          "count": "5 calls · sequential by default",
+          "caption": "caching, directories, permissions, devices — all hidden",
+          "color": "blue"
+        }
+      ],
+      "caption": "interfaces should be designed to make the common case as simple as possible",
+      "notes": [
+        "The extreme of the “classes should be small” approach is a syndrome I call classitis, which stems from the mistaken view that “classes are good, so more classes are better.”",
+        "The last step x-rays both factories."
+      ]
+    },
+    {
+      "kind": "code",
+      "title": "The Java code in question",
+      "panes": [
+        {
+          "label": "reading serialized objects from a file",
+          "code": [
+            "FileInputStream fileStream =",
+            "    new FileInputStream(fileName);",
+            "BufferedInputStream bufferedStream =",
+            "    new BufferedInputStream(fileStream);",
+            "ObjectInputStream objectStream =",
+            "    new ObjectInputStream(bufferedStream);"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "for many years Java developers had to create three different objects in order to open a file and read serialized objects from it:"
+        },
+        {
+          "caption": "It is particularly annoying (and error-prone) that buffering must be requested explicitly by creating a separate BufferedInputStream object; if a developer forgets to create this object, there will be no buffering and I/O will be slow.",
+          "lines": "3-4"
+        }
+      ],
+      "notes": "§4.7."
+    },
+    {
+      "kind": "bullets",
+      "title": "What's in an interface?",
+      "items": [
+        {
+          "text": "Formal: signatures",
+          "sub": [
+            "names and types of parameters, return values, exceptions — checked by the compiler"
+          ]
+        },
+        {
+          "text": "Informal: everything else you must know",
+          "sub": [
+            "If there are constraints on the usage of a class (perhaps one method must be called before another), these are also part of the class’s interface."
+          ]
+        },
+        {
+          "text": "A false abstraction",
+          "sub": [
+            "An abstraction that omits important details is a false abstraction: it might appear simple, but in reality it isn’t."
+          ]
+        }
+      ],
+      "notes": "For most interfaces the informal aspects are larger and more complex than the formal aspects."
+    },
+    {
+      "kind": "quote",
+      "quote": "The basic idea is that each module should encapsulate a few pieces of knowledge, which represent design decisions. The knowledge is embedded in the module’s implementation but does not appear in its interface, so it is not visible to other modules.",
+      "by": "John Ousterhout",
+      "source": "A Philosophy of Software Design, 2nd ed., §5.1 — after Parnas (1972)",
+      "notes": "Note: hiding variables and methods in a class by declaring them private isn’t the same thing as information hiding."
+    },
+    {
+      "kind": "decisions",
+      "title": "Ch. 5 — temporal decomposition leaks",
+      "decisions": [
+        {
+          "id": "fmt",
+          "label": "the file format",
+          "color": "red"
+        },
+        {
+          "id": "edit",
+          "label": "the modification",
+          "color": "teal"
+        }
+      ],
+      "layouts": [
+        {
+          "label": "by time: read → modify → write",
+          "modules": [
+            {
+              "name": "Reader",
+              "knows": [
+                "fmt"
+              ]
+            },
+            {
+              "name": "Modifier",
+              "knows": [
+                "edit"
+              ]
+            },
+            {
+              "name": "Writer",
+              "knows": [
+                "fmt"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "by knowledge",
+          "modules": [
+            {
+              "name": "File (read + write)",
+              "knows": [
+                "fmt"
+              ]
+            },
+            {
+              "name": "Modifier",
+              "knows": [
+                "edit"
+              ]
+            }
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "label": "the file format",
+          "decision": "fmt"
+        },
+        {
+          "label": "the modification",
+          "decision": "edit"
+        }
+      ],
+      "unit": "class",
+      "caption": "focus on the knowledge that’s needed to perform each task, not the order in which tasks occur.",
+      "notes": [
+        "Information leakage occurs when a design decision is reflected in multiple modules.",
+        "Back-door leakage like this is more pernicious than leakage through an interface, because it isn’t obvious."
+      ]
+    },
+    {
+      "kind": "decisions",
+      "title": "§5.5 — too many classes",
+      "decisions": [
+        {
+          "id": "req",
+          "label": "the structure of an HTTP request",
+          "color": "red"
+        }
+      ],
+      "layouts": [
+        {
+          "label": "“first we read the request, then we parse it”",
+          "modules": [
+            {
+              "name": "RequestReader",
+              "knows": [
+                "req"
+              ]
+            },
+            {
+              "name": "RequestParser",
+              "knows": [
+                "req"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "one class that reads and parses",
+          "modules": [
+            {
+              "name": "HTTPRequest",
+              "knows": [
+                "req"
+              ]
+            }
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "label": "the structure of an HTTP request",
+          "decision": "req"
+        }
+      ],
+      "unit": "class",
+      "caption": "information hiding can often be improved by making a class slightly larger.",
+      "notes": [
+        "Information leakage occurred because an HTTP request can’t be read without parsing much of the message; for example, the Content-Length header specifies the length of the request body, so the headers must be parsed in order to compute the total request length.",
+        "This approach also created extra complexity for callers, who had to invoke two methods in different classes, in a particular order, to receive a request.",
+        "The combined class is deeper than the original classes."
+      ]
+    },
+    {
+      "kind": "code",
+      "title": "HTTP parameters: shallow vs deep",
+      "panes": [
+        {
+          "label": "most student projects",
+          "code": [
+            "public Map<String, String> getParams() {",
+            "    return this.params;",
+            "}"
+          ]
+        },
+        {
+          "label": "better",
+          "code": [
+            "public String getParameter(String name) { ... }",
+            "public int getIntParameter(String name) { ... }"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "This method is shallow, and it exposes the internal representation used by the HTTPRequest class to store parameters."
+        },
+        {
+          "caption": "callers must realize that they should not modify the Map returned by getParams, since that will affect the internal state of the HTTPRequest."
+        },
+        {
+          "caption": "more importantly, it hides the internal representation of parameters.",
+          "pane": 1
+        }
+      ],
+      "notes": "§5.6."
+    },
+    {
+      "kind": "bullets",
+      "title": "Defaults, and not going too far",
+      "items": [
+        {
+          "text": "Defaults are partial information hiding",
+          "sub": [
+            "The best features are the ones you get without even knowing they exist."
+          ]
+        },
+        {
+          "text": "Red flag: overexposure",
+          "sub": [
+            "If the API for a commonly used feature forces users to learn about other features that are rarely used, this increases the cognitive load on users who don’t need the rarely used features."
+          ]
+        },
+        {
+          "text": "Taking it too far",
+          "sub": [
+            "Information hiding only makes sense when the information being hidden is not needed outside its module."
+          ]
+        }
+      ],
+      "notes": "§5.7–5.9. The HTTP example: the library, not the caller, should pick the response's protocol version and Date header."
+    },
+    {
+      "kind": "quote",
+      "quote": "I now think that over-specialization may be the single greatest cause of complexity in software.",
+      "by": "John Ousterhout",
+      "source": "A Philosophy of Software Design, 2nd ed., ch. 6",
+      "notes": "The phrase “somewhat general-purpose” means that the module’s functionality should reflect your current needs, but its interface should not."
+    },
+    {
+      "kind": "decisions",
+      "title": "Ch. 6 — the editor's text class",
+      "decisions": [
+        {
+          "id": "bs",
+          "label": "what backspace deletes",
+          "color": "red"
+        },
+        {
+          "id": "sel",
+          "label": "the selection",
+          "color": "plum"
+        },
+        {
+          "id": "store",
+          "label": "how text is stored",
+          "color": "teal"
+        }
+      ],
+      "layouts": [
+        {
+          "label": "special-purpose: backspace(), delete(), deleteSelection()",
+          "modules": [
+            {
+              "name": "User interface",
+              "knows": [
+                "bs",
+                "sel"
+              ]
+            },
+            {
+              "name": "Text class",
+              "knows": [
+                "bs",
+                "sel",
+                "store"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "general-purpose: insert(), delete(), changePosition()",
+          "modules": [
+            {
+              "name": "User interface",
+              "knows": [
+                "bs",
+                "sel"
+              ]
+            },
+            {
+              "name": "Text class",
+              "knows": [
+                "store"
+              ]
+            }
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "label": "what backspace deletes",
+          "decision": "bs"
+        },
+        {
+          "label": "the selection",
+          "decision": "sel"
+        },
+        {
+          "label": "how text is stored",
+          "decision": "store"
+        }
+      ],
+      "unit": "class",
+      "caption": "Two designs for the text class in a GUI editor (APOSD §6.2–6.4).",
+      "notes": "This approach created information leakage between the user interface and the text class."
+    },
+    {
+      "kind": "code",
+      "title": "The general-purpose text API",
+      "panes": [
+        {
+          "label": "special-purpose",
+          "code": [
+            "void backspace(Cursor cursor);",
+            "void delete(Cursor cursor);",
+            "void deleteSelection(Selection selection);"
+          ]
+        },
+        {
+          "label": "general-purpose",
+          "code": [
+            "void insert(Position position, String newText);",
+            "void delete(Position start, Position end);",
+            "Position changePosition(Position position, int numChars);",
+            "",
+            "// the delete key",
+            "text.delete(cursor, text.changePosition(cursor, 1));",
+            "// the backspace key",
+            "text.delete(text.changePosition(cursor, -1), cursor);"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "The text class ended up with a large number of shallow methods, each of which was only suitable for one user interface operation."
+        },
+        {
+          "caption": "A better approach is to make the text class more generic.",
+          "pane": 1,
+          "lines": "1-3"
+        },
+        {
+          "caption": "the new code is more obvious than the old code.",
+          "pane": 1,
+          "lines": "5-8"
+        },
+        {
+          "caption": "The backspace method in the original version of the text class was a false abstraction."
+        }
+      ],
+      "notes": "§6.3–6.4."
+    },
+    {
+      "kind": "code",
+      "title": "Push specialization up (and down)",
+      "panes": [
+        {
+          "label": "the general-purpose core of undo",
+          "code": [
+            "public class History {",
+            "    public interface Action {",
+            "        public void redo();",
+            "        public void undo();",
+            "    }",
+            "    History() {...}",
+            "    void addAction(Action action) {...}",
+            "    void addFence() {...}",
+            "    void undo() {...}",
+            "    void redo() {...}",
+            "}"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "A general-purpose mechanism for managing and grouping actions and invoking undo/redo operations (implemented by the History class)."
+        },
+        {
+          "caption": "The specifics of particular actions (implemented by a variety of classes, each of which understands a small number of action types).",
+          "lines": "2-5"
+        },
+        {
+          "caption": "The policy for grouping actions (implemented by high-level user interface code to provide the right overall application behavior).",
+          "lines": "8"
+        }
+      ],
+      "notes": "§6.6–6.7. Pushing down: device drivers implement “read a block” / “write a block” for each device, so the OS core knows no device details."
+    },
+    {
+      "kind": "bullets",
+      "title": "Ch. 6 — questions to ask yourself",
+      "items": [
+        "“What is the simplest interface that will cover all my current needs?”",
+        "“In how many situations will this method be used?”",
+        "“Is this API easy to use for my current needs?”",
+        {
+          "text": "Eliminate special cases",
+          "sub": [
+            "designing the normal case in a way that automatically handles the edge conditions without any extra code."
+          ]
+        }
+      ],
+      "notes": "§6.5, §6.8. The special-case example: represent “no selection” as an empty selection, and the checks disappear."
+    },
+    {
+      "kind": "section",
+      "title": "On the Criteria To Be Used in Decomposing Systems into Modules",
+      "subtitle": "David Parnas · CACM, December 1972",
+      "color": "teal",
+      "number": "02"
+    },
+    {
+      "kind": "bullets",
+      "title": "What modularity was supposed to buy",
+      "items": [
+        {
+          "text": "Managerial",
+          "sub": [
+            "development time should be shortened because separate groups would work on each module with little need for communication"
+          ]
+        },
+        {
+          "text": "Product flexibility",
+          "sub": [
+            "it should be possible to make drastic changes to one module without a need to change others"
+          ]
+        },
+        {
+          "text": "Comprehensibility",
+          "sub": [
+            "it should be possible to study the system one module at a time"
+          ]
+        },
+        {
+          "text": "A module is “a responsibility assignment rather than a subprogram”"
+        }
+      ],
+      "notes": "Parnas: “Usually nothing is said about the criteria to be used in dividing the system into modules.”"
+    },
+    {
+      "kind": "line",
+      "title": "The KWIC index, as a flowchart",
+      "machines": [
+        {
+          "name": "Input",
+          "icon": "I"
+        },
+        {
+          "name": "Circular Shift",
+          "icon": "↻"
+        },
+        {
+          "name": "Alphabetizing",
+          "icon": "A"
+        },
+        {
+          "name": "Output",
+          "icon": "O"
+        }
+      ],
+      "runs": [
+        {
+          "input": "Clouds are white",
+          "outputs": [
+            "Clouds are white",
+            "Clouds are white\nare white Clouds\nwhite Clouds are",
+            "are white Clouds\nClouds are white\nwhite Clouds are",
+            "are white Clouds\nClouds are white\nwhite Clouds are"
+          ],
+          "caption": "Every circular shift of every line, in alphabetical order."
+        }
+      ],
+      "caption": "Any line may be \"circularly shifted\" by repeatedly removing the first word and appending it at the end of the line.",
+      "notes": [
+        "Modularization 1: “Experiments on a small scale indicate that this is approximately the decomposition which would be proposed by most programmers for the task specified.”",
+        "Each module leaves its output in core for the next: packed characters, an index of shifts, an alphabetized index."
+      ]
+    },
+    {
+      "kind": "decisions",
+      "title": "Two modularizations, five likely changes",
+      "decisions": [
+        {
+          "id": "fmt",
+          "label": "input format"
+        },
+        {
+          "id": "core",
+          "label": "all lines in core"
+        },
+        {
+          "id": "pack",
+          "label": "4 chars per word"
+        },
+        {
+          "id": "index",
+          "label": "index the shifts"
+        },
+        {
+          "id": "once",
+          "label": "alphabetize once"
+        }
+      ],
+      "layouts": [
+        {
+          "label": "Modularization 1: steps of the flowchart",
+          "modules": [
+            {
+              "name": "Input",
+              "knows": [
+                "fmt",
+                "core",
+                "pack"
+              ]
+            },
+            {
+              "name": "Circular Shift",
+              "knows": [
+                "core",
+                "pack",
+                "index"
+              ]
+            },
+            {
+              "name": "Alphabetizing",
+              "knows": [
+                "core",
+                "pack",
+                "index",
+                "once"
+              ]
+            },
+            {
+              "name": "Output",
+              "knows": [
+                "core",
+                "pack",
+                "index",
+                "once"
+              ]
+            },
+            {
+              "name": "Master Control",
+              "knows": []
+            }
+          ]
+        },
+        {
+          "label": "Modularization 2: information hiding",
+          "modules": [
+            {
+              "name": "Line Storage",
+              "knows": [
+                "core",
+                "pack"
+              ]
+            },
+            {
+              "name": "Input",
+              "knows": [
+                "fmt"
+              ]
+            },
+            {
+              "name": "Circular Shifter",
+              "knows": [
+                "index"
+              ]
+            },
+            {
+              "name": "Alphabetizer",
+              "knows": [
+                "once"
+              ]
+            },
+            {
+              "name": "Output",
+              "knows": []
+            },
+            {
+              "name": "Master Control",
+              "knows": []
+            }
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "label": "1. input format",
+          "decision": "fmt"
+        },
+        {
+          "label": "2. the decision to have all lines stored in core",
+          "decision": "core"
+        },
+        {
+          "label": "3. the decision to pack the characters four to a word",
+          "decision": "pack"
+        },
+        {
+          "label": "4. the decision to make an index for the circular shifts",
+          "decision": "index"
+        },
+        {
+          "label": "5. the decision to alphabetize the list once",
+          "decision": "once"
+        }
+      ],
+      "caption": "Parnas's list of “design decisions which are questionable and likely to change”",
+      "notes": [
+        "“For the first decomposition the second change would result in changes in every module! The same is true of the third change.”",
+        "“Knowledge of the exact way that the lines are stored is entirely hidden from all but module 1.”",
+        "Change 5 in decomposition 1: “The output module will expect the index to have been completed before it began.”"
+      ]
+    },
+    {
+      "kind": "quote",
+      "quote": "Every module in the second decomposition is characterized by its knowledge of a design decision which it hides from all others. Its interface or definition was chosen to reveal as little as possible about its inner workings.",
+      "by": "David Parnas",
+      "source": "Parnas, On the Criteria To Be Used in Decomposing Systems into Modules, CACM 1972",
+      "notes": "The first decomposition's criterion: “make each major step in the processing a module.” “One might say that to get the first decomposition one makes a flowchart.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "Same program, different modules",
+      "items": [
+        {
+          "text": "Both work — the runnable code could even be identical",
+          "sub": [
+            "Our discussion is about two different ways of cutting up what may be the same object."
+          ]
+        },
+        {
+          "text": "Independent development",
+          "sub": [
+            "In the second modularization the interfaces are more abstract; they consist primarily in the function names and the numbers and types of the parameters."
+          ]
+        },
+        {
+          "text": "Comprehensibility",
+          "sub": [
+            "Modularization 1: The system will only be comprehensible as a whole."
+          ]
+        }
+      ],
+      "notes": "the runnable representation need only be used for running; other representations are used for changing, documenting, understanding, etc."
+    },
+    {
+      "kind": "bullets",
+      "title": "Parnas catches his own leak",
+      "items": [
+        {
+          "text": "Even the Circular Shifter said too much",
+          "sub": [
+            "While we carefully hid the method of storing or calculating the list of circular shifts, we specified an order to that list."
+          ]
+        },
+        {
+          "text": "“By prescribing the order for the shifts we have given more information than necessary”"
+        },
+        {
+          "text": "“Our failure to do this … must clearly be classified as a design error.”"
+        }
+      ],
+      "notes": "The system he couldn't build: shifts produced already in order, ALPH empty, ITH returning its argument. Compare APOSD §5.2 on leakage through an interface."
+    },
+    {
+      "kind": "bullets",
+      "title": "Parnas's rules of thumb",
+      "items": [
+        "A data structure, its internal linkings, accessing procedures and modifying procedures are part of a single module.",
+        "The sequence of instructions necessary to call a given routine and the routine itself are part of the same module.",
+        "The formats of control blocks used in queues in operating systems and similar programs must be hidden within a \"control block module.\"",
+        "Character codes, alphabetic orderings, and similar data should be hidden in a module for greatest flexibility.",
+        "The sequence in which certain items will be processed should (as far as practical) be hidden within a single module."
+      ],
+      "notes": [
+        "Efficiency: calling across modules costs; Parnas wants tools that assemble module code as if the functions were subroutines.",
+        "Hierarchy is a separate property: “hierarchical structure and \"clean\" decomposition are two desirable but independent properties of a system structure.”"
+      ]
+    },
+    {
+      "kind": "quote",
+      "quote": "it is almost always incorrect to begin the decomposition of a system into modules on the basis of a flowchart. We propose instead that one begins with a list of difficult design decisions or design decisions which are likely to change. Each module is then designed to hide such a decision from the others.",
+      "by": "David Parnas",
+      "source": "Parnas, On the Criteria To Be Used in Decomposing Systems into Modules, CACM 1972 — conclusion",
+      "notes": "Fifty years later this is APOSD ch. 5: temporal decomposition is the flowchart criterion."
+    },
+    {
+      "kind": "section",
+      "title": "Out of the Tar Pit",
+      "subtitle": "Ben Moseley & Peter Marks · 2006",
+      "color": "orange",
+      "number": "03"
+    },
+    {
+      "kind": "quote",
+      "quote": "Complexity is the single major difficulty in the successful development of large-scale software systems.",
+      "by": "Moseley & Marks",
+      "source": "Moseley & Marks, Out of the Tar Pit, 2006, abstract",
+      "notes": "Following Brooks we distinguish accidental from essential difficulty, but disagree with his premise that most complexity remaining in contemporary systems is essential."
+    },
+    {
+      "kind": "quote",
+      "quote": "I conclude that there are two ways of constructing a software design: One way is to make it so simple that there are obviously no deficiencies and the other way is to make it so complicated that there are no obvious deficiencies. The first method is far more difficult.",
+      "by": "Tony Hoare, 1980 Turing lecture",
+      "source": "quoted in Moseley & Marks, Out of the Tar Pit, 2006, §2",
+      "notes": "Their summary: “Simplicity is Hard”. Complexity here means hard to understand — nothing to do with complexity theory."
+    },
+    {
+      "kind": "bullets",
+      "title": "§3 — how we try to understand systems",
+      "items": [
+        {
+          "text": "Testing: from the outside, as a black box",
+          "sub": [
+            "a test (of any kind) that uses one particular set of inputs tells you nothing at all about the behaviour of the system or component when it is given a different set of inputs."
+          ]
+        },
+        {
+          "text": "Informal reasoning: from the inside",
+          "sub": [
+            "improvements in informal reasoning will lead to less errors being created whilst all that improvements in testing can do is to lead to more errors being detected."
+          ]
+        },
+        {
+          "text": "So simplicity comes first",
+          "sub": [
+            "When considered next to testing and reasoning, simplicity is more important than either."
+          ]
+        }
+      ],
+      "notes": "Dijkstra: testing shows the presence of bugs, never their absence."
+    },
+    {
+      "kind": "line",
+      "title": "§4.1 — state: same input, different output",
+      "machines": [
+        {
+          "name": "greet(name)",
+          "icon": "g",
+          "color": "teal"
+        },
+        {
+          "name": "getNextCounter()",
+          "icon": "+",
+          "color": "orange",
+          "state": "counter = 0"
+        }
+      ],
+      "runs": [
+        {
+          "input": "Ann",
+          "outputs": [
+            "Hi Ann",
+            "Hi Ann #1"
+          ],
+          "states": [
+            "",
+            "counter = 1"
+          ],
+          "caption": "greet is stateless. The line as a whole passed its test."
+        },
+        {
+          "input": "Ann",
+          "outputs": [
+            "Hi Ann",
+            "Hi Ann #2"
+          ],
+          "states": [
+            "",
+            "counter = 2"
+          ],
+          "caption": "Same input, different output. “a test (of any kind) on a system or component that is in one particular state tells you nothing at all about the behaviour of that system or component when it happens to be in another state.”"
+        },
+        {
+          "input": "Ann",
+          "outputs": [
+            "Hi Ann",
+            "Hi Ann #3"
+          ],
+          "states": [
+            "",
+            "counter = 3"
+          ],
+          "xray": true,
+          "caption": "If the procedure in question (which is itself stateless) makes use of any other procedure which is stateful — even indirectly — then all bets are off, our procedure becomes contaminated and we can only understand it in the context of state."
+        }
+      ],
+      "caption": "A support desk's advice — “try it again”, “restart the program” — is an attempt to get back to a good state.",
+      "notes": [
+        "for every single bit of state that we add we double the total number of possible states.",
+        "getNextCounter is the paper's §5.2.3 example; greet is mine, to show contamination."
+      ]
+    },
+    {
+      "kind": "code",
+      "title": "§5.2.3 — the functional version passes the state in",
+      "panes": [
+        {
+          "label": "stateful",
+          "code": [
+            "procedure int getNextCounter()",
+            "  // 'counter' is declared and initialized elsewhere in the code",
+            "  counter := counter + 1",
+            "  return counter"
+          ]
+        },
+        {
+          "label": "functional",
+          "code": [
+            "function (int,int) getNextCounter(int oldCounter)",
+            "  let int result = oldCounter + 1",
+            "  let int newCounter = oldCounter + 1",
+            "  return (newCounter, result)"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "the caller of the getNextCounter procedure has no idea what may influence the result he gets"
+        },
+        {
+          "caption": "the caller of the getNextCounter function can instantly see exactly that the result can depend only on the single value supplied to the function",
+          "pane": 1
+        },
+        {
+          "caption": "there are large benefits to be had from avoiding hidden, implicit, mutable state."
+        }
+      ],
+      "notes": "They are fair about the trade-off (§5.2.4): state lets you add behaviour to a component without touching its callers. The trade-off is between complexity (with the ability to take a shortcut when making some specific types of change) and simplicity (with huge improvements in both testing and reasoning)."
+    },
+    {
+      "kind": "code",
+      "title": "§4.2 — control: an order nobody asked for",
+      "panes": [
+        {
+          "label": "pseudo-code from the paper",
+          "code": [
+            "a := b + 3",
+            "c := d + 2",
+            "e := f * 4"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "The programmer is only interested in specifying a relationship between certain values, but has been forced to say more than this by choosing an arbitrary control flow."
+        },
+        {
+          "caption": "first an artificial ordering is being imposed, and then further work is done to remove it."
+        }
+      ],
+      "notes": [
+        "The reader has to redo the compiler's work: assume the order matters, then prove it doesn't.",
+        "Concurrency: Running a test in the presence of concurrency with a known initial state and set of inputs tells you nothing at all about what will happen the next time you run that very same test with the very same inputs and the very same starting state."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "§4 — the causes, and three principles",
+      "items": [
+        {
+          "text": "State",
+          "tag": "main",
+          "sub": [
+            "the single biggest remaining cause of complexity in most contemporary large systems is state,"
+          ]
+        },
+        {
+          "text": "Control",
+          "sub": [
+            "Control is basically about the order in which things happen."
+          ]
+        },
+        {
+          "text": "Code volume",
+          "sub": [
+            "mostly a secondary effect of state and control — but the easiest to measure"
+          ]
+        },
+        {
+          "text": "Complexity breeds complexity · Simplicity is hard · Power corrupts",
+          "sub": [
+            "the more powerful a language (i.e. the more that is possible within the language), the harder it is to understand systems constructed in it."
+          ]
+        }
+      ],
+      "notes": "§4.4: duplicated code, dead code, unnecessary or missed abstraction, poor modularity and documentation all come down to those three."
+    },
+    {
+      "kind": "bullets",
+      "title": "§5 — how the paradigms fare",
+      "items": [
+        {
+          "text": "Object-orientation",
+          "tag": "state ✗",
+          "sub": [
+            "Conventional imperative and object-oriented programs suffer greatly from both state-derived and control-derived complexity."
+          ]
+        },
+        {
+          "text": "Functional programming",
+          "tag": "state ✓",
+          "sub": [
+            "Functional programming goes a long way towards avoiding the problems of state-derived complexity."
+          ]
+        },
+        {
+          "text": "Logic programming",
+          "tag": "control ✓",
+          "sub": [
+            "it offers the tantalising promise of the ability to escape from the complexity problems caused by control."
+          ]
+        }
+      ],
+      "notes": "OOP's encapsulation enforces single-object constraints well, multi-object ones awkwardly; object identity adds a second notion of equality."
+    },
+    {
+      "kind": "bullets",
+      "title": "§6 — accidents and essence",
+      "items": [
+        {
+          "text": "Essential complexity",
+          "sub": [
+            "Essential Complexity is inherent in, and the essence of, the problem (as seen by the users)."
+          ]
+        },
+        {
+          "text": "Accidental complexity",
+          "sub": [
+            "Accidental Complexity is all the rest — complexity with which the development team would not have to deal in the ideal world"
+          ]
+        },
+        {
+          "text": "The user test",
+          "sub": [
+            "if the user doesn’t even know what something is (e.g. a thread pool or a loop counter — to pick two arbitrary examples) then it cannot possibly be essential by our definition"
+          ]
+        }
+      ],
+      "notes": "Against Brooks: Complexity itself is not an inherent (or essential) property of software"
+    },
+    {
+      "kind": "code",
+      "title": "§7.1 — accidental state: the cache",
+      "panes": [
+        {
+          "label": "with a cache",
+          "code": [
+            "procedure int doCalculation(int y)",
+            "  // 'subsidaryCalcCache' is declared and initialized",
+            "  // elsewhere in the code",
+            "  if (subsidaryCalcCache.contains(y) == false) {",
+            "    subsidaryCalcCache.y := slowSubsidaryCalculation(y)",
+            "  }",
+            "  return 3 * (4 + subsidaryCalcCache.y)"
+          ]
+        },
+        {
+          "label": "the ideal world",
+          "code": [
+            "procedure int doCalculation(int y)",
+            "  return 3 * (4 + slowSubsidaryCalculation(y))"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "Derived data that no user asked for is accidental state.",
+          "lines": "4-6"
+        },
+        {
+          "caption": "Hence, it is quite clear that we can eliminate it completely from our ideal world, and that hence it is accidental.",
+          "pane": 1
+        },
+        {
+          "caption": "No caches, no stores of derived calculations of any kind."
+        }
+      ],
+      "notes": "Table 1: only input data that may be referred to again is essential state. All derived data, mutable or not, is accidental. Control is entirely accidental."
+    },
+    {
+      "kind": "decisions",
+      "title": "§7.3 — avoid, then separate",
+      "decisions": [
+        {
+          "id": "state",
+          "label": "what the facts are",
+          "color": "blue"
+        },
+        {
+          "id": "logic",
+          "label": "what must be true",
+          "color": "green"
+        },
+        {
+          "id": "perf",
+          "label": "how to make it fast",
+          "color": "orange"
+        }
+      ],
+      "layouts": [
+        {
+          "label": "the recommended architecture (figure 1)",
+          "modules": [
+            {
+              "name": "Essential State",
+              "knows": [
+                "state"
+              ]
+            },
+            {
+              "name": "Essential Logic",
+              "knows": [
+                "state",
+                "logic"
+              ]
+            },
+            {
+              "name": "Accidental State and Control",
+              "knows": [
+                "state",
+                "logic",
+                "perf"
+              ]
+            }
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "label": "how to make it fast",
+          "decision": "perf"
+        },
+        {
+          "label": "what must be true",
+          "decision": "logic"
+        },
+        {
+          "label": "what the facts are",
+          "decision": "state"
+        }
+      ],
+      "unit": "part",
+      "caption": "Specifically the overriding aim must be to avoid state and control where they are not absolutely and truly essential.",
+      "notes": [
+        "Changes in the accidental specification can hence never require any change to the essential logic.",
+        "changes to the essential state specification itself may require changes in both the other specifications,",
+        "Kowalski, 1979: “Algorithm = Logic + Control”."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "§8 — the relational model, beyond databases",
+      "items": [
+        {
+          "text": "Structure",
+          "sub": [
+            "the use of relations as the means for representing all data"
+          ]
+        },
+        {
+          "text": "Manipulation",
+          "sub": [
+            "a means to specify derived data"
+          ]
+        },
+        {
+          "text": "Integrity",
+          "sub": [
+            "a means to specify certain inviolable restrictions on the data"
+          ]
+        },
+        {
+          "text": "Data independence",
+          "sub": [
+            "a clear separation is enforced between the logical data and its physical representation"
+          ]
+        }
+      ],
+      "notes": "The relational model [Cod70] has — despite its origins — nothing intrinsically to do with databases. They warn against equating it with SQL."
+    },
+    {
+      "kind": "bullets",
+      "title": "§9 — Functional Relational Programming",
+      "items": [
+        {
+          "text": "Essential State",
+          "tag": "relations",
+          "sub": [
+            "A Relational definition of the stateful components of the system"
+          ]
+        },
+        {
+          "text": "Essential Logic",
+          "tag": "functions",
+          "sub": [
+            "Derived-relation definitions, integrity constraints and (pure) functions"
+          ]
+        },
+        {
+          "text": "Accidental State and Control",
+          "tag": "hints",
+          "sub": [
+            "A declarative specification of a set of performance optimizations for the system"
+          ]
+        },
+        {
+          "text": "Other",
+          "tag": "feeders",
+          "sub": [
+            "A specification of the required interfaces to the outside world (user and system interfaces)"
+          ]
+        }
+      ],
+      "notes": "Not functional reactive programming. In contrast with the object-oriented approach, FRP emphasises a clear separation of state and behaviour"
+    },
+    {
+      "kind": "line",
+      "title": "§10 — the estate agency, as a line",
+      "machines": [
+        {
+          "name": "feeder",
+          "icon": "→",
+          "color": "grey"
+        },
+        {
+          "name": "integrity constraints",
+          "icon": "✓",
+          "color": "green"
+        },
+        {
+          "name": "Essential State",
+          "icon": "R",
+          "color": "blue",
+          "state": "Offer: 0 rows"
+        },
+        {
+          "name": "derived relations",
+          "icon": "λ",
+          "color": "plum"
+        },
+        {
+          "name": "observer",
+          "icon": "◉",
+          "color": "teal"
+        }
+      ],
+      "runs": [
+        {
+          "input": "offer on 12 Elm St\nby Ann of 3 Oak Rd",
+          "outputs": [
+            "Offer tuple",
+            "Offer tuple ✓",
+            "stored",
+            "OpenOffers +1",
+            "on the website"
+          ],
+          "states": [
+            "",
+            "",
+            "Offer: 1 row",
+            "",
+            ""
+          ],
+          "caption": "Input flows into essential state; the logic derives OpenOffers; an observer displays it."
+        },
+        {
+          "input": "offer on 12 Elm St\nby the owner, of 12 Elm St",
+          "outputs": [
+            "Offer tuple",
+            "rejected ✗",
+            "rejected ✗",
+            "rejected ✗",
+            "rejected ✗"
+          ],
+          "xray": true,
+          "caption": "count(restrict(Offer | bidderAddress == address)) == 0 — people cannot submit bids on their own property"
+        }
+      ],
+      "caption": "The paper's example system: properties, offers, decisions, rooms and commissions.",
+      "notes": [
+        "An illustration of figure 2's data flow; the paper gives the specifications, not a running system.",
+        "Once the system is deployed, the FRP infrastructure will reject any state modification attempts which would violate any of these integrity constraints."
+      ]
+    },
+    {
+      "kind": "code",
+      "title": "§10 — the three specifications",
+      "panes": [
+        {
+          "label": "essential state",
+          "code": [
+            "def relvar Property :: {address:address price:price",
+            "  photo:filename agent:agent dateRegistered:date }",
+            "def relvar Offer :: {address:address offerPrice:price",
+            "  offerDate:date bidderName:name bidderAddress:address }"
+          ]
+        },
+        {
+          "label": "essential logic",
+          "code": [
+            "RoomInfo = extend(Room, (roomSize = width*breadth))",
+            "",
+            "count(restrict(PropertyInfo | numberOfRooms < 1)) == 0",
+            "count(restrict(Offer | bidderAddress == address)) == 0"
+          ]
+        },
+        {
+          "label": "accidental state and control",
+          "code": [
+            "declare store PropertyInfo",
+            "declare store shared Room Floor",
+            "declare store separate Property (photo)"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "Base relvars: names and types only — six in the example; two shown."
+        },
+        {
+          "caption": "A derived relation and two integrity constraints.",
+          "pane": 1
+        },
+        {
+          "caption": "The accidental state and control component of an FRP system consists solely of a set of declarations which represent performance hints for the infrastructure",
+          "pane": 2
+        },
+        {
+          "caption": "because we are able to express this as part of the accidental state and control we have not been forced to compromise the essential parts of our system which still treat Room and Floor separately",
+          "pane": 2,
+          "lines": "2"
+        }
+      ],
+      "notes": "Verbatim from §10.2–10.4 (typewriter syntax of a hypothetical infrastructure)."
+    },
+    {
+      "kind": "bullets",
+      "title": "What FRP promises — and the caveat",
+      "items": [
+        {
+          "text": "No bad states",
+          "sub": [
+            "the system can never require “restarting” / “rebooting” etc."
+          ]
+        },
+        {
+          "text": "Logic sees state as constant",
+          "sub": [
+            "you do not have to think about any accidental state when concentrating on the logic of your system."
+          ]
+        },
+        {
+          "text": "Declarative integrity",
+          "sub": [
+            "constraints instead of triggers, methods or procedures"
+          ]
+        },
+        {
+          "text": "The caveat",
+          "tag": "2006",
+          "sub": [
+            "“FRP is currently a purely hypothetical … approach to system architecture that has not in any way been proven in practice.”"
+          ]
+        }
+      ],
+      "notes": "Worth asking in discussion: what in today's stacks resembles this? (relational stores + pure functions + declarative caches / materialized views)"
+    },
+    {
+      "kind": "quote",
+      "quote": "So, what is the way out of the tar pit? What is the silver bullet? . . . it may not be FRP, but we believe there can be no doubt that it is simplicity.",
+      "by": "Moseley & Marks",
+      "source": "Moseley & Marks, Out of the Tar Pit, 2006, conclusion",
+      "notes": "Part 2 of the paper (FRP, the relational model) is their proposal; §1–7 is the argument everyone can use."
+    },
+    {
+      "kind": "section",
+      "title": "Three readings, side by side",
+      "subtitle": "where they agree and where they don't",
+      "color": "plum",
+      "number": "04"
+    },
+    {
+      "kind": "versus",
+      "title": "Two diagnoses",
+      "left": {
+        "name": "Ousterhout",
+        "color": "blue",
+        "points": [
+          "Complexity comes from dependencies and obscurity",
+          "Fight it by eliminating it, or by encapsulating it in deep modules",
+          "Classes are the main tool — make them deep",
+          "Design is continuous; invest 10–20%"
+        ]
+      },
+      "right": {
+        "name": "Moseley & Marks",
+        "color": "orange",
+        "points": [
+          "Complexity comes mostly from state and control",
+          "Fight it by avoiding it, then separating what's left",
+          "OOP's encapsulation couples state to behaviour",
+          "Restrict the power of each part's language"
+        ]
+      },
+      "agree": [
+        "Parnas: hide each decision that might change",
+        "simplicity beats testing as a strategy",
+        "understanding is the bottleneck"
+      ],
+      "notes": "APOSD §5.1 cites Parnas directly. The Tar Pit's “separate” is Parnas's criterion applied to state vs logic vs performance."
+    },
+    {
+      "kind": "bullets",
+      "title": "The same idea three times",
+      "items": [
+        {
+          "text": "Parnas's flowchart decomposition = Ousterhout's temporal decomposition",
+          "sub": [
+            "organize by what a module knows, not when it runs"
+          ]
+        },
+        {
+          "text": "Parnas's leaky Circular Shifter = a module that reveals more than callers need",
+          "sub": [
+            "a design error, even in the good design"
+          ]
+        },
+        {
+          "text": "The Tar Pit's cache = accidental state behind a deep interface",
+          "sub": [
+            "Ousterhout would hide it; Moseley & Marks would declare it and let infrastructure keep it"
+          ]
+        },
+        {
+          "text": "Unknown unknowns = contamination by hidden state",
+          "sub": [
+            "the thing you need to know isn't visible where you're looking"
+          ]
+        }
+      ],
+      "notes": "My synthesis, not a quote. Good for the discussion."
+    },
+    {
+      "kind": "section",
+      "title": "Postscript: Ousterhout ↔ Uncle Bob",
+      "subtitle": "the written debate, 2024–25 — only the part about ch. 4",
+      "color": "red",
+      "number": "05",
+      "notes": "The debate covers method length, comments and TDD. Only method length belongs in Week 1: it is chapter 4's deep vs shallow argument with a counterpart."
+    },
+    {
+      "kind": "dialogue",
+      "title": "“Smaller than that”",
+      "context": "John starts with what Clean Code says about function length.",
+      "lines": [
+        {
+          "who": "john",
+          "text": "On page 34 of Clean Code you say \"The first rule of functions is that they should be small. The second rule of functions is that they should be smaller than that."
+        },
+        {
+          "who": "john",
+          "text": "The best methods are those that provide a lot of functionality but have a very simple interface: they replace a large cognitive load (reading the detailed implementation) with a much smaller cognitive load (learning the interface). I call these methods \"deep\"."
+        },
+        {
+          "who": "john",
+          "text": "However, like most ideas in software design, decomposition can be taken too far. As methods get smaller and smaller there is less and less benefit to further subdivision. The amount of functionality hidden behind each interface drops, while the interfaces often become more complex. I call these interfaces \"shallow\": they don't help much in terms of reducing what the programmer needs to know. Eventually, the point is reached where someone using the method needs to understand every aspect of its implementation. Such methods are usually pointless."
+        },
+        {
+          "who": "john",
+          "text": "Two methods are entangled (or \"conjoined\" in APOSD terminology) if, in order to understand how one of them works internally, you also need to read the code of the other. If you've ever found yourself flipping back and forth between the implementations of two methods as you read code, that's a red flag that the methods might be entangled. Entangled methods are hard to read because the information you need to have in your head at once isn't all in the same place. Entangled methods can usually be improved by combining them so that all the code is in one place."
+        }
+      ],
+      "notes": "Verbatim from “A Philosophy of Software Design vs Clean Code” (github.com/johnousterhout/aposd-vs-clean-code). “…” marks cuts."
+    },
+    {
+      "kind": "dialogue",
+      "title": "The One Thing rule",
+      "context": "John asks whether code can be over-decomposed, and how you would notice.",
+      "lines": [
+        {
+          "who": "bob",
+          "text": "The strategy that I use for deciding how far to take decomposition is the old rule that a method should do \"One Thing\". If I can meaningfully extract one method from another, then the original method did more than one thing. \"Meaningfully\" means that the extracted functionality can be given a descriptive name; and that it does less than the original method."
+        },
+        {
+          "who": "john",
+          "text": "The term \"one thing\" is vague and easy to abuse. For example, if a method has two lines of code, isn't it doing two things?"
+        },
+        {
+          "who": "john",
+          "text": "The One Thing approach is simply wrong in many cases. If two things are closely related, it might well make sense to implement them in a single method. For example, any thread-safe method will first have to acquire a lock, then carry out its function. These are two \"things\", but they belong in the same method."
+        },
+        {
+          "who": "bob",
+          "text": "I don't consider that to be a significant concern. If statements are easy to abuse. Switch statements are easy to abuse. Assignment statements are easy to abuse. The fact that something is easy to abuse does not mean that it should be avoided or suppressed. It simply means people should take appropriate care. There will always be this thing called: judgment."
+        }
+      ],
+      "notes": "Verbatim from “A Philosophy of Software Design vs Clean Code” (github.com/johnousterhout/aposd-vs-clean-code). “…” marks cuts."
+    },
+    {
+      "kind": "code",
+      "title": "Exhibit: PrimeGenerator (Clean Code, listing 10-8)",
+      "panes": [
+        {
+          "label": "PrimeGenerator.java",
+          "code": [
+            "public class PrimeGenerator {",
+            "    private static int[] primes;",
+            "    private static ArrayList<Integer> multiplesOfPrimeFactors;",
+            "",
+            "    protected static int[] generate(int n) {",
+            "        primes = new int[n];",
+            "        multiplesOfPrimeFactors = new ArrayList<Integer>();",
+            "        set2AsFirstPrime();",
+            "        checkOddNumbersForSubsequentPrimes();",
+            "        return primes;",
+            "    }",
+            "",
+            "    private static void set2AsFirstPrime() {",
+            "        primes[0] = 2;",
+            "        multiplesOfPrimeFactors.add(2);",
+            "    }",
+            "",
+            "    private static void checkOddNumbersForSubsequentPrimes() {",
+            "        int primeIndex = 1;",
+            "        for (int candidate = 3; primeIndex < primes.length; candidate += 2) {",
+            "            if (isPrime(candidate))",
+            "                primes[primeIndex++] = candidate;",
+            "        }",
+            "    }",
+            "",
+            "    private static boolean isPrime(int candidate) {",
+            "        if (isLeastRelevantMultipleOfLargerPrimeFactor(candidate)) {",
+            "            multiplesOfPrimeFactors.add(candidate);",
+            "            return false;",
+            "        }",
+            "        return isNotMultipleOfAnyPreviousPrimeFactor(candidate);",
+            "    }",
+            "",
+            "    private static boolean isLeastRelevantMultipleOfLargerPrimeFactor(int candidate) {",
+            "        int nextLargerPrimeFactor = primes[multiplesOfPrimeFactors.size()];",
+            "        int leastRelevantMultiple = nextLargerPrimeFactor * nextLargerPrimeFactor;",
+            "        return candidate == leastRelevantMultiple;",
+            "    }",
+            "",
+            "    private static boolean isNotMultipleOfAnyPreviousPrimeFactor(int candidate) {",
+            "        for (int n = 1; n < multiplesOfPrimeFactors.size(); n++) {",
+            "            if (isMultipleOfNthPrimeFactor(candidate, n))",
+            "                return false;",
+            "        }",
+            "        return true;",
+            "    }",
+            "",
+            "    private static boolean isMultipleOfNthPrimeFactor(int candidate, int n) {",
+            "        return candidate == smallestOddNthMultipleNotLessThanCandidate(candidate, n);",
+            "    }",
+            "",
+            "    private static int smallestOddNthMultipleNotLessThanCandidate(int candidate, int n) {",
+            "        int multiple = multiplesOfPrimeFactors.get(n);",
+            "        while (multiple < candidate)",
+            "            multiple += 2 * primes[n];",
+            "        multiplesOfPrimeFactors.set(n, multiple);",
+            "        return multiple;",
+            "    }",
+            "}"
+          ],
+          "analyze": true,
+          "metrics": true
+        }
+      ],
+      "steps": [
+        {
+          "caption": "John: “Let's look at the PrimeGenerator class from Clean Code … This Java class generates the first N prime numbers.”"
+        },
+        {
+          "caption": "“This method invokes isMultipleOfNthPrimeFactor, which invokes smallestOddNthMultipleNotLessThanCandidate. These methods are shallow and entangled.”",
+          "lines": "40-58",
+          "arcs": "calls"
+        },
+        {
+          "caption": "“isNot... has side effects (it modifies multiplesOfPrimeFactors) but you can't see that unless you read all three methods.”",
+          "lines": "52-58",
+          "arcs": "state"
+        },
+        {
+          "caption": "“isNot... only works if it is invoked in a loop where candidate increases monotonically.”",
+          "lines": "18-24,56",
+          "arcs": "both"
+        }
+      ],
+      "notes": "Blue arcs: calls. Red dashed arcs: writes to the shared static fields. Captions are John's words from the debate."
+    },
+    {
+      "kind": "line",
+      "title": "A question that changes the answer",
+      "machines": [
+        {
+          "name": "isMultipleOfNthPrimeFactor(candidate, n)",
+          "icon": "?",
+          "color": "red",
+          "state": "multiples[n] = 9"
+        }
+      ],
+      "runs": [
+        {
+          "input": "11",
+          "outputs": [
+            "false"
+          ],
+          "states": [
+            "multiples[n] = 15"
+          ],
+          "caption": "It sounds like a question. It also bumps the stored multiple of 3 up to the candidate."
+        },
+        {
+          "input": "13",
+          "outputs": [
+            "false"
+          ],
+          "caption": "Correct only because the loop feeds candidates in increasing order."
+        },
+        {
+          "input": "15",
+          "outputs": [
+            "true"
+          ],
+          "xray": true,
+          "caption": "“isNot... only works if it is invoked in a loop where candidate increases monotonically.”"
+        }
+      ],
+      "caption": "Unknown unknowns (APOSD §2.2) meet hidden state (Tar Pit §4.1).",
+      "notes": "The machine is n = the prime 3. smallestOddNthMultipleNotLessThanCandidate raises the multiple until it is ≥ the candidate — a write hidden behind a question-shaped name."
+    },
+    {
+      "kind": "dialogue",
+      "title": "Trusting the names",
+      "context": "Bob says isNotMultipleOfAnyPreviousPrimeFactor reads fine if you trust the method it calls. John says the appearance is deceiving.",
+      "lines": [
+        {
+          "who": "bob",
+          "text": "If you trust the isMultipleOfNthPrimeFactor method, then this method stands alone quite nicely. I mean we loop through all n previous primes and see if the candidate is a multiple. That's pretty straight forward."
+        },
+        {
+          "who": "john",
+          "text": "This code does appear to be simple and obvious. Unfortunately, this appearance is deceiving. If a reader trusts the name isMultipleOfNthPrimeFactor (which suggests a predicate with no side effects) and doesn't bother to read its code, they will not realize that it has side effects, and that the side effects create a constraint on the candidate argument to isNot... (it must be monotonically non-decreasing from invocation to invocation). To understand these behaviors, you have to read both isMultiple... and smallestOdd.... The current decomposition hides this important information from the reader."
+        },
+        {
+          "who": "john",
+          "text": "If there is one thing more likely to result in bugs than not understanding code, it's thinking you understand it when you don't."
+        },
+        {
+          "who": "bob",
+          "text": "In general, if you trust the names of the methods being called then understanding the caller does not require understanding the callee."
+        }
+      ],
+      "notes": "Verbatim from “A Philosophy of Software Design vs Clean Code” (github.com/johnousterhout/aposd-vs-clean-code). “…” marks cuts."
+    },
+    {
+      "kind": "versus",
+      "title": "Method length: where they landed",
+      "left": {
+        "name": "John",
+        "color": "blue",
+        "points": [
+          "The One Thing Rule lacks guardrails and leads to over-decomposition",
+          "Entangled methods are harder to read than one undecomposed method",
+          "Ordering methods doesn't compensate for entanglement"
+        ]
+      },
+      "right": {
+        "name": "Uncle Bob",
+        "color": "red",
+        "points": [
+          "One Thing, applied with judgment, leads to appropriate decompositions",
+          "The benefits of decomposing can compensate for entanglement",
+          "Ordering methods in a class helps"
+        ]
+      },
+      "agree": [
+        "modular design is good",
+        "over-decomposition is possible",
+        "PrimeGenerator's internal decomposition is problematic"
+      ],
+      "notes": "Paraphrased from John's Method Length Summary, which Bob called “a fair assessment”. Comments (APOSD ch. 12–13) and TDD (ch. 19) come later in the track."
+    },
+    {
+      "kind": "bullets",
+      "title": "Takeaways",
+      "items": [
+        "Complexity is what makes change hard — measured by the reader, weighted by attention",
+        "Decompose by the decisions you hide (Parnas), not by the order things run",
+        "A module is worth its interface only if it hides much more (deep, not shallow)",
+        "Unknown unknowns and hidden state are the worst kinds — make them visible or remove them",
+        "Most state and all control are accidental: avoid them, then separate them",
+        "Invest a little in design all the time; complexity comes in small chunks"
+      ],
+      "notes": "One line per idea."
+    },
+    {
+      "kind": "bullets",
+      "title": "This week's presentation",
+      "items": [
+        {
+          "text": "Find the shallowest module you know",
+          "sub": [
+            "its interface costs about as much to learn as its implementation"
+          ]
+        },
+        {
+          "text": "List the decisions it leaks",
+          "sub": [
+            "Parnas's test: which changes would ripple out of it?"
+          ]
+        },
+        {
+          "text": "Show what a deep version looks like",
+          "sub": [
+            "fewer, more general operations; common case by default; hidden state removed or declared"
+          ]
+        }
+      ],
+      "notes": "The Week 1 “present” task, phrased generically."
+    },
+    {
+      "kind": "poll",
+      "question": "Which reading changed your mind the most?",
+      "options": [
+        {
+          "label": "APOSD",
+          "color": "blue"
+        },
+        {
+          "label": "Parnas",
+          "color": "teal"
+        },
+        {
+          "label": "Tar Pit",
+          "color": "orange"
+        }
+      ],
+      "notes": "Click to count hands."
+    },
+    {
+      "kind": "section",
+      "title": "Questions & discussion",
+      "subtitle": "Which of your modules is organized by the flowchart?",
+      "color": "blue",
+      "number": "?"
+    }
+  ]
+}
