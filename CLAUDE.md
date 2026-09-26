@@ -15,6 +15,8 @@ Plugins (`src/engine/registry.ts`):
   Factory-style slide kinds: `factory` (modules as buildings, x-ray step), `decisions` (Parnas
   change map; `secretly` gems are unknown unknowns revealed when a change bites), `line`
   (assembly line: items ride a belt through machines; hidden state gauges open on an `xray` run).
+  `line` is a timeline (pure function of run + time) with its own playback bar; slides can move
+  the deck's step with `ctx.syncStep` and report `animating()` for render-on-demand.
 - `office` — a Human Resource Machine-style mechanic contributed to decks as the slide kind
   `office/scene`: a worker runs an HRM-format program (INBOX/OUTBOX/COPYFROM/COPYTO/ADD/SUB/
   BUMP/JUMP/JUMPZ/JUMPN, labels `a:`) plus presentation verbs (VISIT/PASS/WORK desks, SAY/THINK,

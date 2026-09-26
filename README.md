@@ -92,7 +92,7 @@ validated with Effect `Schema`, so a typo gives a readable error instead of a cr
 | `modules` | Ousterhout's rectangles: interface width vs hidden functionality |
 | `factory` | modules as buildings with ports; the last step **x-rays** them to show the machinery inside |
 | `decisions` | Parnas's test: each step changes a design decision and counts the modules that must change. `secretly` gems are unknown unknowns |
-| `line` | an assembly line: items ride a belt through machines. Hidden state sits behind padlocked gauges until an `xray` run |
+| `line` | an assembly line: items ride a belt through machines. Hidden state sits behind padlocked gauges until an `xray` run. It has its own **restart · back · play/pause · forward · speed** controls: forward steps to the next machine's output and pauses there, so an audience can read at its own pace |
 | `curve` | tactical vs strategic progress over time |
 | `measure` | before/after metrics |
 | `theater` | a combinator reduction, step by step |

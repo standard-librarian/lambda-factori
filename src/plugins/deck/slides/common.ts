@@ -8,6 +8,8 @@ export interface SlideContext {
   readonly host: HostApi
   readonly tweens: Tweens
   readonly ticker: Ticker
+  /** Tell the deck the slide moved itself to build step `step` (e.g. from its own controls). */
+  readonly syncStep?: (step: number) => void
 }
 
 /**
@@ -20,6 +22,8 @@ export interface SlideView {
   readonly steps: number
   setStep(step: number, animate: boolean): void
   tick?(dt: number): void
+  /** Whether the slide needs frames right now; slides with `tick` but no `animating` always do. */
+  animating?(): boolean
   destroy(): void
 }
 

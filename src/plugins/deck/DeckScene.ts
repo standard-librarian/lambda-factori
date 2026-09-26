@@ -89,7 +89,15 @@ export class DeckScene implements Scene {
         frame.addChild(t, new Graphics().roundRect(MARGIN - 40, 70 + t.height + 10, 120, 10, 5).fill(palette.red))
       }
     }
-    const view = renderSlide(s, { host: this.host, tweens: this.host.tweens, ticker: this.host.app.ticker })
+    const view = renderSlide(s, {
+      host: this.host,
+      tweens: this.host.tweens,
+      ticker: this.host.app.ticker,
+      syncStep: (step) => {
+        this.step = step
+        this.broadcast()
+      }
+    })
     frame.addChild(view.view)
     if (s.sticky) {
       const note = stickyNote(s.sticky.text)
@@ -341,7 +349,8 @@ export class DeckScene implements Scene {
   }
 
   animating() {
-    return this.current?.view.tick !== undefined
+    const v = this.current?.view
+    return v?.animating ? v.animating() : v?.tick !== undefined
   }
 
   destroy() {
