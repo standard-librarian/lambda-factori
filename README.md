@@ -125,7 +125,7 @@ The host knows nothing about combinators or slides. Everything you can open is a
 lazily and addressed by a hash route, `#/<plugin>/<path…>`:
 
 ```ts
-import type { Plugin } from "@lambda-factori/runtime/engine/Plugin.ts"
+import type { Plugin } from "@lambda-factori/runtime/kernel/Plugin.ts"
 
 export const plugin: Plugin = {
   id: "hello", title: "hello", subtitle: "a minimal plugin", kind: "tool",
@@ -134,11 +134,16 @@ export const plugin: Plugin = {
 }
 ```
 
-- **Built-in plugins** (`packages/runtime/src/engine/registry.ts`): `combinators`, `editor`, `deck`.
+- **Built-in plugins** (`apps/web/src/plugins.ts`, the one place that names them): `combinators`,
+  `editor`, `deck`, and `office` (a library plugin: slide mechanics only, no route).
 - **Third-party plugins**: `#/plugin/<url>` loads an ES module whose default export is a `Plugin`.
-- **Slide mechanics**: a plugin can contribute namespaced slide kinds (`<plugin>/<mechanic>`) with
-  `registerMechanics` (`packages/runtime/src/engine/mechanics.ts`). They are preloaded before a deck opens, so
-  rendering stays synchronous. The `office` plugin is the example: `office/scene`.
+- **Slide mechanics**: a plugin can lend the deck namespaced slide kinds (`<plugin>/<mechanic>`) through
+  its `mechanics` field. A deck resolves them before it opens, so rendering stays synchronous. Examples:
+  `office/scene`, `combinators/theater`.
+- **Share packs and home shelves**: a plugin declares the pack types it can open from a share link
+  (`packTypes` + `previewPack`) and can put a shelf of cards on the home screen (`shelf`).
+- **The dependency rule**: plugins and the host both depend on `runtime/src/kernel/` (the contracts),
+  never on each other. `packages/runtime/src/architecture.test.ts` enforces it on every `pnpm check`.
 
 ## Sharing, without a backend
 
@@ -184,10 +189,11 @@ shells, packages hold everything they share, and one catalog pins shared depende
 apps/web              the browser app: index.html, Vite config, main.ts (wires the Effect layers)
 apps/web/public       decks/, fonts/, registry.json: served as-is
 packages/core         pure combinator logic + the level pack; depends only on effect (no Pixi/DOM)
-packages/contracts    data schemas every app shares: Deck, OfficeSpec; depends only on effect
-packages/runtime      what every shell loads: engine/ (host, router, render loop, plugins, sharing),
-                      render/ (procedural art, UI, tweens, theater, game scenes), game/ (Effect
-                      services), plugins/ (combinators · editor · deck · office)
+packages/contracts    data schemas every app shares: Deck, OfficeSpec, TheaterSlide; depends only on effect
+packages/runtime      what every shell loads: kernel/ (the plugin, scene and slide contracts),
+                      platform/ (storage, preload), ui/ (domain-free Pixi kit), host/ (router,
+                      render loop, home, sharing), game/ (the combinator game's Effect services),
+                      plugins/ (combinators · editor · deck · office)
 scripts/              drive.ts (headless play-tester), search.ts (recipe search)
 ```
 

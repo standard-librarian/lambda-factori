@@ -11,10 +11,6 @@ import { palette } from "../../../ui/theme.ts"
 import { para } from "../../../ui/text.ts"
 import { ease, lerp, type Tweens } from "../../../kernel/tween.ts"
 
-export const CONTENT_TOP = 190
-export const CONTENT_BOTTOM = 960
-export const MARGIN = 150
-
 const named: Record<string, number> = {
   red: palette.red,
   blue: palette.blue,

@@ -3,9 +3,9 @@ import { Container } from "pixi.js"
 import { label } from "../../../ui/label.ts"
 import { DESIGN_W, palette } from "../../../ui/theme.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { CONTENT_TOP, SERIF, staticSlide } from "./common.ts"
+import { SERIF, staticSlide } from "./common.ts"
 import { para } from "../../../ui/text.ts"
-import type { SlideView } from "../../../kernel/Slide.ts"
+import { CONTENT_TOP, type SlideView } from "../../../kernel/Slide.ts"
 
 export const quoteSlide = (s: SlideOf<"quote">): SlideView => {
   const v = new Container()

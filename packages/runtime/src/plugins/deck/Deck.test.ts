@@ -67,3 +67,15 @@ describe("slide editor templates", () => {
     expect(() => Schema.decodeUnknownSync(Slide)(template)).not.toThrow()
   })
 })
+
+describe("legacy slide kinds", () => {
+  it("decodes a pre-plugin theater slide as combinators/theater", () => {
+    const slide = Schema.decodeUnknownSync(Slide)({ kind: "theater", title: "A reduction", term: "S K K x" })
+    expect(slide).toMatchObject({ kind: "combinators/theater", title: "A reduction", term: "S K K x" })
+  })
+
+  it("migrates inside a whole deck, as a saved deck or share link would carry it", () => {
+    const deck = Schema.decodeUnknownSync(Deck)({ id: "old", title: "Old", slides: [{ kind: "theater", term: "K x y" }] })
+    expect(deck.slides[0]?.kind).toBe("combinators/theater")
+  })
+})

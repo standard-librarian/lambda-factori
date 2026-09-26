@@ -9,9 +9,9 @@ import { DESIGN_W, palette } from "../../../ui/theme.ts"
 import { ease, lerp } from "../../../kernel/tween.ts"
 import { joinLines, type SlideOf } from "@lambda-factori/contracts/Deck.ts"
 import { type Analysis, analyze, metricsOf } from "../analyze.ts"
-import { cardArt, CONTENT_TOP, MONO } from "./common.ts"
+import { cardArt, MONO } from "./common.ts"
 import { para } from "../../../ui/text.ts"
-import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
+import { CONTENT_TOP, type SlideContext, type SlideView } from "../../../kernel/Slide.ts"
 import { TAGS, highlight } from "./highlight.ts"
 
 const parseRanges = (spec: string | undefined): Set<number> | undefined => {

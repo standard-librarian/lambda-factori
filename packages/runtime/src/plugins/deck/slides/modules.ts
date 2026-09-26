@@ -8,9 +8,9 @@ import { label } from "../../../ui/label.ts"
 import { DESIGN_W, palette } from "../../../ui/theme.ts"
 import { ease } from "../../../kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { color, CONTENT_TOP, Reveal, shade } from "./common.ts"
+import { color, Reveal, shade } from "./common.ts"
 import { para } from "../../../ui/text.ts"
-import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
+import { CONTENT_TOP, type SlideContext, type SlideView } from "../../../kernel/Slide.ts"
 
 export const modulesSlide = (s: SlideOf<"modules">, ctx: SlideContext): SlideView => {
   const v = new Container()

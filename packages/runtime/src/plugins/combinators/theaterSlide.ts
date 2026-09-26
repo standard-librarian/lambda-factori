@@ -11,14 +11,7 @@ import { TermRow } from "./TermRow.ts"
 import { describeStep } from "@lambda-factori/core/Trace.ts"
 import type { TheaterSlide } from "@lambda-factori/contracts/TheaterSlide.ts"
 import { para } from "../../ui/text.ts"
-import type { SlideContext, SlideView } from "../../kernel/Slide.ts"
-
-/** Where the deck's own chrome (painted by `plugins/deck/slideFrame.ts` for any non-fullBleed
- * mechanic) leaves off, so this content starts below the slide title without overlapping it.
- * Mirrors `plugins/deck/slides/common.ts`'s `CONTENT_TOP`; combinators can't import the deck
- * plugin (the dependency rule forbids plugin-to-plugin imports), so this is a deliberate,
- * named duplicate, not a shared import. */
-const CONTENT_TOP = 190
+import { CONTENT_TOP, type SlideContext, type SlideView } from "../../kernel/Slide.ts"
 
 export const theaterSlide = (s: TheaterSlide, ctx: SlideContext): SlideView => {
   const v = new Container()

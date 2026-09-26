@@ -5,12 +5,12 @@
  */
 import { Container, Graphics } from "pixi.js"
 import type { Slide } from "@lambda-factori/contracts/Deck.ts"
-import type { Mechanic, SlideView } from "../../kernel/Slide.ts"
+import { MARGIN, type Mechanic, type SlideView } from "../../kernel/Slide.ts"
 import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
 import { paperArt, skylineArt } from "../../ui/backdrop.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"
 import { ownsChrome } from "./render.ts"
-import { MARGIN, stickyNote } from "./slides/common.ts"
+import { stickyNote } from "./slides/common.ts"
 import { para } from "../../ui/text.ts"
 
 /** Frame `view` for slide `s`. The returned view's `setStep` also drives the sticky note. */

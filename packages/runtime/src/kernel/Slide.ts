@@ -9,6 +9,15 @@ import type { Container, Ticker } from "pixi.js"
 import type { HostApi } from "./Plugin.ts"
 import type { Tweens } from "./tween.ts"
 
+/**
+ * The content area of a framed slide, in design pixels (1920×1080): the deck paints its title
+ * above `CONTENT_TOP` and its chrome below `CONTENT_BOTTOM`, and keeps `MARGIN` clear at the
+ * sides. Every slide that is not full-bleed, core or mechanic, lays out inside it.
+ */
+export const CONTENT_TOP = 190
+export const CONTENT_BOTTOM = 960
+export const MARGIN = 150
+
 export interface SlideContext {
   readonly host: HostApi
   readonly tweens: Tweens
