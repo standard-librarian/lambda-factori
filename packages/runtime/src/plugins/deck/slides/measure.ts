@@ -4,7 +4,8 @@ import { label, relabel } from "../../../render/label.ts"
 import { DESIGN_W, palette } from "../../../render/theme.ts"
 import { ease } from "../../../kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { CONTENT_TOP, MARGIN, para, Reveal } from "./common.ts"
+import { CONTENT_TOP, MARGIN, Reveal } from "./common.ts"
+import { para } from "../../../render/text.ts"
 import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
 
 export const measureSlide = (s: SlideOf<"measure">, ctx: SlideContext): SlideView => {

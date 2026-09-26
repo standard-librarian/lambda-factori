@@ -12,7 +12,7 @@ import type { CoreKind, Slide, SlideOf } from "@lambda-factori/contracts/Deck.ts
 import type { Mechanic, SlideContext, SlideView } from "../../kernel/Slide.ts"
 import { palette } from "../../render/theme.ts"
 import { codeSlide } from "./slides/code.ts"
-import { para } from "./slides/common.ts"
+import { para } from "../../render/text.ts"
 import { curveSlide } from "./slides/curve.ts"
 import { theaterSlide } from "./slides/theater.ts"
 import { decisionsSlide } from "./slides/decisions.ts"

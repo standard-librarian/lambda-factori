@@ -3,12 +3,15 @@
  * (`CombinatorsPort`) is what `apps/web/src/plugins.ts` must supply — the
  * level pack, progress, saving a board, and a way to subscribe to game
  * events — everything the game's scenes need but no other plugin should.
+ * It also owns `packTypes: ["levels"]`: a shared level pack is decoded and
+ * described here (`previewPack`), not by the host.
  */
+import { Exit, Schema } from "effect"
 import type { Board } from "@lambda-factori/core/Board.ts"
-import type { Level, LevelPack } from "@lambda-factori/core/Level.ts"
+import { Level, type LevelPack } from "@lambda-factori/core/Level.ts"
 import type { GameEvent } from "../../game/Events.ts"
 import type { SaveData } from "../../game/Progress.ts"
-import type { HostApi, Plugin } from "../../kernel/Plugin.ts"
+import type { HostApi, PackPreview, Plugin } from "../../kernel/Plugin.ts"
 import { BookScene } from "../../render/BookScene.ts"
 import { LevelScene } from "../../render/LevelScene.ts"
 import { MenuScene } from "../../render/MenuScene.ts"
@@ -23,6 +26,8 @@ export interface CombinatorsPort {
   customLevels(): ReadonlyArray<Level>
   /** Subscribe to game events; call the returned function to unsubscribe. */
   subscribe(fn: (event: GameEvent) => void): () => void
+  /** Save a level into the custom world (a shared level pack lands here before it's playable). */
+  saveCustomLevel(level: Level): Promise<void>
 }
 
 export const CUSTOM_WORLD = { id: "custom", title: "your levels", subtitle: "made in the level editor" }
@@ -69,6 +74,29 @@ class CombinatorApp implements GameContext {
   editor = (levelId?: string) => this.host.navigate(levelId ? `editor/${encodeURIComponent(levelId)}` : "editor")
 }
 
+const decodeLevels = Schema.decodeUnknownExit(Schema.Array(Level))
+
+/** Decode a shared level pack and describe it; the actions save every level into the custom
+ * world (so they show up in the pack the game and the editor both see) before navigating. */
+const previewLevelsPack = (port: CombinatorsPort, data: unknown, host: HostApi): PackPreview => {
+  const exit = decodeLevels(data)
+  if (Exit.isFailure(exit)) throw new Error(String(exit.cause))
+  const levels = exit.value
+  const first = levels[0]!
+  const keep = async () => {
+    for (const l of levels) await port.saveCustomLevel(new Level({ ...l, world: CUSTOM_WORLD.id }))
+  }
+  return {
+    title: levels.length === 1 ? first.title : `${levels.length} levels`,
+    subtitle: first.blurb,
+    meta: "a level pack",
+    actions: [
+      { text: "play now", tone: "primary", run: () => void keep().then(() => host.navigate(`combinators/level/${encodeURIComponent(first.id)}`)) },
+      { text: "open in editor", tone: "secondary", run: () => void keep().then(() => host.navigate(`editor/${encodeURIComponent(first.id)}`)) }
+    ]
+  }
+}
+
 export const plugin = (port: CombinatorsPort): Plugin => ({
   ...manifest,
   open(host, path) {
@@ -88,5 +116,6 @@ export const plugin = (port: CombinatorsPort): Plugin => ({
       return host.show(() => new BookScene(ctx, page))
     }
     host.show(() => new MenuScene(ctx))
-  }
+  },
+  previewPack: (_type, data, host) => previewLevelsPack(port, data, host)
 })

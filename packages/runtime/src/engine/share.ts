@@ -29,9 +29,9 @@ export const encodePack = async (pack: SharedPack): Promise<string> =>
 
 export const decodePack = async (payload: string): Promise<SharedPack> => {
   const json = new TextDecoder().decode(await pipe(fromB64Url(payload), new DecompressionStream("deflate-raw")))
-  const parsed = JSON.parse(json) as SharedPack
-  if (parsed.type !== "deck" && parsed.type !== "levels") throw new Error("not a λ factori pack")
-  return parsed
+  const parsed = JSON.parse(json) as { type?: unknown; data?: unknown }
+  if (typeof parsed.type !== "string" || !("data" in parsed)) throw new Error("not a λ factori pack")
+  return parsed as SharedPack
 }
 
 export const shareUrl = async (pack: SharedPack) =>

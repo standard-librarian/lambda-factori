@@ -15,7 +15,9 @@
  * ratchet). Later phases of the plan rename `engine/` to `host/` and
  * `render/` to `ui/`; until then, this file maps the old names to the new
  * layers so the rest of the codebase (and this test) can talk about the
- * target shape early.
+ * target shape early. A separate check requires `layerOf` to classify every
+ * file under `packages/runtime/src` (this file excepted): a new top-level
+ * folder must be added to the rule table, not silently exempted from it.
  */
 import * as fs from "node:fs"
 import * as path from "node:path"
@@ -164,16 +166,7 @@ const KNOWN_VIOLATIONS: ReadonlyArray<Violation> = [
   { file: "packages/runtime/src/render/floorGeometry.ts", import: "@lambda-factori/core/Board.ts" },
   // A deck test reaches into the office plugin's pure VM directly, ahead of any pack sharing.
   { file: "packages/runtime/src/plugins/deck/Deck.test.ts", import: "../office/program.ts" },
-  { file: "packages/runtime/src/plugins/deck/Deck.test.ts", import: "../office/vm.ts" },
-  // host/ (engine/) still decodes plugin data and imports a plugin's helper directly (phase 3:
-  // OpenScene becomes a generic pack card, resolved through a plugin's `previewPack`).
-  { file: "packages/runtime/src/engine/OpenScene.ts", import: "@lambda-factori/core/Level.ts" },
-  { file: "packages/runtime/src/engine/OpenScene.ts", import: "@lambda-factori/contracts/Deck.ts" },
-  { file: "packages/runtime/src/engine/OpenScene.ts", import: "../plugins/deck/slides/common.ts" },
-  // Host.ts also carries HostDeps, the few capabilities HomeScene/OpenScene still need directly
-  // (phase 3 replaces this with the generic entries/shelf/previewPack shape).
-  { file: "packages/runtime/src/engine/Host.ts", import: "@lambda-factori/core/Level.ts" },
-  { file: "packages/runtime/src/engine/Host.ts", import: "@lambda-factori/contracts/Deck.ts" }
+  { file: "packages/runtime/src/plugins/deck/Deck.test.ts", import: "../office/vm.ts" }
 ]
 
 describe("the dependency rule (docs/plans/dependency-rule.md)", () => {
@@ -202,5 +195,13 @@ describe("the dependency rule (docs/plans/dependency-rule.md)", () => {
     const actual = new Set(found.map((v) => `${v.file} → ${v.import}`))
     const stale = KNOWN_VIOLATIONS.filter((v) => !actual.has(`${v.file} → ${v.import}`))
     expect(stale).toEqual([])
+  })
+
+  it("classifies every runtime file into a layer (a new top-level folder needs a rule, not a silent escape)", () => {
+    // architecture.test.ts itself sits at the root of packages/runtime/src, outside every
+    // layer folder, and is the one file this rule doesn't apply to.
+    const runtimeFiles = files.filter((f) => f.startsWith("packages/runtime/src/") && f !== "packages/runtime/src/architecture.test.ts")
+    const unclassified = runtimeFiles.filter((f) => layerOf(f) === undefined)
+    expect(unclassified).toEqual([])
   })
 })

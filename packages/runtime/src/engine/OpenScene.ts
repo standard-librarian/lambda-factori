@@ -1,28 +1,37 @@
-import { Exit, Schema } from "effect"
+/**
+ * The landing screen for a shared link (`#/open/<payload>`) or a hosted pack
+ * (`#/import/<url>`): a generic pack card. The host decodes only the share
+ * envelope (`{ type, data }`); it finds the plugin entry whose `packTypes`
+ * includes `type`, loads it, and asks its `previewPack` for what to show and
+ * what "play now" etc. do — the host never decodes a deck or a level itself.
+ */
 import { Container } from "pixi.js"
-import { Level } from "@lambda-factori/core/Level.ts"
-import { Deck } from "@lambda-factori/contracts/Deck.ts"
 import { label } from "../render/label.ts"
+import { para } from "../render/text.ts"
 import { paperArt, skylineArt } from "../render/backdrop.ts"
+import type { HostApi, PackPreview, PackPreviewAction } from "../kernel/Plugin.ts"
 import type { Scene } from "../kernel/Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../render/theme.ts"
 import { ease, lerp } from "../kernel/tween.ts"
 import { Button } from "../render/Button.ts"
 import { icons } from "../render/icons.ts"
-import { para } from "../plugins/deck/slides/common.ts"
-import type { Host } from "./Host.ts"
 import { decodePack } from "./share.ts"
 
-const decodeDeck = Schema.decodeUnknownExit(Deck)
-const isDeck = (j: unknown) => typeof j === "object" && j !== null && "slides" in j
-const decodeLevels = Schema.decodeUnknownExit(Schema.Array(Level))
+/** A bare (non-enveloped) JSON pack, as served by `#/import/<url>` for a hosted file: a deck has
+ * `slides`, anything else is a level pack. An enveloped `#/open/<payload>` pack always carries
+ * its own `type`, so this sniff only covers plain files that predate the envelope. */
+const sniffType = (j: unknown): string => (typeof j === "object" && j !== null && "slides" in j ? "deck" : "levels")
 
-/** The landing screen for a shared link: what it is, who made it, and what to do with it. */
+const TONE: Record<PackPreviewAction["tone"], { color: number; shade: number }> = {
+  primary: { color: palette.red, shade: palette.redShade },
+  secondary: { color: palette.blue, shade: 0x1f4c85 }
+}
+
 export class OpenScene implements Scene {
   readonly view = new Container()
-  private readonly host: Host
+  private readonly host: HostApi
 
-  constructor(host: Host, payload: string, from: "link" | "url" = "link") {
+  constructor(host: HostApi, payload: string, from: "link" | "url" = "link") {
     this.host = host
     this.view.addChild(paperArt(DESIGN_W, DESIGN_H), skylineArt(DESIGN_W, DESIGN_H - 10))
     const card = new Container()
@@ -31,49 +40,46 @@ export class OpenScene implements Scene {
     const status = label("unpacking…", 36, palette.inkSoft, "600")
     card.addChild(status)
     const load = from === "url"
-      ? fetch(payload).then((r) => r.json()).then((j: unknown) => ({ type: isDeck(j) ? ("deck" as const) : ("levels" as const), data: j }))
+      ? fetch(payload).then((r) => r.json()).then((j: unknown) => ({ type: sniffType(j), data: j }))
       : decodePack(payload)
     void load.then(
-      (pack) => (this.view.destroyed ? undefined : this.present(card, status, pack.type, pack.data)),
+      (pack) => (this.view.destroyed ? undefined : this.resolve(card, status, pack.type, pack.data)),
       (e: unknown) => status.text = `this link is broken: ${e instanceof Error ? e.message : String(e)}`
     )
   }
 
-  private present(card: Container, status: Container, type: "deck" | "levels", data: unknown) {
+  /** Find who owns `type`, load them, and ask for a preview — the one place bad data (an
+   * unknown type, or a plugin's `previewPack` throwing) turns into the "doesn't match" card. */
+  private resolve(card: Container, status: Container, type: string, data: unknown) {
     status.destroy()
+    const owner = this.host.entries.find((e) => e.packTypes?.includes(type))
+    if (!owner) return this.fail(card, `no plugin recognizes pack type “${type}”`)
+    void owner.load().then(
+      (plugin) => {
+        if (this.view.destroyed) return
+        if (!plugin.previewPack) return this.fail(card, `“${owner.title}” can't preview this pack`)
+        try {
+          this.present(card, plugin.previewPack(type, data, this.host))
+        } catch (e) {
+          this.fail(card, e instanceof Error ? e.message : String(e))
+        }
+      },
+      (e: unknown) => (this.view.destroyed ? undefined : this.fail(card, e instanceof Error ? e.message : String(e)))
+    )
+  }
+
+  private present(card: Container, preview: PackPreview) {
     const shared = label("shared with you", 26, palette.red, "700")
     shared.y = -250
     card.addChild(shared)
-    const actions: Array<{ text: string; color: number; shade: number; run: () => void }> = []
-    if (type === "deck") {
-      const exit = decodeDeck(data)
-      if (Exit.isFailure(exit)) return this.fail(card, String(exit.cause))
-      const deck = exit.value
-      this.describe(card, deck.title, deck.subtitle ?? "", `a deck · ${deck.slides.length} slides${deck.author ? ` · by ${deck.author}` : ""}`)
-      actions.push(
-        { text: "play now", color: palette.red, shade: palette.redShade, run: () => void this.keep(deck).then(() => this.host.navigate(`deck/${encodeURIComponent(deck.id)}/1`)) },
-        { text: "remix a copy", color: palette.blue, shade: 0x1f4c85, run: () => {
-          const copy = new Deck({ ...deck, id: `${deck.id}-remix-${Math.random().toString(36).slice(2, 6)}`, title: `${deck.title} (remix)` })
-          void this.keep(copy).then(() => {
-            this.host.navigate(`deck/${encodeURIComponent(copy.id)}/1`)
-            this.host.toast("your copy — press E to edit any slide")
-          })
-        } }
-      )
-    } else {
-      const exit = decodeLevels(data)
-      if (Exit.isFailure(exit)) return this.fail(card, String(exit.cause))
-      const levels = exit.value
-      this.describe(card, levels.length === 1 ? levels[0]!.title : `${levels.length} levels`, levels[0]?.blurb ?? "", "a level pack")
-      actions.push(
-        { text: "play now", color: palette.red, shade: palette.redShade, run: () => void this.keepLevels(levels).then(() => this.host.navigate(`combinators/level/${encodeURIComponent(levels[0]!.id)}`)) },
-        { text: "open in editor", color: palette.blue, shade: 0x1f4c85, run: () => void this.keepLevels(levels).then(() => this.host.navigate(`editor/${encodeURIComponent(levels[0]!.id)}`)) }
-      )
-    }
-    actions.push({ text: "home", color: palette.inkSoft, shade: palette.ink, run: () => this.host.home() })
-    actions.forEach((a, i) => {
+    this.describe(card, preview.title, preview.subtitle, preview.meta)
+    const buttons = [
+      ...preview.actions.map((a) => ({ text: a.text, ...TONE[a.tone], run: a.run })),
+      { text: "home", color: palette.inkSoft, shade: palette.ink, run: () => this.host.home() }
+    ]
+    buttons.forEach((a, i) => {
       const b = new Button({ width: 300, height: 76, color: a.color, shade: a.shade, text: a.text, fontSize: 28, onTap: a.run }, this.host.tweens)
-      b.position.set((i - (actions.length - 1) / 2) * 330, 200)
+      b.position.set((i - (buttons.length - 1) / 2) * 330, 200)
       card.addChild(b)
     })
     card.scale.set(0.9)
@@ -100,14 +106,6 @@ export class OpenScene implements Scene {
     const b = new Button({ width: 220, height: 70, color: palette.inkSoft, shade: palette.ink, text: "home", icon: icons.back, onTap: () => this.host.home() }, this.host.tweens)
     b.y = 260
     card.addChild(b)
-  }
-
-  private keep(deck: Deck) {
-    return this.host.saveDeck(deck)
-  }
-
-  private async keepLevels(levels: ReadonlyArray<Level>) {
-    for (const l of levels) await this.host.saveCustomLevel(new Level({ ...l, world: "custom" }))
   }
 
   destroy() {

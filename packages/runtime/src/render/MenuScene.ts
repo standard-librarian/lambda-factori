@@ -3,21 +3,13 @@ import { byName } from "@lambda-factori/core/Catalogue.ts"
 import { label } from "./label.ts"
 import { paperArt, skylineArt } from "./backdrop.ts"
 import { stickerArt } from "./factoryArt.ts"
+import { logo } from "./logo.ts"
 import type { GameContext } from "../plugins/combinators/GameContext.ts"
 import type { Scene } from "../kernel/Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "./theme.ts"
 import { ease, lerp } from "../kernel/tween.ts"
 import { Button } from "./Button.ts"
 import { icons } from "./icons.ts"
-
-export const logo = () => {
-  const c = new Container()
-  const t = label("λ factori", 76, palette.red, "700")
-  t.style.stroke = { color: palette.white, width: 12, join: "round" }
-  t.style.dropShadow = { color: palette.redShade, alpha: 0.25, blur: 0, distance: 5, angle: Math.PI / 2 }
-  c.addChild(t)
-  return c
-}
 
 const PER_ROW = 8
 const CARD_W = 146

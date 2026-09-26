@@ -10,7 +10,8 @@ import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
 import { paperArt, skylineArt } from "../../render/backdrop.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../render/theme.ts"
 import { ownsChrome } from "./render.ts"
-import { MARGIN, para, stickyNote } from "./slides/common.ts"
+import { MARGIN, stickyNote } from "./slides/common.ts"
+import { para } from "../../render/text.ts"
 
 /** Frame `view` for slide `s`. The returned view's `setStep` also drives the sticky note. */
 export const frameSlide = (s: Slide, view: SlideView, tweens: Tweens, mechanics: ReadonlyMap<string, Mechanic>): { frame: Container; view: SlideView } => {

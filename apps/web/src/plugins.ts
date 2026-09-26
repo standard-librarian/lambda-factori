@@ -13,6 +13,7 @@ import { manifest as combinatorsManifest } from "@lambda-factori/runtime/plugins
 import type { CombinatorsPort } from "@lambda-factori/runtime/plugins/combinators/plugin.ts"
 import { manifest as deckManifest } from "@lambda-factori/runtime/plugins/deck/manifest.ts"
 import type { DeckLibrary } from "@lambda-factori/runtime/plugins/deck/plugin.ts"
+import { deckShelf } from "@lambda-factori/runtime/plugins/deck/shelf.ts"
 import { manifest as editorManifest } from "@lambda-factori/runtime/plugins/editor/manifest.ts"
 import type { LevelLibrary } from "@lambda-factori/runtime/plugins/editor/plugin.ts"
 import { manifest as officeManifest } from "@lambda-factori/runtime/plugins/office/manifest.ts"
@@ -53,6 +54,8 @@ export const builtinPlugins = (ports: Promise<Ports>): ReadonlyArray<PluginEntry
   },
   {
     ...deckManifest,
+    // The shelf needs only the deck list, so it's wired here without the plugin's own chunk.
+    shelf: () => ports.then((p) => p.deck.list()).then(deckShelf),
     load: memoize(async () => {
       const m = await import("@lambda-factori/runtime/plugins/deck/plugin.ts")
       return m.plugin((await ports).deck)

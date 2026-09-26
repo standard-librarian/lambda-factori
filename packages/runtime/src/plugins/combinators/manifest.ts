@@ -10,5 +10,6 @@ export const manifest: PluginManifest = {
   subtitle: "the λ factori game: S and K to APL",
   kind: "game",
   color: 0xac1b2b,
-  shade: 0x73000b
+  shade: 0x73000b,
+  packTypes: ["levels"]
 }

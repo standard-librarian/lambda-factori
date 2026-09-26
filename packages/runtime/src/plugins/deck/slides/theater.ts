@@ -6,7 +6,8 @@ import { trace } from "@lambda-factori/core/Trace.ts"
 import { TermRow } from "../../../render/TermRow.ts"
 import { describeStep } from "@lambda-factori/core/Trace.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { CONTENT_TOP, para } from "./common.ts"
+import { CONTENT_TOP } from "./common.ts"
+import { para } from "../../../render/text.ts"
 import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
 
 export const theaterSlide = (s: SlideOf<"theater">, ctx: SlideContext): SlideView => {

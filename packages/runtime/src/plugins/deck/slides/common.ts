@@ -1,7 +1,14 @@
-import { Container, Graphics, Text } from "pixi.js"
+/**
+ * Small pieces every deck slide kind shares: named colours, the deck's card
+ * and sticky-note art, an avatar, and the reveal-on-step animation. Deck-only
+ * — `para`, the one piece the host also needs for its shared-pack card, lives
+ * in `render/text.ts` instead.
+ */
+import { Container, Graphics } from "pixi.js"
 import type { SlideView } from "../../../kernel/Slide.ts"
-import { fontFor, label } from "../../../render/label.ts"
+import { label } from "../../../render/label.ts"
 import { palette } from "../../../render/theme.ts"
+import { para } from "../../../render/text.ts"
 import { ease, lerp, type Tweens } from "../../../kernel/tween.ts"
 
 export const CONTENT_TOP = 190
@@ -36,25 +43,6 @@ export const shade = (c: number, k = 0.72) => {
   const g = ((c >> 8) & 255) * k
   const b = (c & 255) * k
   return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b)
-}
-
-/** Word-wrapped paragraph text, left aligned at its top-left corner. */
-export const para = (text: string, size: number, fill: number, width: number, weight: "500" | "600" | "700" = "500", align: "left" | "center" = "left") => {
-  const t = new Text({
-    text,
-    style: {
-      fontFamily: fontFor(text),
-      fontSize: size,
-      fill,
-      fontWeight: weight,
-      wordWrap: true,
-      wordWrapWidth: width,
-      lineHeight: size * 1.28,
-      align
-    }
-  })
-  if (align === "center") t.anchor.set(0.5, 0)
-  return t
 }
 
 export const SERIF = "Georgia, 'Times New Roman', serif"

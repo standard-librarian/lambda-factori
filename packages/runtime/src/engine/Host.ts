@@ -1,6 +1,4 @@
 import { type Application, Container, Graphics } from "pixi.js"
-import type { Level } from "@lambda-factori/core/Level.ts"
-import type { Deck, DeckMeta } from "@lambda-factori/contracts/Deck.ts"
 import type { HostApi, Plugin, PluginEntry, SharedPack } from "../kernel/Plugin.ts"
 import type { Scene } from "../kernel/Scene.ts"
 import type { Mechanic } from "../kernel/Slide.ts"
@@ -20,19 +18,6 @@ const segments = (hash: string) =>
   hash.replace(/^#\/?/, "").split("/").filter((s) => s.length > 0).map(decodeURIComponent)
 
 /**
- * The few capabilities `HomeScene` and `OpenScene` still need directly
- * (rather than through a plugin's own port), because they aren't plugins
- * themselves. Phase 3 of the dependency-rule plan replaces this with the
- * generic `entries`/`shelf`/`previewPack` shape from `kernel/Plugin.ts`; until
- * then it's the one place that shape is missing.
- */
-export interface HostDeps {
-  listDecks(): Promise<ReadonlyArray<DeckMeta>>
-  saveDeck(deck: Deck): Promise<void>
-  saveCustomLevel(level: Level): Promise<void>
-}
-
-/**
  * Owns the Pixi stage: a fixed 1920×1080 design surface letterboxed into the
  * window, one scene at a time with cross-fades, keyboard dispatch and a hash
  * router that lazily loads whichever plugin owns the route.
@@ -41,7 +26,6 @@ export class Host implements HostApi {
   readonly tweens = new Tweens()
   readonly app: Application
   readonly entries: ReadonlyArray<PluginEntry>
-  private readonly deps: HostDeps
   private readonly root = new Container()
   private readonly fade = new Graphics().rect(0, 0, DESIGN_W, DESIGN_H).fill(palette.paper)
   private readonly toasts: Toasts
@@ -53,10 +37,9 @@ export class Host implements HostApi {
   /** Set by input and by anything that changes the stage outside a tween; cleared on render. */
   private dirty = true
 
-  constructor(app: Application, entries: ReadonlyArray<PluginEntry>, deps: HostDeps) {
+  constructor(app: Application, entries: ReadonlyArray<PluginEntry>) {
     this.app = app
     this.entries = entries
-    this.deps = deps
     this.fade.alpha = 0
     this.fade.eventMode = "none"
     this.toasts = new Toasts(this.tweens)
@@ -172,19 +155,6 @@ export class Host implements HostApi {
       map.set(kind, m)
     }
     return map
-  }
-
-  /** Home-screen-only capabilities, until phase 3 replaces them with `entries`/`shelf`. */
-  listDecks(): Promise<ReadonlyArray<DeckMeta>> {
-    return this.deps.listDecks()
-  }
-
-  saveDeck(deck: Deck): Promise<void> {
-    return this.deps.saveDeck(deck)
-  }
-
-  saveCustomLevel(level: Level): Promise<void> {
-    return this.deps.saveCustomLevel(level)
   }
 
   private plugin(id: string): Promise<Plugin> | undefined {

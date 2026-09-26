@@ -4,7 +4,7 @@ import type { Slide } from "@lambda-factori/contracts/Deck.ts"
 import { label } from "../../render/label.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../render/theme.ts"
 import { slideTitle } from "./render.ts"
-import { para } from "./slides/common.ts"
+import { para } from "../../render/text.ts"
 
 /** A cream panel along the bottom with this slide's speaker notes. */
 export const notesPanel = (notes: string) => {

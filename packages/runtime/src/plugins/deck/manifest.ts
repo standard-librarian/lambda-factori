@@ -10,5 +10,6 @@ export const manifest: PluginManifest = {
   subtitle: "explain ideas with moving parts",
   kind: "deck",
   color: 0x4cc887,
-  shade: 0x399871
+  shade: 0x399871,
+  packTypes: ["deck"]
 }

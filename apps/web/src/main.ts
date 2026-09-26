@@ -52,7 +52,8 @@ const main = Effect.gen(function*() {
       subscribe: (fn) => {
         const fiber = run(events.stream.pipe(Stream.runForEach((e) => Effect.sync(() => fn(e)))))
         return () => run(Fiber.interrupt(fiber))
-      }
+      },
+      saveCustomLevel: (level) => runPromise(custom.save(level))
     },
     editor: {
       pack: levels.pack,
@@ -61,17 +62,14 @@ const main = Effect.gen(function*() {
       removeCustomLevel: (id) => runPromise(custom.remove(id))
     },
     deck: {
+      list: () => runPromise(decks.list),
       load: (id) => runPromise(decks.load(id)),
       save: (deck) => runPromise(decks.save(deck)),
       reset: (id) => runPromise(decks.reset(id))
     }
   })
 
-  new Host(app, entries, {
-    listDecks: () => runPromise(decks.list),
-    saveDeck: (deck) => runPromise(decks.save(deck)),
-    saveCustomLevel: (level) => runPromise(custom.save(level))
-  })
+  new Host(app, entries)
 
   exposeDev("lfApp", app)
   return yield* Effect.never
