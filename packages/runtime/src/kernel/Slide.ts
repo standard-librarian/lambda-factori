@@ -49,6 +49,8 @@ export interface SlideView {
 export interface Mechanic {
   /** The mechanic paints the whole slide (no paper background or deck title). */
   readonly fullBleed?: boolean
+  /** A minimal valid slide of this mechanic, offered by the deck's slide editor. */
+  readonly template?: Record<string, unknown>
   /** Validate and render a slide. Throw with a readable message on bad data. */
   render(slide: Record<string, unknown>, ctx: SlideContext): SlideView
 }

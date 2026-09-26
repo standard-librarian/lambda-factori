@@ -187,6 +187,7 @@ export class DeckScene implements Scene {
     this.closeEditor = openSlideEditor({
       host: this.host,
       library: this.library,
+      mechanics: this.mechanics,
       deck: () => this.deck,
       index: () => this.index,
       apply: (deck, index) => {
