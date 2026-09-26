@@ -5,7 +5,7 @@
  * drawn here; nothing is copied from the game.
  */
 import { Container, Graphics, Text } from "pixi.js"
-import { label } from "../../render/art.ts"
+import { label } from "../../render/label.ts"
 import { FONT } from "../../render/theme.ts"
 
 export const office = {

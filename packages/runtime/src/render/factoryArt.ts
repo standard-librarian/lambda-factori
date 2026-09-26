@@ -1,62 +1,16 @@
 /**
  * Procedural art in the Word Factori idiom: flat colour-coded castle-like
- * factories on graph paper, chunky rounded shapes, darker shade bands, cyan
- * input and pink output ports. Everything is drawn with Graphics, so there
- * are no bitmap assets to license.
+ * factories, chunky rounded shapes, darker shade bands, cyan input and pink
+ * output ports. Source and apply machines, bins, tokens and stickers. Everything
+ * is drawn with Graphics, so there are no bitmap assets to license.
  */
-import { CanvasTextMetrics, Container, Graphics, Text } from "pixi.js"
-import { APL_FONT, CELL, FONT, palette } from "./theme.ts"
+import { Container, Graphics, Text } from "pixi.js"
+import { colorOf } from "@lambda-factori/core/Catalogue.ts"
+import { CELL, palette } from "./theme.ts"
+import { label } from "./label.ts"
 
 export const W = CELL * 3
 export const H = CELL * 2
-
-/** APL/BQN glyph strings (no Latin letters) are set in BQN386; everything else in Fredoka. */
-export const fontFor = (text: string) => (/[A-Za-z]/.test(text) || !/[^\s\d.,:;!?'"()\[\]/-]/u.test(text) ? FONT : APL_FONT)
-
-export type Align = "center" | "left" | "right"
-
-const ink = document.createElement("canvas").getContext("2d")!
-
-/**
- * Anchor a single-line Text on the centre of its *ink* rather than its line
- * box, so glyphs sit dead-centre in circles and pills whatever the font's
- * ascent/descent. Horizontal ink centring applies to centred labels only.
- */
-export const centerInk = (t: Text, align: Align = "center") => {
-  const text = String(t.text)
-  const ax = align === "left" ? 0 : align === "right" ? 1 : 0.5
-  const metrics = CanvasTextMetrics.measureText(text, t.style)
-  if (text.length === 0 || metrics.lines.length !== 1 || t.height === 0) return t.anchor.set(ax, 0.5)
-  ink.font = t.style._fontString
-  const m = ink.measureText(text)
-  const stroke = t.style.stroke ? (t.style._stroke?.width ?? 0) : 0
-  const { ascent, fontSize } = metrics.fontProperties
-  const baseline = stroke / 2 + ascent + (metrics.lineHeight - fontSize) / 2
-  const inkMidY = baseline + (m.actualBoundingBoxDescent - m.actualBoundingBoxAscent) / 2
-  const inkMidX = stroke / 2 + (m.actualBoundingBoxRight - m.actualBoundingBoxLeft) / 2
-  t.anchor.set(align === "center" ? inkMidX / t.width : ax, inkMidY / t.height)
-}
-
-export const label = (
-  text: string,
-  size: number,
-  color: number = palette.white,
-  weight: "500" | "600" | "700" = "600",
-  align: Align = "center"
-) => {
-  const t = new Text({ text, style: { fontFamily: fontFor(text), fontSize: size, fill: color, fontWeight: weight } })
-  centerInk(t, align)
-  return t
-}
-
-/** Change a label's text and keep it optically centred. */
-export const relabel = (t: Text, text: string, align: Align = "center") => {
-  if (t.text === text) return
-  t.text = text
-  t.style.fontFamily = fontFor(text)
-  centerInk(t, align)
-}
-
 const crenellate = (g: Graphics, x: number, y: number, w: number, color: number) => {
   const n = Math.max(2, Math.round(w / 12))
   const bw = w / (2 * n - 1)
@@ -172,6 +126,13 @@ export const applyArt = (): FactoryArt => {
   return { root, body, icon, iconY, chimney: { x: 109, y: 4 } }
 }
 
+/** The machine for a building kind: the red apply castle, or a source press in its atom's colour. */
+export const machineArt = (kind: "source" | "apply", atom: string | undefined): FactoryArt => {
+  if (kind === "apply") return applyArt()
+  const { color, shade } = colorOf(atom ?? "?")
+  return sourceArt(atom ?? "?", color, shade)
+}
+
 export interface BinArt {
   readonly root: Container
   readonly box: Container
@@ -236,119 +197,4 @@ export const stickerArt = (glyph: string, name: string | undefined, color: numbe
     c.addChild(n)
   }
   return c
-}
-
-/** Paper background with a fine grid, like the graph-paper floor. */
-export const paperArt = (w: number, h: number) => {
-  const g = new Graphics().rect(0, 0, w, h).fill(palette.paper)
-  for (let x = 0; x <= w; x += CELL) g.moveTo(x, 0).lineTo(x, h)
-  for (let y = 0; y <= h; y += CELL) g.moveTo(0, y).lineTo(w, y)
-  g.stroke({ width: 1, color: palette.grid })
-  return g
-}
-
-/** Distant factory skyline silhouettes along the bottom of the floor. */
-export const skylineArt = (w: number, baseY: number, color: number = palette.skyline) => {
-  const g = new Graphics()
-  let x = -10
-  let i = 0
-  while (x < w) {
-    const kind = i % 5
-    const bw = 50 + ((i * 37) % 40)
-    const bh = 26 + ((i * 53) % 34)
-    g.rect(x, baseY - bh, bw, bh)
-    if (kind === 0) g.rect(x + bw - 14, baseY - bh - 22, 9, 22)
-    if (kind === 1) for (let k = 0; k < 3; k++) g.rect(x + 4 + k * (bw / 3), baseY - bh - 7, bw / 6, 8)
-    if (kind === 2) g.poly([x, baseY - bh, x + bw / 2, baseY - bh - 18, x + bw, baseY - bh])
-    if (kind === 3) g.circle(x + bw / 2, baseY - bh - 14, 8)
-    if (kind === 4) g.rect(x + bw / 2 - 3, baseY - bh - 26, 6, 26).rect(x + bw / 2 - 12, baseY - bh - 28, 24, 6)
-    x += bw + 6
-    i++
-  }
-  g.rect(0, baseY, w, 200)
-  g.fill(color)
-  return g
-}
-
-const SERIF = "Georgia, 'Times New Roman', serif"
-
-/**
- * A page from the archive: the paper that introduced this level's
- * combinators, drawn as a slightly yellowed journal page.
- */
-export const archiveArt = (p: {
-  readonly authors: string
-  readonly year: number
-  readonly title: string
-  readonly venue: string
-  readonly note: string
-}, width = 460, height = 470) => {
-  const c = new Container()
-  const g = new Graphics()
-    .roundRect(-width / 2 + 6, -height / 2 + 8, width, height, 10).fill({ color: palette.ink, alpha: 0.12 })
-    .roundRect(-width / 2, -height / 2, width, height, 10).fill(0xfbf5e4)
-    .rect(-width / 2 + 28, -height / 2 + 92, width - 56, 2).fill(0xd8ccb0)
-  // Folded corner.
-  g.poly([width / 2 - 34, -height / 2, width / 2, -height / 2 + 34, width / 2 - 34, -height / 2 + 34]).fill(0xe8dcc0)
-  c.addChild(g)
-
-  const ribbon = new Container()
-  ribbon.addChild(new Graphics().roundRect(-92, -17, 184, 34, 17).fill(palette.red))
-  ribbon.addChild(label("from the archive", 17, palette.white, "700"))
-  ribbon.position.set(-width / 2 + 120, -height / 2)
-  c.addChild(ribbon)
-
-  const year = label(`${p.year}`, 46, palette.ink, "700", "left")
-  year.position.set(-width / 2 + 28, -height / 2 + 58)
-  c.addChild(year)
-
-  const text = (s: string, size: number, color: number, y: number, style: "normal" | "italic" = "normal", weight: "400" | "700" = "400") => {
-    const t = new Text({
-      text: s,
-      style: { fontFamily: SERIF, fontSize: size, fill: color, fontStyle: style, fontWeight: weight, wordWrap: true, wordWrapWidth: width - 56, lineHeight: size * 1.3 }
-    })
-    t.position.set(-width / 2 + 28, y)
-    c.addChild(t)
-    return t
-  }
-  const title = text(p.title, 25, palette.ink, -height / 2 + 108, "italic", "700")
-  const authors = text(p.authors, 19, palette.inkSoft, title.y + title.height + 10)
-  const venue = text(p.venue, 15, palette.inkSoft, authors.y + authors.height + 4, "italic")
-  text(p.note, 17, palette.ink, venue.y + venue.height + 18)
-  return c
-}
-
-/** "In the wild": where this combinator shows up in real code. */
-export const usageArt = (snippets: ReadonlyArray<{ readonly lang: string; readonly code: string | ReadonlyArray<string>; readonly note: string }>, width = 460) => {
-  const c = new Container()
-  const body = new Container()
-  let y = 70
-  for (const s of snippets) {
-    const lang = label(s.lang, 17, palette.white, "700", "left")
-    const pill = new Graphics().roundRect(28, y - 16, lang.width + 24, 30, 15).fill(palette.blue)
-    lang.position.set(40, y)
-    const code = new Text({
-      text: typeof s.code === "string" ? s.code : s.code.join("\n"),
-      style: { fontFamily: "BQN386, Menlo, monospace", fontSize: 18, fill: palette.ink, lineHeight: 25 }
-    })
-    code.position.set(40, y + 26)
-    if (code.width > width - 96) code.scale.set((width - 96) / code.width)
-    const box = new Graphics().roundRect(28, y + 18, width - 56, code.height + 20, 12).fill(0xffffff)
-    const note = new Text({ text: s.note, style: { fontFamily: FONT, fontSize: 17, fill: palette.inkSoft, fontWeight: "500", wordWrap: true, wordWrapWidth: width - 60 } })
-    note.position.set(30, y + 26 + code.height + 18)
-    body.addChild(pill, lang, box, code, note)
-    y = note.y + note.height + 34
-  }
-  const height = y - 4
-  c.addChild(
-    new Graphics()
-      .roundRect(-width / 2 + 6, -height / 2 + 8, width, height, 14).fill({ color: palette.ink, alpha: 0.12 })
-      .roundRect(-width / 2, -height / 2, width, height, 14).fill(palette.cream)
-  )
-  const ribbon = new Container()
-  ribbon.addChild(new Graphics().roundRect(-80, -17, 160, 34, 17).fill(palette.blue), label("in the wild", 17, palette.white, "700"))
-  ribbon.position.set(-width / 2 + 108, -height / 2)
-  body.position.set(-width / 2, -height / 2)
-  c.addChild(body, ribbon)
-  return { root: c, height }
 }

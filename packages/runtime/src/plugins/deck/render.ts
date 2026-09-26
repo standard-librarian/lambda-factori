@@ -12,20 +12,20 @@ import { mechanic } from "../../engine/mechanics.ts"
 import { palette } from "../../render/theme.ts"
 import { codeSlide } from "./slides/code.ts"
 import { para, type SlideContext, type SlideView } from "./slides/common.ts"
-import { curveSlide, theaterSlide } from "./slides/curve.ts"
+import { curveSlide } from "./slides/curve.ts"
+import { theaterSlide } from "./slides/theater.ts"
 import { decisionsSlide } from "./slides/decisions.ts"
 import { lineSlide } from "./slides/line.ts"
-import { factorySlide, modulesSlide } from "./slides/modules.ts"
-import {
-  bulletsSlide,
-  dialogueSlide,
-  measureSlide,
-  pollSlide,
-  quoteSlide,
-  sectionSlide,
-  titleSlide,
-  versusSlide
-} from "./slides/text.ts"
+import { factorySlide } from "./slides/factory.ts"
+import { modulesSlide } from "./slides/modules.ts"
+import { bulletsSlide } from "./slides/bullets.ts"
+import { dialogueSlide } from "./slides/dialogue.ts"
+import { measureSlide } from "./slides/measure.ts"
+import { pollSlide } from "./slides/poll.ts"
+import { quoteSlide } from "./slides/quote.ts"
+import { sectionSlide } from "./slides/section.ts"
+import { titleSlide } from "./slides/title.ts"
+import { versusSlide } from "./slides/versus.ts"
 
 interface SlideKind<K extends CoreKind> {
   readonly render: (s: SlideOf<K>, ctx: SlideContext) => SlideView

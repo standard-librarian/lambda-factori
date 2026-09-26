@@ -1,13 +1,17 @@
 import { Container, Graphics } from "pixi.js"
 import { catalogue, type Combinator } from "@lambda-factori/core/Catalogue.ts"
 import { apply, parse, variable } from "@lambda-factori/core/Term.ts"
-import { archiveArt, label, paperArt, stickerArt } from "./art.ts"
+import { archiveArt } from "./archive.ts"
+import { label } from "./label.ts"
+import { paperArt } from "./backdrop.ts"
+import { stickerArt } from "./factoryArt.ts"
 import type { GameContext, Scene } from "./Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "./theme.ts"
 import { ease, lerp } from "./tween.ts"
 import { Theater } from "./Theater.ts"
 import { combinatorSpec, type TheaterSpec } from "./TheaterSpec.ts"
-import { Button, icons } from "./ui.ts"
+import { Button } from "./Button.ts"
+import { icons } from "./icons.ts"
 
 const ROWS = 6
 const PRIMITIVES = ["S", "K"]

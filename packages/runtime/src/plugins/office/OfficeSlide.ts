@@ -1,8 +1,8 @@
 import { Container, Graphics, Text } from "pixi.js"
-import { label } from "../../render/art.ts"
+import { label } from "../../render/label.ts"
 import { FONT } from "../../render/theme.ts"
 import { ease, lerp } from "../../render/tween.ts"
-import { Button } from "../../render/ui.ts"
+import { Button } from "../../render/Button.ts"
 import type { SlideContext, SlideView } from "../deck/slides/common.ts"
 import {
   beltArt,

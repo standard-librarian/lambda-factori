@@ -1,5 +1,5 @@
 import { Container, Graphics, Text } from "pixi.js"
-import { label } from "../../../render/art.ts"
+import { label } from "../../../render/label.ts"
 import { DESIGN_W, palette } from "../../../render/theme.ts"
 import { ease, lerp } from "../../../render/tween.ts"
 import { joinLines, type SlideOf } from "@lambda-factori/contracts/Deck.ts"

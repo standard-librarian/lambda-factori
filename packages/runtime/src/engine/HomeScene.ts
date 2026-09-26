@@ -1,5 +1,7 @@
 import { Container, Graphics, Rectangle } from "pixi.js"
-import { label, paperArt, skylineArt, sourceArt, applyArt, W } from "../render/art.ts"
+import { label } from "../render/label.ts"
+import { paperArt, skylineArt } from "../render/backdrop.ts"
+import { sourceArt, applyArt, W } from "../render/factoryArt.ts"
 import { logo } from "../render/MenuScene.ts"
 import type { Scene } from "../render/Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../render/theme.ts"

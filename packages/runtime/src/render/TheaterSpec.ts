@@ -7,7 +7,7 @@
 import { byName } from "@lambda-factori/core/Catalogue.ts"
 import { goalOf, rowTerm, type Target, truthRows, truthRule } from "@lambda-factori/core/Level.ts"
 import { defaultRules, recognize, type Rules } from "@lambda-factori/core/Reduce.ts"
-import { apply, atom, parse, show, type Term, variable } from "@lambda-factori/core/Term.ts"
+import { app, apply, atom, parse, show, type Term, variable } from "@lambda-factori/core/Term.ts"
 
 export interface TheaterSpec {
   readonly title: string
@@ -120,5 +120,25 @@ export const termSpec = (term: Term, target: Target | undefined): TheaterSpec =>
     subtitle: `What this token does when you feed it ${params.join(", ")}.`,
     term: apply(term, params.map(variable)),
     ...(g ? { goal: { label: g.label, params: g.behaviour.params, body: g.behaviour.body } } : {})
+  }
+}
+
+/** Explain a machine from the tray: the apply castle, a catalogue combinator, or an opaque APL primitive. */
+export const machineSpec = (kind: "source" | "apply", name: string | undefined): TheaterSpec => {
+  if (kind === "apply") {
+    return {
+      title: "apply · the red factory",
+      subtitle: "Function in the left port (f), argument in the right port (x).",
+      term: app(variable("f"), variable("x")),
+      rules: new Map(),
+      note: "apply just glues f to x. The rewriting happens when a combinator has all of its arguments."
+    }
+  }
+  return (name ? combinatorSpec(name) : undefined) ?? {
+    title: `${name} · APL primitive`,
+    subtitle: "An opaque function from the APL world.",
+    term: apply(atom(name ?? "?"), [variable("w")]),
+    rules: new Map(),
+    note: `${name} has no rule here, so it never rewrites. Combinators only move it around.`
   }
 }

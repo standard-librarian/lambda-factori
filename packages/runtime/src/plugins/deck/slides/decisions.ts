@@ -1,5 +1,5 @@
 import { Container, Graphics, Rectangle } from "pixi.js"
-import { label, relabel } from "../../../render/art.ts"
+import { label, relabel } from "../../../render/label.ts"
 import { DESIGN_W, palette } from "../../../render/theme.ts"
 import { ease } from "../../../render/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"

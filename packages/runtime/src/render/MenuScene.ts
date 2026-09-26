@@ -1,10 +1,13 @@
 import { Container, Graphics, Rectangle } from "pixi.js"
 import { byName } from "@lambda-factori/core/Catalogue.ts"
-import { label, paperArt, skylineArt, stickerArt } from "./art.ts"
+import { label } from "./label.ts"
+import { paperArt, skylineArt } from "./backdrop.ts"
+import { stickerArt } from "./factoryArt.ts"
 import type { GameContext, Scene } from "./Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "./theme.ts"
 import { ease, lerp } from "./tween.ts"
-import { Button, icons } from "./ui.ts"
+import { Button } from "./Button.ts"
+import { icons } from "./icons.ts"
 
 export const logo = () => {
   const c = new Container()
