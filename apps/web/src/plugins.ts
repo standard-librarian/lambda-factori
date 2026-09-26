@@ -55,7 +55,7 @@ export const builtinPlugins = (ports: Promise<Ports>): ReadonlyArray<PluginEntry
   {
     ...deckManifest,
     // The shelf needs only the deck list, so it's wired here without the plugin's own chunk.
-    shelf: () => ports.then((p) => p.deck.list()).then(deckShelf),
+    shelf: deckShelf(() => ports.then((p) => p.deck.list())),
     load: memoize(async () => {
       const m = await import("@lambda-factori/runtime/plugins/deck/plugin.ts")
       return m.plugin((await ports).deck)

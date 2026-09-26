@@ -3,7 +3,8 @@
  * lends the home screen one (e.g. the deck plugin's own decks), the
  * community registry, and the factory decor. Knows only the generic
  * `PluginEntry`/`ShelfCard` shape and the community registry format — never
- * a concrete plugin's data.
+ * a concrete plugin's data. `entries` is the host's own plugin table, handed
+ * in by `Host` (it isn't part of `HostApi`: a plugin never sees it).
  */
 import { Container, Graphics, Rectangle } from "pixi.js"
 import type { HostApi, PluginEntry, ShelfCard } from "../kernel/Plugin.ts"
@@ -21,10 +22,6 @@ import { addRegistry, loadRegistries } from "./registry-community.ts"
 const ROW_TOP = 270
 const ROW_GAP = 260
 
-/** A shelf row is titled from its entry's `kind`, pluralized ("deck" → "your decks"), so a new
- * kind never needs a title hand-mapped to it here. */
-const shelfTitle = (entry: PluginEntry) => `your ${entry.kind}s`
-
 export class HomeScene implements Scene {
   readonly view = new Container()
   private readonly host: HostApi
@@ -32,7 +29,7 @@ export class HomeScene implements Scene {
   private time = 0
   private readonly decor: Array<Container> = []
 
-  constructor(host: HostApi) {
+  constructor(host: HostApi, entries: ReadonlyArray<PluginEntry>) {
     this.host = host
     this.view.addChild(paperArt(DESIGN_W, DESIGN_H), skylineArt(DESIGN_W, DESIGN_H - 10))
     const l = logo()
@@ -52,12 +49,13 @@ export class HomeScene implements Scene {
     this.view.addChild(this.cards)
 
     let row = 0
-    for (const entry of host.entries) {
+    for (const entry of entries) {
       if (!entry.shelf) continue
       const y = ROW_TOP + ROW_GAP * row++
-      void entry.shelf().then((cards) => {
+      const shelf = entry.shelf
+      void shelf.cards().then((cards) => {
         if (this.view.destroyed) return
-        this.layoutRow(shelfTitle(entry), cards, y)
+        this.layoutRow(shelf.title, cards, y)
       })
     }
 
@@ -77,7 +75,7 @@ export class HomeScene implements Scene {
     const toolsY = ROW_TOP + ROW_GAP * row++
     const tools: Array<ShelfCard> = [
       // Library plugins (e.g. office) only lend the deck a mechanic; they have no card of their own.
-      ...host.entries.filter((b) => b.kind !== "deck" && b.kind !== "library").map<ShelfCard>((b) => ({
+      ...entries.filter((b) => b.kind !== "deck" && b.kind !== "library").map<ShelfCard>((b) => ({
         title: b.title, subtitle: b.subtitle, color: b.color, shade: b.shade, tag: `${b.kind} · plugin`, route: b.id
       })),
       { title: "add a registry", subtitle: "follow someone's shared decks and levels by URL", color: palette.inkSoft, shade: palette.ink, tag: "community", route: "" }

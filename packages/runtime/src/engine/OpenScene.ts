@@ -4,12 +4,14 @@
  * envelope (`{ type, data }`); it finds the plugin entry whose `packTypes`
  * includes `type`, loads it, and asks its `previewPack` for what to show and
  * what "play now" etc. do — the host never decodes a deck or a level itself.
+ * `entries` is the host's own plugin table, handed in by `Host` (it isn't
+ * part of `HostApi`: a plugin never sees it).
  */
 import { Container } from "pixi.js"
 import { label } from "../render/label.ts"
 import { para } from "../render/text.ts"
 import { paperArt, skylineArt } from "../render/backdrop.ts"
-import type { HostApi, PackPreview, PackPreviewAction } from "../kernel/Plugin.ts"
+import type { HostApi, PackPreview, PackPreviewAction, PluginEntry } from "../kernel/Plugin.ts"
 import type { Scene } from "../kernel/Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../render/theme.ts"
 import { ease, lerp } from "../kernel/tween.ts"
@@ -30,9 +32,11 @@ const TONE: Record<PackPreviewAction["tone"], { color: number; shade: number }> 
 export class OpenScene implements Scene {
   readonly view = new Container()
   private readonly host: HostApi
+  private readonly entries: ReadonlyArray<PluginEntry>
 
-  constructor(host: HostApi, payload: string, from: "link" | "url" = "link") {
+  constructor(host: HostApi, entries: ReadonlyArray<PluginEntry>, payload: string, from: "link" | "url" = "link") {
     this.host = host
+    this.entries = entries
     this.view.addChild(paperArt(DESIGN_W, DESIGN_H), skylineArt(DESIGN_W, DESIGN_H - 10))
     const card = new Container()
     card.position.set(DESIGN_W / 2, DESIGN_H / 2)
@@ -52,7 +56,7 @@ export class OpenScene implements Scene {
    * unknown type, or a plugin's `previewPack` throwing) turns into the "doesn't match" card. */
   private resolve(card: Container, status: Container, type: string, data: unknown) {
     status.destroy()
-    const owner = this.host.entries.find((e) => e.packTypes?.includes(type))
+    const owner = this.entries.find((e) => e.packTypes?.includes(type))
     if (!owner) return this.fail(card, `no plugin recognizes pack type “${type}”`)
     void owner.load().then(
       (plugin) => {

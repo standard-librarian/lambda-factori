@@ -25,7 +25,10 @@ const segments = (hash: string) =>
 export class Host implements HostApi {
   readonly tweens = new Tweens()
   readonly app: Application
-  readonly entries: ReadonlyArray<PluginEntry>
+  /** Every configured plugin (built-in and third-party): not part of `HostApi` (a plugin never
+   * sees another plugin's manifest), only handed to the host's own screens (`HomeScene`,
+   * `OpenScene`) that need the whole table. */
+  private readonly entries: ReadonlyArray<PluginEntry>
   private readonly root = new Container()
   private readonly fade = new Graphics().rect(0, 0, DESIGN_W, DESIGN_H).fill(palette.paper)
   private readonly toasts: Toasts
@@ -170,18 +173,18 @@ export class Host implements HostApi {
   private async route() {
     const [id, ...rest] = segments(location.hash)
     if (id === undefined) {
-      this.show(() => new HomeScene(this))
+      this.show(() => new HomeScene(this, this.entries))
       return
     }
     try {
       if (id === "import" && rest[0]) {
         const url = rest.join("/")
-        this.show(() => new OpenScene(this, url, "url"))
+        this.show(() => new OpenScene(this, this.entries, url, "url"))
         return
       }
       if (id === "open" && rest[0]) {
         const payload = rest[0]
-        this.show(() => new OpenScene(this, payload))
+        this.show(() => new OpenScene(this, this.entries, payload))
         return
       }
       if (id === "plugin" && rest[0]) {
@@ -196,14 +199,14 @@ export class Host implements HostApi {
       const plugin = loading && (await loading)
       if (!plugin?.open) {
         this.toast(`no plugin called “${id}”`)
-        this.show(() => new HomeScene(this))
+        this.show(() => new HomeScene(this, this.entries))
         return
       }
       await plugin.open(this, rest)
     } catch (e) {
       console.error(e)
       this.toast(`couldn't open ${id}: ${e instanceof Error ? e.message : String(e)}`)
-      if (!this.scene) this.show(() => new HomeScene(this))
+      if (!this.scene) this.show(() => new HomeScene(this, this.entries))
     }
   }
 }

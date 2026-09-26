@@ -22,10 +22,6 @@ export interface SharedPack {
 export interface HostApi {
   readonly app: Application
   readonly tweens: Tweens
-  /** Every configured plugin (built-in and third-party), for the home screen and the
-   * shared-pack card. The host reads only the generic `PluginEntry` shape here — never a
-   * concrete plugin by name. */
-  readonly entries: ReadonlyArray<PluginEntry>
   /** Replace the current scene (cross-fades). */
   show(make: () => Scene): void
   /** Navigate to a route; opens the owning plugin. */
@@ -91,9 +87,16 @@ export interface Plugin extends PluginManifest {
   previewPack?(type: string, data: unknown, host: HostApi): PackPreview
 }
 
+/** A row an entry lends the home screen, without loading the plugin's own chunk (e.g. the deck
+ * plugin lists its decks from `DeckLibrary.list` alone). The entry names its own row — never a
+ * title the home screen guesses from `kind` — so a new kind never needs a title hand-mapped
+ * to it there. */
+export interface HomeShelf {
+  readonly title: string
+  cards(): Promise<ReadonlyArray<ShelfCard>>
+}
+
 export interface PluginEntry extends PluginManifest {
   readonly load: () => Promise<Plugin>
-  /** Cards for the home screen's shelf row, without loading the plugin's own chunk (e.g. the
-   * deck plugin lists its decks from `DeckLibrary.list` alone). */
-  shelf?(): Promise<ReadonlyArray<ShelfCard>>
+  readonly shelf?: HomeShelf
 }
