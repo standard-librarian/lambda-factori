@@ -3,18 +3,19 @@
  * mechanic (`office/mechanics.ts`, `combinators/mechanics.ts`) shares one
  * decode-then-throw instead of each writing its own. `render`'s parameter
  * type is inferred from `schema`, so passing a renderer for the wrong shape
- * is a compile error, not a runtime throw.
+ * is a compile error, not a runtime throw; so is a template of the wrong shape.
  */
 import { Exit, Schema } from "effect"
 import type { Mechanic, SlideContext, SlideView } from "./Slide.ts"
 
-export const defineMechanic = <S extends Schema.ConstraintDecoder<unknown>>(
+export const defineMechanic = <S extends Schema.Codec<unknown, Record<string, unknown>>>(
   schema: S,
   render: (value: S["Type"], ctx: SlideContext) => SlideView,
   options?: {
     readonly fullBleed?: boolean
-    /** A minimal valid slide of this mechanic, offered by the deck's slide editor. */
-    readonly template?: Record<string, unknown>
+    /** A minimal valid slide of this mechanic, offered by the deck's slide editor. Typed as the
+     * schema's encoded (JSON) shape, so a template that can't decode fails to compile. */
+    readonly template?: S["Encoded"]
   }
 ): Mechanic => {
   const decode = Schema.decodeUnknownExit(schema)

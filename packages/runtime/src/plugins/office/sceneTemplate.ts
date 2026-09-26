@@ -5,7 +5,9 @@
  * it without pulling in the Pixi renderer (`OfficeSlide.ts`), which touches
  * `document` at import time and needs a browser.
  */
-export const sceneTemplate: Record<string, unknown> = {
+import type { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
+
+export const sceneTemplate: typeof OfficeSpec.Encoded = {
   kind: "office/scene",
   title: "A new office",
   program: ["INBOX", "OUTBOX"]

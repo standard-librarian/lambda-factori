@@ -5,7 +5,9 @@
  * `office/sceneTemplate.ts`: the test can decode it without pulling in the
  * Pixi renderer (`theaterSlide.ts`), which needs a browser.
  */
-export const theaterTemplate: Record<string, unknown> = {
+import type { TheaterSlide } from "@lambda-factori/contracts/TheaterSlide.ts"
+
+export const theaterTemplate: typeof TheaterSlide.Encoded = {
   kind: "combinators/theater",
   title: "A reduction",
   term: "S K K x"
