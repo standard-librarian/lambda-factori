@@ -1,14 +1,14 @@
 import { type Application, Container, Graphics } from "pixi.js"
 import type { GameEvent } from "../game/Events.ts"
-import type { Scene } from "../render/Scene.ts"
+import type { Scene } from "../kernel/Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../render/theme.ts"
-import { Tweens } from "../render/tween.ts"
+import { Tweens } from "../kernel/tween.ts"
 import { Toasts } from "../render/Toasts.ts"
 import { HomeScene } from "./HomeScene.ts"
 import { OpenScene } from "./OpenScene.ts"
 import { countDevFrame } from "./devHooks.ts"
 import { perfProbe } from "./perfProbe.ts"
-import type { HostApi, Plugin, Services } from "./Plugin.ts"
+import type { HostApi, Plugin, Services } from "../kernel/Plugin.ts"
 import { builtins } from "./registry.ts"
 
 /** Idle heartbeat: even a static scene is redrawn this often, to catch untweened changes. */

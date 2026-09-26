@@ -6,9 +6,10 @@
 import { Container, Graphics } from "pixi.js"
 import { label } from "../../../render/label.ts"
 import { DESIGN_W, palette } from "../../../render/theme.ts"
-import { ease } from "../../../render/tween.ts"
+import { ease } from "../../../kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { color, CONTENT_TOP, para, Reveal, shade, type SlideContext, type SlideView } from "./common.ts"
+import { color, CONTENT_TOP, para, Reveal, shade } from "./common.ts"
+import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
 
 export const modulesSlide = (s: SlideOf<"modules">, ctx: SlideContext): SlideView => {
   const v = new Container()

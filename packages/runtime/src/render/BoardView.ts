@@ -14,7 +14,7 @@ import { binArt, type BinArt, binLink, type FactoryArt, H, machineArt, W } from 
 import { center, partial, polyline, portDot } from "./floorGeometry.ts"
 import { relabel } from "./label.ts"
 import { BOARD_W, CELL, DESIGN_H, palette } from "./theme.ts"
-import { ease, lerp, type Tweens } from "./tween.ts"
+import { ease, lerp, type Tweens } from "../kernel/tween.ts"
 
 export interface BuildingView {
   readonly building: B.Building

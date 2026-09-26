@@ -3,7 +3,8 @@ import { Container } from "pixi.js"
 import { label } from "../../../render/label.ts"
 import { DESIGN_W, palette } from "../../../render/theme.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { CONTENT_TOP, para, SERIF, type SlideView, staticSlide } from "./common.ts"
+import { CONTENT_TOP, para, SERIF, staticSlide } from "./common.ts"
+import type { SlideView } from "../../../kernel/Slide.ts"
 
 export const quoteSlide = (s: SlideOf<"quote">): SlideView => {
   const v = new Container()

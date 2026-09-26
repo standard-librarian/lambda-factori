@@ -1,4 +1,4 @@
-import type { PluginEntry } from "./Plugin.ts"
+import type { PluginEntry } from "../kernel/Plugin.ts"
 
 /**
  * Built-in plugins. Each `load` is a dynamic import, so every plugin is its

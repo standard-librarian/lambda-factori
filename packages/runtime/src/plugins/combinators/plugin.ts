@@ -1,11 +1,11 @@
 import type { Board } from "@lambda-factori/core/Board.ts"
 import type { LevelPack } from "@lambda-factori/core/Level.ts"
-import type { HostApi, Plugin } from "../../engine/Plugin.ts"
+import type { HostApi, Plugin } from "../../kernel/Plugin.ts"
 import type { GameEvent } from "../../game/Events.ts"
 import { BookScene } from "../../render/BookScene.ts"
 import { LevelScene } from "../../render/LevelScene.ts"
 import { MenuScene } from "../../render/MenuScene.ts"
-import type { GameContext } from "../../render/Scene.ts"
+import type { GameContext } from "./GameContext.ts"
 
 export const CUSTOM_WORLD = { id: "custom", title: "your levels", subtitle: "made in the level editor" }
 

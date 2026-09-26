@@ -9,8 +9,8 @@ import type { Board } from "@lambda-factori/core/Board.ts"
 import type { Level, LevelPack } from "@lambda-factori/core/Level.ts"
 import type { GameEvent } from "../game/Events.ts"
 import type { SaveData } from "../game/Progress.ts"
-import type { Scene } from "../render/Scene.ts"
-import type { Tweens } from "../render/tween.ts"
+import type { Scene } from "./Scene.ts"
+import type { Tweens } from "./tween.ts"
 import type { Deck, DeckMeta } from "@lambda-factori/contracts/Deck.ts"
 
 /** Bridges from the imperative UI to the Effect services. */

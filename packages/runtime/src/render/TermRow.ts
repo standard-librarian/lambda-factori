@@ -9,7 +9,7 @@ import { colorOf } from "@lambda-factori/core/Catalogue.ts"
 import { baseId, type LTerm, spineL, type Step } from "@lambda-factori/core/Trace.ts"
 import { label } from "./label.ts"
 import { palette } from "./theme.ts"
-import { ease, lerp, type Tweens } from "./tween.ts"
+import { ease, lerp, type Tweens } from "../kernel/tween.ts"
 
 const R = 30
 const GAP = 10

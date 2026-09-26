@@ -1,4 +1,4 @@
-import type { Plugin } from "../../engine/Plugin.ts"
+import type { Plugin } from "../../kernel/Plugin.ts"
 import { preloadMechanics } from "../../engine/mechanics.ts"
 import { DeckScene } from "./DeckScene.ts"
 import { openPresenter } from "./presenter.ts"

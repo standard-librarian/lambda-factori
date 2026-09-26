@@ -19,7 +19,7 @@ import { H, tokenArt, W } from "./factoryArt.ts"
 import { center, portDot } from "./floorGeometry.ts"
 import { label, relabel } from "./label.ts"
 import { palette } from "./theme.ts"
-import { ease, lerp, type Tweens } from "./tween.ts"
+import { ease, lerp, type Tweens } from "../kernel/tween.ts"
 
 export class SimAnimator {
   private readonly tokenViews = new Map<number, Container>()

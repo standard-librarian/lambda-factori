@@ -3,7 +3,8 @@ import { Container, Graphics } from "pixi.js"
 import { label } from "../../../render/label.ts"
 import { DESIGN_W, palette } from "../../../render/theme.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { cardArt, color, CONTENT_TOP, MARGIN, para, Reveal, shade, type SlideContext, type SlideView } from "./common.ts"
+import { cardArt, color, CONTENT_TOP, MARGIN, para, Reveal, shade } from "./common.ts"
+import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
 
 export const versusSlide = (s: SlideOf<"versus">, ctx: SlideContext): SlideView => {
   const v = new Container()

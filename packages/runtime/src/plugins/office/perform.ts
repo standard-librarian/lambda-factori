@@ -8,7 +8,7 @@
 import type { Container } from "pixi.js"
 import type { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
 import { label } from "../../render/label.ts"
-import { ease, lerp } from "../../render/tween.ts"
+import { ease, lerp } from "../../kernel/tween.ts"
 import { boxArt } from "./roomArt.ts"
 import { bubbleArt } from "./bubbleArt.ts"
 import { inSlot, outSlot } from "./layout.ts"

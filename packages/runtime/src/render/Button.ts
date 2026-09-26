@@ -5,7 +5,7 @@
 import { Container, Graphics, Rectangle, type Text } from "pixi.js"
 import { label } from "./label.ts"
 import { palette } from "./theme.ts"
-import { type Tweens } from "./tween.ts"
+import { type Tweens } from "../kernel/tween.ts"
 
 export interface ButtonOptions {
   readonly width: number

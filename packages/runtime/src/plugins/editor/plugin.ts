@@ -4,10 +4,10 @@
  * `#/combinators/test/<id>`.
  */
 import { Container } from "pixi.js"
-import type { HostApi, Plugin } from "../../engine/Plugin.ts"
+import type { HostApi, Plugin } from "../../kernel/Plugin.ts"
+import type { Scene } from "../../kernel/Scene.ts"
 import { paperArt, skylineArt } from "../../render/backdrop.ts"
 import { label } from "../../render/label.ts"
-import type { Scene } from "../../render/Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../render/theme.ts"
 import { mountLevelForm } from "./form.ts"
 

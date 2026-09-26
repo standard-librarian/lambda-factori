@@ -1,31 +1,8 @@
-import { Container, Graphics, Text, type Ticker } from "pixi.js"
-import type { HostApi } from "../../../engine/Plugin.ts"
+import { Container, Graphics, Text } from "pixi.js"
+import type { SlideView } from "../../../kernel/Slide.ts"
 import { fontFor, label } from "../../../render/label.ts"
 import { palette } from "../../../render/theme.ts"
-import { ease, lerp, type Tweens } from "../../../render/tween.ts"
-
-export interface SlideContext {
-  readonly host: HostApi
-  readonly tweens: Tweens
-  readonly ticker: Ticker
-  /** Tell the deck the slide moved itself to build step `step` (e.g. from its own controls). */
-  readonly syncStep?: (step: number) => void
-}
-
-/**
- * A rendered slide. `steps` is the number of build steps after the initial
- * state; the deck calls `setStep(i)` for i in 0…steps as the presenter
- * advances, with `animate` false when jumping (overview, going back).
- */
-export interface SlideView {
-  readonly view: Container
-  readonly steps: number
-  setStep(step: number, animate: boolean): void
-  tick?(dt: number): void
-  /** Whether the slide needs frames right now; slides with `tick` but no `animating` always do. */
-  animating?(): boolean
-  destroy(): void
-}
+import { ease, lerp, type Tweens } from "../../../kernel/tween.ts"
 
 export const CONTENT_TOP = 190
 export const CONTENT_BOTTOM = 960

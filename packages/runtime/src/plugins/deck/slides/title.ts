@@ -5,7 +5,8 @@ import { label } from "../../../render/label.ts"
 import { skylineArt } from "../../../render/backdrop.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../../render/theme.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { para, type SlideContext, type SlideView, staticSlide } from "./common.ts"
+import { para, staticSlide } from "./common.ts"
+import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
 
 export const titleSlide = (s: SlideOf<"title">, ctx: SlideContext): SlideView => {
   const v = new Container()

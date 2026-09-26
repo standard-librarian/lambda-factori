@@ -3,14 +3,7 @@
  * "<plugin>/<mechanic>" is rendered by that plugin; mechanics are loaded
  * lazily the first time a deck uses them.
  */
-import type { SlideContext, SlideView } from "../plugins/deck/slides/common.ts"
-
-export interface Mechanic {
-  /** The mechanic paints the whole slide (no paper background or deck title). */
-  readonly fullBleed?: boolean
-  /** Validate and render a slide. Throw with a readable message on bad data. */
-  render(slide: Record<string, unknown>, ctx: SlideContext): SlideView
-}
+import type { Mechanic } from "../kernel/Slide.ts"
 
 const loaders: Record<string, () => Promise<Record<string, Mechanic>>> = {
   office: () => import("../plugins/office/mechanics.ts").then((m) => m.mechanics)

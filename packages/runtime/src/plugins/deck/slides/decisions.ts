@@ -1,9 +1,10 @@
 import { Container, Graphics, Rectangle } from "pixi.js"
 import { label, relabel } from "../../../render/label.ts"
 import { DESIGN_W, palette } from "../../../render/theme.ts"
-import { ease } from "../../../render/tween.ts"
+import { ease } from "../../../kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { cardArt, color, CONTENT_TOP, para, shade, type SlideContext, type SlideView } from "./common.ts"
+import { cardArt, color, CONTENT_TOP, para, shade } from "./common.ts"
+import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
 
 const GEM_COLORS = [0xe0485a, 0x306db5, 0x2fa7a0, 0xf2a93b, 0x9b5fc0, 0x4cc887, 0xee8d56]
 

@@ -2,10 +2,11 @@ import { Container, Graphics } from "pixi.js"
 import { label, relabel } from "../../../render/label.ts"
 import { sourceArt, W as MACHINE_W, H as MACHINE_H } from "../../../render/factoryArt.ts"
 import { DESIGN_W, palette } from "../../../render/theme.ts"
-import { ease, lerp } from "../../../render/tween.ts"
+import { ease, lerp } from "../../../kernel/tween.ts"
 import { PlaybackBar } from "../../../render/PlaybackBar.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { color, CONTENT_TOP, para, shade, type SlideContext, type SlideView } from "./common.ts"
+import { color, CONTENT_TOP, para, shade } from "./common.ts"
+import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
 import { buildTimeline, Playhead, segmentAt } from "./lineTimeline.ts"
 
 const MACHINE_COLORS = [0x4f56b8, 0x2fa7a0, 0xee8d56, 0x9b5fc0, 0x306db5, 0xe0485a]

@@ -9,7 +9,7 @@ import { Button } from "../../render/Button.ts"
 import { icons } from "../../render/icons.ts"
 import { label, relabel } from "../../render/label.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../render/theme.ts"
-import type { Tweens } from "../../render/tween.ts"
+import type { Tweens } from "../../kernel/tween.ts"
 import { ownsChrome } from "./render.ts"
 
 export class DeckChrome extends Container {

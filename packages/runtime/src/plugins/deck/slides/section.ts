@@ -4,7 +4,8 @@ import { label } from "../../../render/label.ts"
 import { skylineArt } from "../../../render/backdrop.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../../render/theme.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { color, para, shade, type SlideView, staticSlide } from "./common.ts"
+import { color, para, shade, staticSlide } from "./common.ts"
+import type { SlideView } from "../../../kernel/Slide.ts"
 
 export const sectionSlide = (s: SlideOf<"section">): SlideView => {
   const v = new Container()

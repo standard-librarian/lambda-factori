@@ -9,7 +9,7 @@ import { Button } from "./Button.ts"
 import { icons } from "./icons.ts"
 import { label, relabel } from "./label.ts"
 import { palette } from "./theme.ts"
-import type { Tweens } from "./tween.ts"
+import type { Tweens } from "../kernel/tween.ts"
 
 export interface PlaybackHandlers {
   readonly restart: () => void
