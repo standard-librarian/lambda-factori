@@ -5,7 +5,8 @@ import { archiveArt, label, paperArt, stickerArt } from "./art.ts"
 import type { GameContext, Scene } from "./Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "./theme.ts"
 import { ease, lerp } from "./tween.ts"
-import { combinatorSpec, Theater, type TheaterSpec } from "./Theater.ts"
+import { Theater } from "./Theater.ts"
+import { combinatorSpec, type TheaterSpec } from "./TheaterSpec.ts"
 import { Button, icons } from "./ui.ts"
 
 const ROWS = 6

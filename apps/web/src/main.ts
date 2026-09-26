@@ -1,4 +1,5 @@
 import { Effect, Layer, Stream } from "effect"
+import { exposeDev } from "@lambda-factori/runtime/engine/devHooks.ts"
 import { Host } from "@lambda-factori/runtime/engine/Host.ts"
 import { CustomLevels } from "@lambda-factori/runtime/game/CustomLevels.ts"
 import { Decks } from "@lambda-factori/runtime/game/Decks.ts"
@@ -52,7 +53,7 @@ const main = Effect.gen(function*() {
     resetDeck: (id) => runPromise(decks.reset(id))
   })
 
-  if (import.meta.env.DEV) (globalThis as { lfApp?: typeof app }).lfApp = app
+  exposeDev("lfApp", app)
 
   yield* events.stream.pipe(
     Stream.runForEach((e) => Effect.sync(() => host.onEvent(e))),

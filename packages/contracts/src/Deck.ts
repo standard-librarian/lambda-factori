@@ -244,6 +244,11 @@ export interface PluggedSlide {
   readonly [field: string]: unknown
 }
 
+/**
+ * Every core slide kind. To add one: define its Struct above and list it here;
+ * the runtime's registry (`plugins/deck/render.ts`) then won't compile until
+ * the kind has a renderer and an editor template.
+ */
 const Core = Schema.Union([
   Title, Section, Bullets, Quote, Dialogue, Code, Modules, Factory, Decisions, Line, Curve, Poll, Theater, Measure, Versus
 ])
@@ -251,6 +256,8 @@ export type Slide = typeof Core.Type | PluggedSlide
 
 export const Slide = Schema.Union([Core, Plugged]) as unknown as Schema.Codec<Slide, typeof Core.Encoded | typeof Plugged.Encoded>
 export type SlideOf<K extends Slide["kind"]> = Extract<Slide, { kind: K }>
+/** The kinds rendered by the deck itself (plugin kinds are `<plugin>/<mechanic>`). */
+export type CoreKind = Exclude<Slide["kind"], `${string}/${string}`>
 
 export class Deck extends Schema.Class<Deck>("lambda-factori/deck/Deck")({
   id: Schema.String,

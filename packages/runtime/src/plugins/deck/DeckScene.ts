@@ -1,4 +1,5 @@
 import { Container, Graphics, Rectangle } from "pixi.js"
+import { exposeDev } from "../../engine/devHooks.ts"
 import type { HostApi } from "../../engine/Plugin.ts"
 import { label, paperArt, relabel, skylineArt } from "../../render/art.ts"
 import type { Scene } from "../../render/Scene.ts"
@@ -70,7 +71,7 @@ export class DeckScene implements Scene {
     })
     this.mount(0)
     // Lets the headless play-tester (scripts/drive.ts) jump to any slide and build step.
-    if (import.meta.env.DEV) (globalThis as { lfDeck?: DeckScene }).lfDeck = this
+    exposeDev("lfDeck", this)
   }
 
   private get slide() {

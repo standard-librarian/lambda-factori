@@ -6,6 +6,7 @@ import { Tweens } from "../render/tween.ts"
 import { Toasts } from "../render/ui.ts"
 import { HomeScene } from "./HomeScene.ts"
 import { OpenScene } from "./OpenScene.ts"
+import { countDevFrame } from "./devHooks.ts"
 import { perfProbe } from "./perfProbe.ts"
 import type { HostApi, Plugin, Services } from "./Plugin.ts"
 import { builtins } from "./registry.ts"
@@ -72,7 +73,7 @@ export class Host implements HostApi {
         this.dirty = false
         idle = 0
         app.render()
-        if (import.meta.env.DEV) (globalThis as { lfFrames?: number }).lfFrames = ((globalThis as { lfFrames?: number }).lfFrames ?? 0) + 1
+        countDevFrame()
       }
     })
     window.addEventListener("keydown", (e) => {
