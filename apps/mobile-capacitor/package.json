@@ -1,0 +1,19 @@
+{
+  "name": "@lambda-factori/mobile-capacitor",
+  "private": true,
+  "type": "module",
+  "description": "Experiment: the web build packaged as a native iOS app with Capacitor.",
+  "scripts": {
+    "sync": "pnpm --filter @lambda-factori/web build && node scripts/start-page.ts && cap sync ios",
+    "open": "cap open ios",
+    "typecheck": "tsc --noEmit -p .",
+    "build:sim": "xcodebuild -project ios/App/App.xcodeproj -scheme App -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.5.2",
+    "@capacitor/ios": "8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.2"
+  }
+}
