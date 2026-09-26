@@ -1,0 +1,15 @@
+{
+  "name": "@lambda-factori/core",
+  "private": true,
+  "type": "module",
+  "description": "Pure combinator logic: terms, reduction, traces, board, sim, levels, recipe search. No Pixi, no DOM.",
+  "exports": {
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "effect": "catalog:"
+  }
+}

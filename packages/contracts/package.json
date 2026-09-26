@@ -1,0 +1,15 @@
+{
+  "name": "@lambda-factori/contracts",
+  "private": true,
+  "type": "module",
+  "description": "Data contracts shared by every app: the deck and office slide schemas.",
+  "exports": {
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "effect": "catalog:"
+  }
+}

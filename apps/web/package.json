@@ -1,0 +1,20 @@
+{
+  "name": "@lambda-factori/web",
+  "private": true,
+  "type": "module",
+  "description": "The browser app (also what GitHub Pages serves).",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p . && vite build",
+    "preview": "vite preview --port 4173",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@lambda-factori/runtime": "workspace:*",
+    "@lambda-factori/core": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "vite": "catalog:"
+  }
+}
