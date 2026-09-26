@@ -1,7 +1,11 @@
+/**
+ * The deck plugin's `DeckLibrary` backend: decks are runtime plugins, served
+ * as JSON and editable in the browser (see the `Decks` class below).
+ */
 import { Context, Effect, Layer, Schema } from "effect"
 import { Deck, DeckJson, type DeckMeta, decodeDeck } from "@lambda-factori/contracts/Deck.ts"
-import { fetchJson as fetchPreloaded } from "./Preload.ts"
-import { Storage } from "./Storage.ts"
+import { fetchJson as fetchPreloaded } from "../../platform/Preload.ts"
+import { Storage } from "../../platform/Storage.ts"
 
 export class DeckError extends Schema.TaggedError<DeckError>()("DeckError", {
   id: Schema.String,
@@ -22,7 +26,7 @@ export class Decks extends Context.Service<Decks, {
   load(id: string): Effect.Effect<Deck, DeckError>
   save(deck: Deck): Effect.Effect<void>
   reset(id: string): Effect.Effect<void>
-}>()("lambda-factori/game/Decks") {
+}>()("lambda-factori/deck/Decks") {
   static readonly layer = Layer.effect(
     Decks,
     Effect.gen(function*() {
@@ -95,5 +99,3 @@ export class Decks extends Context.Service<Decks, {
     })
   )
 }
-
-export { Deck }

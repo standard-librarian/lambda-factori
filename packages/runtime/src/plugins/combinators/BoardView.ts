@@ -8,13 +8,14 @@
 import { Container, Graphics, Rectangle } from "pixi.js"
 import * as B from "@lambda-factori/core/Board.ts"
 import { DEFAULT_QUOTA, type Level } from "@lambda-factori/core/Level.ts"
-import { paperArt, skylineArt } from "./backdrop.ts"
+import { paperArt, skylineArt } from "../../ui/backdrop.ts"
 import { Smoke } from "./effects.ts"
-import { binArt, type BinArt, binLink, type FactoryArt, H, machineArt, W } from "./factoryArt.ts"
+import { binArt, type BinArt, binLink, type FactoryArt, H, W } from "../../ui/factoryArt.ts"
+import { machineArt } from "./machineArt.ts"
 import { center, partial, polyline, portDot } from "./floorGeometry.ts"
-import { relabel } from "./label.ts"
-import { BOARD_W, CELL, DESIGN_H, palette } from "./theme.ts"
-import { ease, lerp, type Tweens } from "../kernel/tween.ts"
+import { relabel } from "../../ui/label.ts"
+import { BOARD_W, CELL, DESIGN_H, palette } from "../../ui/theme.ts"
+import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
 
 export interface BuildingView {
   readonly building: B.Building

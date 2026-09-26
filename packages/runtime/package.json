@@ -2,7 +2,7 @@
   "name": "@lambda-factori/runtime",
   "private": true,
   "type": "module",
-  "description": "The Pixi runtime every shell loads: host, render, services and plugins.",
+  "description": "The Pixi runtime every shell loads: kernel, platform, ui, host, game services and plugins.",
   "exports": {
     "./*": "./src/*"
   },

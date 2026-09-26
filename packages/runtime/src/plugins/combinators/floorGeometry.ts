@@ -5,8 +5,8 @@
  */
 import type { Graphics } from "pixi.js"
 import * as B from "@lambda-factori/core/Board.ts"
-import { CELL } from "./theme.ts"
-import { lerp } from "../kernel/tween.ts"
+import { CELL } from "../../ui/theme.ts"
+import { lerp } from "../../kernel/tween.ts"
 
 export interface Pt {
   readonly x: number

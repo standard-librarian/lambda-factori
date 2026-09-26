@@ -5,8 +5,8 @@
  * green value boxes.
  */
 import { Container, Graphics, Text } from "pixi.js"
-import { label } from "../../render/label.ts"
-import { FONT } from "../../render/theme.ts"
+import { label } from "../../ui/label.ts"
+import { FONT } from "../../ui/theme.ts"
 import { office } from "./officePalette.ts"
 
 export interface RoomGeometry {

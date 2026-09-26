@@ -15,11 +15,11 @@ import { labelFor, type Sim, type SimEvent, type Token } from "@lambda-factori/c
 import type { Term } from "@lambda-factori/core/Term.ts"
 import type { BoardView, BuildingView } from "./BoardView.ts"
 import { ring } from "./effects.ts"
-import { H, tokenArt, W } from "./factoryArt.ts"
+import { H, tokenArt, W } from "../../ui/factoryArt.ts"
 import { center, portDot } from "./floorGeometry.ts"
-import { label, relabel } from "./label.ts"
-import { palette } from "./theme.ts"
-import { ease, lerp, type Tweens } from "../kernel/tween.ts"
+import { label, relabel } from "../../ui/label.ts"
+import { palette } from "../../ui/theme.ts"
+import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
 
 export class SimAnimator {
   private readonly tokenViews = new Map<number, Container>()

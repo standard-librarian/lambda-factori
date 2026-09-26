@@ -3,8 +3,8 @@
  * its combinators, and "in the wild" snippets of where they appear in real code.
  */
 import { Container, Graphics, Text } from "pixi.js"
-import { FONT, palette } from "./theme.ts"
-import { label } from "./label.ts"
+import { FONT, palette } from "../../ui/theme.ts"
+import { label } from "../../ui/label.ts"
 
 const SERIF = "Georgia, 'Times New Roman', serif"
 

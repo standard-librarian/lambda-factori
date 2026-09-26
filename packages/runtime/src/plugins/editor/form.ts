@@ -7,7 +7,7 @@ import { Exit, Schema } from "effect"
 import { catalogue } from "@lambda-factori/core/Catalogue.ts"
 import { Level } from "@lambda-factori/core/Level.ts"
 import type { HostApi } from "../../kernel/Plugin.ts"
-import { ensureOverlayStyles } from "../../render/overlay.ts"
+import { ensureOverlayStyles } from "../../ui/overlay.ts"
 import { blankLevel, type LevelFields, recipeReport, showTargets, validateLevel } from "./levelText.ts"
 import type { LevelLibrary } from "./plugin.ts"
 

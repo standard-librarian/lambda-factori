@@ -6,8 +6,8 @@
  */
 import { Container, Graphics, Text } from "pixi.js"
 import type { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
-import { label } from "../../render/label.ts"
-import { FONT } from "../../render/theme.ts"
+import { label } from "../../ui/label.ts"
+import { FONT } from "../../ui/theme.ts"
 import { lerp, type Tweens } from "../../kernel/tween.ts"
 import { commandArt } from "./commandArt.ts"
 import { office } from "./officePalette.ts"

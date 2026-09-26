@@ -10,9 +10,10 @@
 import type { Container, FederatedPointerEvent } from "pixi.js"
 import * as B from "@lambda-factori/core/Board.ts"
 import type { BoardView } from "./BoardView.ts"
-import { H, machineArt, W } from "./factoryArt.ts"
+import { H, W } from "../../ui/factoryArt.ts"
+import { machineArt } from "./machineArt.ts"
 import { center, dashed, polyline, portDot } from "./floorGeometry.ts"
-import { BOARD_W, CELL, palette } from "./theme.ts"
+import { BOARD_W, CELL, palette } from "../../ui/theme.ts"
 
 type Drag =
   | { readonly _tag: "place"; readonly kind: "source" | "apply"; readonly atom: string | undefined; readonly ghost: Container; readonly start: { x: number; y: number } }

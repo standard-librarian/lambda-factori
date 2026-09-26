@@ -3,9 +3,6 @@ import { Schema } from "effect"
 import { describe, expect, it } from "vitest"
 import { analyze } from "./analyze.ts"
 import { Deck, joinLines, Slide } from "@lambda-factori/contracts/Deck.ts"
-import { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
-import { parseProgram } from "../office/program.ts"
-import { run } from "../office/vm.ts"
 import { templates } from "./templates.ts"
 
 const dir = new URL("../../../../../apps/web/public/decks/", import.meta.url)
@@ -52,21 +49,6 @@ describe.each(files)("deck %s", (file) => {
       const ids = new Set(s.decisions.map((d) => d.id))
       for (const l of s.layouts) for (const m of l.modules) for (const k of [...m.knows, ...(m.secretly ?? [])]) expect(ids, `${s.title}: ${m.name}`).toContain(k)
       for (const c of s.changes) expect(ids, `${s.title}: ${c.label}`).toContain(c.decision)
-    }
-  })
-
-  it("has office scenes that decode, parse and run", () => {
-    for (const s of deck.slides) {
-      if (s.kind !== "office/scene") continue
-      const spec = Schema.decodeUnknownSync(OfficeSpec)(s, { onExcessProperty: "ignore" })
-      const program = parseProgram(spec.program)
-      const t = run(program, {
-        inbox: spec.inbox ?? [],
-        tiles: new Map((spec.tiles ?? []).map((x) => [x.id, x.value])),
-        desks: new Map((spec.desks ?? []).map((d) => [d.id, { id: d.id, work: d.work, gives: d.gives }]))
-      })
-      expect(t.halted, `${spec.title}: ${t.error}`).not.toBe("step-limit")
-      if (t.error) expect(t.error, spec.title).not.toMatch(/no desk/)
     }
   })
 

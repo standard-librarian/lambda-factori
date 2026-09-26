@@ -10,11 +10,10 @@
 import { Container } from "pixi.js"
 import type { CoreKind, Slide, SlideOf } from "@lambda-factori/contracts/Deck.ts"
 import type { Mechanic, SlideContext, SlideView } from "../../kernel/Slide.ts"
-import { palette } from "../../render/theme.ts"
+import { palette } from "../../ui/theme.ts"
 import { codeSlide } from "./slides/code.ts"
-import { para } from "../../render/text.ts"
+import { para } from "../../ui/text.ts"
 import { curveSlide } from "./slides/curve.ts"
-import { theaterSlide } from "./slides/theater.ts"
 import { decisionsSlide } from "./slides/decisions.ts"
 import { lineSlide } from "./slides/line.ts"
 import { factorySlide } from "./slides/factory.ts"
@@ -47,7 +46,6 @@ export const slideKinds: { readonly [K in CoreKind]: SlideKind<K> } = {
   line: { render: lineSlide },
   curve: { render: curveSlide },
   poll: { render: pollSlide },
-  theater: { render: theaterSlide },
   measure: { render: measureSlide },
   versus: { render: versusSlide }
 }

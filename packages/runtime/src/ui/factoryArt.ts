@@ -2,10 +2,13 @@
  * Procedural art in the Word Factori idiom: flat colour-coded castle-like
  * factories, chunky rounded shapes, darker shade bands, cyan input and pink
  * output ports. Source and apply machines, bins, tokens and stickers. Everything
- * is drawn with Graphics, so there are no bitmap assets to license.
+ * is drawn with Graphics, so there are no bitmap assets to license. Domain-free:
+ * every shape takes its colours as plain parameters. `machineArt`, which picks a
+ * source's colour from the combinator catalogue, lives in
+ * `plugins/combinators/machineArt.ts` instead (the kit itself must not depend on
+ * `core`, see `architecture.test.ts`).
  */
 import { Container, Graphics, Text } from "pixi.js"
-import { colorOf } from "@lambda-factori/core/Catalogue.ts"
 import { CELL, palette } from "./theme.ts"
 import { label } from "./label.ts"
 
@@ -124,13 +127,6 @@ export const applyArt = (): FactoryArt => {
 
   root.addChild(port(CELL / 2, H, palette.portIn), port(W - CELL / 2, H, palette.portIn), port(W / 2, 0, palette.portOut))
   return { root, body, icon, iconY, chimney: { x: 109, y: 4 } }
-}
-
-/** The machine for a building kind: the red apply castle, or a source press in its atom's colour. */
-export const machineArt = (kind: "source" | "apply", atom: string | undefined): FactoryArt => {
-  if (kind === "apply") return applyArt()
-  const { color, shade } = colorOf(atom ?? "?")
-  return sourceArt(atom ?? "?", color, shade)
 }
 
 export interface BinArt {

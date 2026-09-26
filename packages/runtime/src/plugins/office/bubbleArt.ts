@@ -1,6 +1,6 @@
 /** Speech bubbles for the office: say, think (cloud-style) or error, with a tail to the speaker. */
 import { Container, Graphics, Text } from "pixi.js"
-import { FONT } from "../../render/theme.ts"
+import { FONT } from "../../ui/theme.ts"
 import { office } from "./officePalette.ts"
 
 /** A speech bubble with a tail pointing down-left (or down-right). */

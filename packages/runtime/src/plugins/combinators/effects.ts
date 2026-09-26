@@ -1,6 +1,6 @@
 /** Small ambient effects: chimney smoke and the expanding ring used for pulses and pops. */
 import { Container, Graphics } from "pixi.js"
-import { type Tweens } from "../kernel/tween.ts"
+import { type Tweens } from "../../kernel/tween.ts"
 
 interface Puff {
   readonly g: Graphics

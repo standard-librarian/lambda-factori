@@ -1,10 +1,10 @@
 /** The deck's two overlays: speaker notes (N) and the slide overview grid (O). */
 import { Container, Graphics, Rectangle } from "pixi.js"
 import type { Slide } from "@lambda-factori/contracts/Deck.ts"
-import { label } from "../../render/label.ts"
-import { DESIGN_H, DESIGN_W, palette } from "../../render/theme.ts"
+import { label } from "../../ui/label.ts"
+import { DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"
 import { slideTitle } from "./render.ts"
-import { para } from "../../render/text.ts"
+import { para } from "../../ui/text.ts"
 
 /** A cream panel along the bottom with this slide's speaker notes. */
 export const notesPanel = (notes: string) => {

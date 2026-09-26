@@ -9,11 +9,11 @@ import { byName } from "@lambda-factori/core/Catalogue.ts"
 import type { Level, LevelPack } from "@lambda-factori/core/Level.ts"
 import type { Stats } from "@lambda-factori/core/Sim.ts"
 import { archiveArt, usageArt } from "./archive.ts"
-import { label } from "./label.ts"
-import { stickerArt } from "./factoryArt.ts"
-import { BOARD_W, DESIGN_H, DESIGN_W, palette } from "./theme.ts"
-import { ease, lerp, type Tweens } from "../kernel/tween.ts"
-import { Button } from "./Button.ts"
+import { label } from "../../ui/label.ts"
+import { stickerArt } from "../../ui/factoryArt.ts"
+import { BOARD_W, DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"
+import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
+import { Button } from "../../ui/Button.ts"
 
 export interface LevelCompleteOptions {
   readonly level: Level

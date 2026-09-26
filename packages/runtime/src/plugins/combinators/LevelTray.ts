@@ -6,10 +6,11 @@
 import { Container, type FederatedPointerEvent, Graphics } from "pixi.js"
 import { byName, colorOf } from "@lambda-factori/core/Catalogue.ts"
 import type { Level, LevelPack } from "@lambda-factori/core/Level.ts"
-import { machineArt, W } from "./factoryArt.ts"
-import { label } from "./label.ts"
+import { W } from "../../ui/factoryArt.ts"
+import { machineArt } from "./machineArt.ts"
+import { label } from "../../ui/label.ts"
 import { StickerPile } from "./StickerPile.ts"
-import { BOARD_W, DESIGN_H, DESIGN_W, palette } from "./theme.ts"
+import { BOARD_W, DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"
 
 export type MachineKind = "source" | "apply"
 

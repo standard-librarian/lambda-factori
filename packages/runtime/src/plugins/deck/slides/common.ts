@@ -2,13 +2,13 @@
  * Small pieces every deck slide kind shares: named colours, the deck's card
  * and sticky-note art, an avatar, and the reveal-on-step animation. Deck-only
  * — `para`, the one piece the host also needs for its shared-pack card, lives
- * in `render/text.ts` instead.
+ * in `ui/text.ts` instead.
  */
 import { Container, Graphics } from "pixi.js"
 import type { SlideView } from "../../../kernel/Slide.ts"
-import { label } from "../../../render/label.ts"
-import { palette } from "../../../render/theme.ts"
-import { para } from "../../../render/text.ts"
+import { label } from "../../../ui/label.ts"
+import { palette } from "../../../ui/theme.ts"
+import { para } from "../../../ui/text.ts"
 import { ease, lerp, type Tweens } from "../../../kernel/tween.ts"
 
 export const CONTENT_TOP = 190

@@ -8,15 +8,15 @@
  * part of `HostApi`: a plugin never sees it).
  */
 import { Container } from "pixi.js"
-import { label } from "../render/label.ts"
-import { para } from "../render/text.ts"
-import { paperArt, skylineArt } from "../render/backdrop.ts"
+import { label } from "../ui/label.ts"
+import { para } from "../ui/text.ts"
+import { paperArt, skylineArt } from "../ui/backdrop.ts"
 import type { HostApi, PackPreview, PackPreviewAction, PluginEntry } from "../kernel/Plugin.ts"
 import type { Scene } from "../kernel/Scene.ts"
-import { DESIGN_H, DESIGN_W, palette } from "../render/theme.ts"
+import { DESIGN_H, DESIGN_W, palette } from "../ui/theme.ts"
 import { ease, lerp } from "../kernel/tween.ts"
-import { Button } from "../render/Button.ts"
-import { icons } from "../render/icons.ts"
+import { Button } from "../ui/Button.ts"
+import { icons } from "../ui/icons.ts"
 import { decodePack } from "./share.ts"
 
 /** A bare (non-enveloped) JSON pack, as served by `#/import/<url>` for a hosted file: a deck has

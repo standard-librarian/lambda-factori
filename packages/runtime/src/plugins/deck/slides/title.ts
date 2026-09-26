@@ -1,12 +1,12 @@
 /** The `title` slide: the talk's opening card, with idle S/K/apply factories below it. */
 import { Container } from "pixi.js"
-import { applyArt, sourceArt, W } from "../../../render/factoryArt.ts"
-import { label } from "../../../render/label.ts"
-import { skylineArt } from "../../../render/backdrop.ts"
-import { DESIGN_H, DESIGN_W, palette } from "../../../render/theme.ts"
+import { applyArt, sourceArt, W } from "../../../ui/factoryArt.ts"
+import { label } from "../../../ui/label.ts"
+import { skylineArt } from "../../../ui/backdrop.ts"
+import { DESIGN_H, DESIGN_W, palette } from "../../../ui/theme.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
 import { staticSlide } from "./common.ts"
-import { para } from "../../../render/text.ts"
+import { para } from "../../../ui/text.ts"
 import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
 
 export const titleSlide = (s: SlideOf<"title">, ctx: SlideContext): SlideView => {

@@ -1,11 +1,11 @@
 /** The `measure` slide: before/after bars for a few metrics. */
 import { Container, Graphics } from "pixi.js"
-import { label, relabel } from "../../../render/label.ts"
-import { DESIGN_W, palette } from "../../../render/theme.ts"
+import { label, relabel } from "../../../ui/label.ts"
+import { DESIGN_W, palette } from "../../../ui/theme.ts"
 import { ease } from "../../../kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
 import { CONTENT_TOP, MARGIN, Reveal } from "./common.ts"
-import { para } from "../../../render/text.ts"
+import { para } from "../../../ui/text.ts"
 import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
 
 export const measureSlide = (s: SlideOf<"measure">, ctx: SlideContext): SlideView => {

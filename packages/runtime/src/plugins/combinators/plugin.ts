@@ -4,7 +4,8 @@
  * level pack, progress, saving a board, and a way to subscribe to game
  * events — everything the game's scenes need but no other plugin should.
  * It also owns `packTypes: ["levels"]`: a shared level pack is decoded and
- * described here (`previewPack`), not by the host.
+ * described here (`previewPack`), not by the host. It lends the deck one slide
+ * mechanic, `combinators/theater` (see `mechanics.ts`), an inline reduction theater.
  */
 import { Exit, Schema } from "effect"
 import type { Board } from "@lambda-factori/core/Board.ts"
@@ -12,11 +13,12 @@ import { Level, type LevelPack } from "@lambda-factori/core/Level.ts"
 import type { GameEvent } from "../../game/Events.ts"
 import type { SaveData } from "../../game/Progress.ts"
 import type { HostApi, PackPreview, Plugin } from "../../kernel/Plugin.ts"
-import { BookScene } from "../../render/BookScene.ts"
-import { LevelScene } from "../../render/LevelScene.ts"
-import { MenuScene } from "../../render/MenuScene.ts"
+import { BookScene } from "./BookScene.ts"
+import { LevelScene } from "./LevelScene.ts"
+import { MenuScene } from "./MenuScene.ts"
 import type { GameContext } from "./GameContext.ts"
 import { manifest } from "./manifest.ts"
+import { mechanics } from "./mechanics.ts"
 
 export interface CombinatorsPort {
   readonly pack: LevelPack
@@ -99,6 +101,7 @@ const previewLevelsPack = (port: CombinatorsPort, data: unknown, host: HostApi):
 
 export const plugin = (port: CombinatorsPort): Plugin => ({
   ...manifest,
+  mechanics,
   open(host, path) {
     const [what, arg] = path
     const test = what === "test"

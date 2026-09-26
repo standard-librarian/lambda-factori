@@ -5,10 +5,10 @@
  */
 import { Container, Graphics } from "pixi.js"
 import type { Slide } from "@lambda-factori/contracts/Deck.ts"
-import { Button } from "../../render/Button.ts"
-import { icons } from "../../render/icons.ts"
-import { label, relabel } from "../../render/label.ts"
-import { DESIGN_H, DESIGN_W, palette } from "../../render/theme.ts"
+import { Button } from "../../ui/Button.ts"
+import { icons } from "../../ui/icons.ts"
+import { label, relabel } from "../../ui/label.ts"
+import { DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"
 import type { Tweens } from "../../kernel/tween.ts"
 
 export class DeckChrome extends Container {

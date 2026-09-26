@@ -3,7 +3,7 @@
  * Schema, so a typo in a deck file becomes a readable error instead of a
  * crash. Every slide kind is a "mechanic" the engine knows how to animate.
  */
-import { Schema } from "effect"
+import { Predicate, Schema, SchemaTransformation } from "effect"
 
 /** A string, or an array of lines (handy for code in JSON). */
 const Lines = Schema.Union([Schema.String, Schema.Array(Schema.String)])
@@ -195,13 +195,6 @@ const Poll = Schema.Struct({
   options: Schema.Array(Schema.Struct({ label: Schema.String, color: Schema.optional(Schema.String) }))
 })
 
-const Theater = Schema.Struct({
-  kind: Schema.Literal("theater"),
-  ...common,
-  term: Schema.String,
-  caption: Schema.optional(Schema.String)
-})
-
 const Measure = Schema.Struct({
   kind: Schema.Literal("measure"),
   ...common,
@@ -250,11 +243,30 @@ export interface PluggedSlide {
  * the kind has a renderer and an editor template.
  */
 const Core = Schema.Union([
-  Title, Section, Bullets, Quote, Dialogue, Code, Modules, Factory, Decisions, Line, Curve, Poll, Theater, Measure, Versus
+  Title, Section, Bullets, Quote, Dialogue, Code, Modules, Factory, Decisions, Line, Curve, Poll, Measure, Versus
 ])
 export type Slide = typeof Core.Type | PluggedSlide
 
-export const Slide = Schema.Union([Core, Plugged]) as unknown as Schema.Codec<Slide, typeof Core.Encoded | typeof Plugged.Encoded>
+const SlideFromEncoded = Schema.Union([Core, Plugged])
+
+/**
+ * Backward compatibility: a deck saved before the reduction theater moved out of the deck's
+ * core kinds into the combinators plugin's `combinators/theater` mechanic may still have a
+ * `kind: "theater"` slide (in local storage, a share link, or a hand-edited file). Rewriting
+ * the kind before the union decode means every decode site — `decodeDeck`, `DeckJson`, and a
+ * share-link pack payload — migrates it the same way, with no separate step at each call site.
+ * Encoding never writes the legacy shape back: once decoded (and if ever re-saved), it's
+ * `combinators/theater` from here on.
+ */
+const migrateLegacyKind = (data: unknown): typeof SlideFromEncoded.Encoded =>
+  (Predicate.isObject(data) && data.kind === "theater" ? { ...data, kind: "combinators/theater" } : data) as typeof SlideFromEncoded.Encoded
+
+export const Slide = Schema.Unknown.pipe(
+  Schema.decodeTo(
+    SlideFromEncoded,
+    SchemaTransformation.transform<typeof SlideFromEncoded.Encoded, unknown>({ decode: migrateLegacyKind, encode: (s) => s })
+  )
+) as unknown as Schema.Codec<Slide, unknown>
 export type SlideOf<K extends Slide["kind"]> = Extract<Slide, { kind: K }>
 /** The kinds rendered by the deck itself (plugin kinds are `<plugin>/<mechanic>`). */
 export type CoreKind = Exclude<Slide["kind"], `${string}/${string}`>

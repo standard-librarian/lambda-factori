@@ -7,17 +7,11 @@
  * The check is plain fs + regex over every `.ts` file under each package's
  * and each app's `src` directory: it classifies each file into a layer from its path,
  * extracts the (static and dynamic) import specifiers, resolves each to a
- * layer, and asks the rule table whether that edge is allowed. Anything the
- * table forbids must appear in `KNOWN_VIOLATIONS`, an exact (file, import)
- * allowlist of what's left from before the rule existed. The list can only
- * shrink: the test also fails if an allowlisted pair no longer occurs, so a
- * fixed violation must be deleted from the list in the same change (a
- * ratchet). Later phases of the plan rename `engine/` to `host/` and
- * `render/` to `ui/`; until then, this file maps the old names to the new
- * layers so the rest of the codebase (and this test) can talk about the
- * target shape early. A separate check requires `layerOf` to classify every
- * file under `packages/runtime/src` (this file excepted): a new top-level
- * folder must be added to the rule table, not silently exempted from it.
+ * layer, and asks the rule table whether that edge is allowed. There is no
+ * allowlist: every phase of the plan is done, so any violation is new and
+ * fails the build. A separate check requires `layerOf` to classify every file
+ * under `packages/runtime/src` (this file excepted): a new top-level folder
+ * must be added to the rule table, not silently exempted from it.
  */
 import * as fs from "node:fs"
 import * as path from "node:path"
@@ -51,12 +45,6 @@ const sourceFiles = (): Array<string> => {
  * Classify a repo-relative path into a layer, or `undefined` if it's outside
  * the packages/apps this rule covers (an npm package, a node builtin, or a
  * package with no layer rules of its own — those imports are always allowed).
- *
- * `platform/` is real already (`devHooks.ts`); `game/Storage.ts` and
- * `game/Preload.ts` also count as `platform` (the plan's transitional
- * mapping, ahead of the phase-4 rename that moves them there too) — every
- * other `game/` file is the combinator game's own services. `engine/` counts
- * as `host`, `render/` as `ui`, until phase 4 renames those two folders.
  */
 const layerOf = (relPath: string): Layer | undefined => {
   const parts = relPath.split("/")
@@ -70,9 +58,9 @@ const layerOf = (relPath: string): Layer | undefined => {
   const top = rest[0]
   if (top === "kernel") return "kernel"
   if (top === "platform") return "platform"
-  if (top === "render") return "ui"
-  if (top === "engine") return "host"
-  if (top === "game") return rest[1] === "Storage.ts" || rest[1] === "Preload.ts" ? "platform" : "game"
+  if (top === "ui") return "ui"
+  if (top === "host") return "host"
+  if (top === "game") return "game"
   if (top === "plugins" && rest[1]) return `plugin:${rest[1]}`
   return undefined
 }
@@ -121,54 +109,6 @@ interface Violation {
   readonly import: string
 }
 
-/**
- * Exact (file, import specifier) pairs the dependency rule forbids today,
- * left over from before this test existed. Shrinks every phase as the plan
- * fixes them; the test fails on both a new violation and a stale entry here,
- * so this list can never silently grow or go stale.
- */
-const KNOWN_VIOLATIONS: ReadonlyArray<Violation> = [
-  // ui/ still holds the combinator game's own scenes (phase 4 moves them into plugins/combinators/).
-  { file: "packages/runtime/src/render/LevelScene.ts", import: "@lambda-factori/core/Board.ts" },
-  { file: "packages/runtime/src/render/LevelScene.ts", import: "@lambda-factori/core/Catalogue.ts" },
-  { file: "packages/runtime/src/render/LevelScene.ts", import: "@lambda-factori/core/Level.ts" },
-  { file: "packages/runtime/src/render/LevelScene.ts", import: "@lambda-factori/core/Sim.ts" },
-  { file: "packages/runtime/src/render/LevelScene.ts", import: "@lambda-factori/core/Term.ts" },
-  { file: "packages/runtime/src/render/LevelScene.ts", import: "../game/Events.ts" },
-  { file: "packages/runtime/src/render/LevelScene.ts", import: "../plugins/combinators/GameContext.ts" },
-  { file: "packages/runtime/src/render/BookScene.ts", import: "@lambda-factori/core/Catalogue.ts" },
-  { file: "packages/runtime/src/render/BookScene.ts", import: "@lambda-factori/core/Term.ts" },
-  { file: "packages/runtime/src/render/BookScene.ts", import: "../plugins/combinators/GameContext.ts" },
-  { file: "packages/runtime/src/render/MenuScene.ts", import: "@lambda-factori/core/Catalogue.ts" },
-  { file: "packages/runtime/src/render/MenuScene.ts", import: "../plugins/combinators/GameContext.ts" },
-  { file: "packages/runtime/src/render/factoryArt.ts", import: "@lambda-factori/core/Catalogue.ts" },
-  { file: "packages/runtime/src/render/BoardEditor.ts", import: "@lambda-factori/core/Board.ts" },
-  { file: "packages/runtime/src/render/BoardView.ts", import: "@lambda-factori/core/Board.ts" },
-  { file: "packages/runtime/src/render/BoardView.ts", import: "@lambda-factori/core/Level.ts" },
-  { file: "packages/runtime/src/render/LevelComplete.ts", import: "@lambda-factori/core/Catalogue.ts" },
-  { file: "packages/runtime/src/render/LevelComplete.ts", import: "@lambda-factori/core/Level.ts" },
-  { file: "packages/runtime/src/render/LevelComplete.ts", import: "@lambda-factori/core/Sim.ts" },
-  { file: "packages/runtime/src/render/LevelTray.ts", import: "@lambda-factori/core/Catalogue.ts" },
-  { file: "packages/runtime/src/render/LevelTray.ts", import: "@lambda-factori/core/Level.ts" },
-  { file: "packages/runtime/src/render/SimAnimator.ts", import: "@lambda-factori/core/Board.ts" },
-  { file: "packages/runtime/src/render/SimAnimator.ts", import: "@lambda-factori/core/Catalogue.ts" },
-  { file: "packages/runtime/src/render/SimAnimator.ts", import: "@lambda-factori/core/Sim.ts" },
-  { file: "packages/runtime/src/render/SimAnimator.ts", import: "@lambda-factori/core/Term.ts" },
-  { file: "packages/runtime/src/render/TermRow.ts", import: "@lambda-factori/core/Catalogue.ts" },
-  { file: "packages/runtime/src/render/TermRow.ts", import: "@lambda-factori/core/Trace.ts" },
-  { file: "packages/runtime/src/render/Theater.ts", import: "@lambda-factori/core/Reduce.ts" },
-  { file: "packages/runtime/src/render/Theater.ts", import: "@lambda-factori/core/Term.ts" },
-  { file: "packages/runtime/src/render/Theater.ts", import: "@lambda-factori/core/Trace.ts" },
-  { file: "packages/runtime/src/render/TheaterSpec.ts", import: "@lambda-factori/core/Catalogue.ts" },
-  { file: "packages/runtime/src/render/TheaterSpec.ts", import: "@lambda-factori/core/Level.ts" },
-  { file: "packages/runtime/src/render/TheaterSpec.ts", import: "@lambda-factori/core/Reduce.ts" },
-  { file: "packages/runtime/src/render/TheaterSpec.ts", import: "@lambda-factori/core/Term.ts" },
-  { file: "packages/runtime/src/render/floorGeometry.ts", import: "@lambda-factori/core/Board.ts" },
-  // A deck test reaches into the office plugin's pure VM directly, ahead of any pack sharing.
-  { file: "packages/runtime/src/plugins/deck/Deck.test.ts", import: "../office/program.ts" },
-  { file: "packages/runtime/src/plugins/deck/Deck.test.ts", import: "../office/vm.ts" }
-]
-
 describe("the dependency rule (docs/plans/dependency-rule.md)", () => {
   const files = sourceFiles()
   const found: Array<Violation> = []
@@ -185,16 +125,8 @@ describe("the dependency rule (docs/plans/dependency-rule.md)", () => {
     }
   }
 
-  it("has no import the layer rules forbid, beyond KNOWN_VIOLATIONS", () => {
-    const allowlisted = new Set(KNOWN_VIOLATIONS.map((v) => `${v.file} → ${v.import}`))
-    const unexpected = found.filter((v) => !allowlisted.has(`${v.file} → ${v.import}`))
-    expect(unexpected).toEqual([])
-  })
-
-  it("has no stale KNOWN_VIOLATIONS entry (the allowlist only shrinks)", () => {
-    const actual = new Set(found.map((v) => `${v.file} → ${v.import}`))
-    const stale = KNOWN_VIOLATIONS.filter((v) => !actual.has(`${v.file} → ${v.import}`))
-    expect(stale).toEqual([])
+  it("has no import the layer rules forbid", () => {
+    expect(found).toEqual([])
   })
 
   it("classifies every runtime file into a layer (a new top-level folder needs a rule, not a silent escape)", () => {

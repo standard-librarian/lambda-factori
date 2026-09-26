@@ -7,7 +7,7 @@ import { Application } from "pixi.js"
 import { palette } from "./theme.ts"
 
 /** The Pixi Application as a scoped resource: created on layer build, destroyed on release. */
-export class Pixi extends Context.Service<Pixi, Application>()("lambda-factori/render/Pixi") {
+export class Pixi extends Context.Service<Pixi, Application>()("lambda-factori/ui/Pixi") {
   static readonly layer = Layer.effect(
     Pixi,
     Effect.acquireRelease(

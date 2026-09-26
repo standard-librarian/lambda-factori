@@ -1,16 +1,26 @@
-/** The `theater` slide: an inline reduction theater; each build step performs one rewrite. */
+/**
+ * The `combinators/theater` slide mechanic's rendering: an inline reduction
+ * theater; each build step performs one rewrite. Validated by `mechanics.ts`
+ * against `TheaterSlide` before this ever sees the data.
+ */
 import { Container, Graphics } from "pixi.js"
-import { DESIGN_W, palette } from "../../../render/theme.ts"
+import { DESIGN_W, palette } from "../../ui/theme.ts"
 import { parse } from "@lambda-factori/core/Term.ts"
 import { trace } from "@lambda-factori/core/Trace.ts"
-import { TermRow } from "../../../render/TermRow.ts"
+import { TermRow } from "./TermRow.ts"
 import { describeStep } from "@lambda-factori/core/Trace.ts"
-import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import { CONTENT_TOP } from "./common.ts"
-import { para } from "../../../render/text.ts"
-import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
+import type { TheaterSlide } from "@lambda-factori/contracts/TheaterSlide.ts"
+import { para } from "../../ui/text.ts"
+import type { SlideContext, SlideView } from "../../kernel/Slide.ts"
 
-export const theaterSlide = (s: SlideOf<"theater">, ctx: SlideContext): SlideView => {
+/** Where the deck's own chrome (painted by `plugins/deck/slideFrame.ts` for any non-fullBleed
+ * mechanic) leaves off, so this content starts below the slide title without overlapping it.
+ * Mirrors `plugins/deck/slides/common.ts`'s `CONTENT_TOP`; combinators can't import the deck
+ * plugin (the dependency rule forbids plugin-to-plugin imports), so this is a deliberate,
+ * named duplicate, not a shared import. */
+const CONTENT_TOP = 190
+
+export const theaterSlide = (s: TheaterSlide, ctx: SlideContext): SlideView => {
   const v = new Container()
   const tr = trace(parse(s.term))
   // TermRow fits itself to its width at scale ≤ 1, so enlarge it via a holder.

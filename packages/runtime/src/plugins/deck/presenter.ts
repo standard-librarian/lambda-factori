@@ -1,4 +1,4 @@
-import { ensureOverlayStyles } from "../../render/overlay.ts"
+import { ensureOverlayStyles } from "../../ui/overlay.ts"
 import { channelName, type DeckMessage } from "./messages.ts"
 import { type Deck, joinLines } from "@lambda-factori/contracts/Deck.ts"
 import { slideTitle } from "./render.ts"

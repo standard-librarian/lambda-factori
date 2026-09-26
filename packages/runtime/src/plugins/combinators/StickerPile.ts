@@ -1,5 +1,5 @@
 import { Container } from "pixi.js"
-import { stickerArt } from "./factoryArt.ts"
+import { stickerArt } from "../../ui/factoryArt.ts"
 
 interface Body {
   readonly view: Container
