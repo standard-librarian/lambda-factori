@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/standard-librarian/lambda-factori.git"
   },
-  "homepage": "https://standard-librarian.github.io/lambda-factori/",
+  "homepage": "https://mdht.me/lambda-factori/",
   "type": "module",
   "scripts": {
     "dev": "vite",

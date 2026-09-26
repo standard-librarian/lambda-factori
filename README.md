@@ -5,7 +5,7 @@ playable factories: modules are buildings, decisions are gems, state is a padloc
 function application is a red castle clamping two inputs together. Everything is data, everything
 is a plugin, and anything you make can be shared as a link.
 
-**[▶ Try it live](https://standard-librarian.github.io/lambda-factori/)** · [Week 1 deck](https://standard-librarian.github.io/lambda-factori/#/deck/week1-complexity/1) · [Mechanics tour](https://standard-librarian.github.io/lambda-factori/#/deck/mechanics-tour/1) · [The combinator game](https://standard-librarian.github.io/lambda-factori/#/combinators)
+**[▶ Try it live](https://mdht.me/lambda-factori/)** · [Week 1 deck](https://mdht.me/lambda-factori/#/deck/week1-complexity/1) · [Mechanics tour](https://mdht.me/lambda-factori/#/deck/mechanics-tour/1) · [The combinator game](https://mdht.me/lambda-factori/#/combinators)
 
 ![Hidden state on an assembly line: the same input gives a different output until the x-ray opens the gauge](docs/media/line.gif)
 
