@@ -19,13 +19,16 @@
     "typecheck": "pnpm -r typecheck && tsc --noEmit -p .",
     "test": "vitest run",
     "search": "node scripts/search.ts",
-    "drive": "node scripts/drive.ts"
+    "drive": "node scripts/drive.ts",
+    "knip": "knip --no-config-hints",
+    "check": "pnpm typecheck && pnpm test && pnpm knip"
   },
   "dependencies": {
     "@lambda-factori/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "knip": "catalog:",
     "playwright": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",

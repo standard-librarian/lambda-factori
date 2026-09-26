@@ -1,5 +1,5 @@
 import { Container, Graphics, Rectangle } from "pixi.js"
-import { label, relabel } from "../../../render/art.ts"
+import { label, relabel } from "../../../render/label.ts"
 import { DESIGN_W, palette } from "../../../render/theme.ts"
 import { ease } from "../../../render/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
@@ -42,7 +42,7 @@ export const decisionsSlide = (s: SlideOf<"decisions">, ctx: SlideContext): Slid
   const cards: Array<Array<{
     c: Container
     knows: ReadonlyArray<string>
-    secretly: ReadonlyArray<{ id: string; gem: Container; mystery: Container }>
+    secretly: ReadonlyArray<{ id: string; gem: Container }>
     outline: Graphics
     surprise: Graphics
     count: number
@@ -81,17 +81,13 @@ export const decisionsSlide = (s: SlideOf<"decisions">, ctx: SlideContext): Slid
         g.position.set(slotX(ki), ch - 34)
         c.addChild(g)
       })
-      // Hidden knowledge: a grey "?" until a change bites, then the real gem.
+      // Hidden knowledge: invisible (an unknown unknown) until a change bites.
       const secretly = secret.map((id, si) => {
-        const mystery = new Container()
-        const q = label("?", 18, palette.white, "700")
-        mystery.addChild(gem(0xc9cbe0), q)
-        mystery.alpha = 0
         const g = gem(colorOf.get(id) ?? palette.inkSoft)
         g.visible = false
-        for (const o of [mystery, g]) o.position.set(slotX(m.knows.length + si), ch - 34)
-        c.addChild(mystery, g)
-        return { id, gem: g as Container, mystery }
+        g.position.set(slotX(m.knows.length + si), ch - 34)
+        c.addChild(g)
+        return { id, gem: g as Container }
       })
       v.addChild(c)
       return { c, knows: m.knows, secretly, outline, surprise, count: m.count ?? 1 }

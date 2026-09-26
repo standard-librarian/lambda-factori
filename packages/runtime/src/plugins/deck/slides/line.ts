@@ -1,17 +1,14 @@
 import { Container, Graphics } from "pixi.js"
-import { label, relabel, sourceArt, W as MACHINE_W, H as MACHINE_H } from "../../../render/art.ts"
+import { label, relabel } from "../../../render/label.ts"
+import { sourceArt, W as MACHINE_W, H as MACHINE_H } from "../../../render/factoryArt.ts"
 import { DESIGN_W, palette } from "../../../render/theme.ts"
 import { ease, lerp } from "../../../render/tween.ts"
-import { Button, icons } from "../../../render/ui.ts"
+import { PlaybackBar } from "../../../render/PlaybackBar.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
 import { color, CONTENT_TOP, para, shade, type SlideContext, type SlideView } from "./common.ts"
+import { buildTimeline, Playhead, segmentAt } from "./lineTimeline.ts"
 
 const MACHINE_COLORS = [0x4f56b8, 0x2fa7a0, 0xee8d56, 0x9b5fc0, 0x306db5, 0xe0485a]
-/** Pace, unhurried so the audience can read each output: px/ms on the belt, ms per stage. */
-const TRAVEL_SPEED = 0.42
-const WORK_MS = 1100
-const HOLD_MS = 900
-const DROP_MS = 450
 const BELT_Y = CONTENT_TOP + 430
 const SCALE = 1.5
 
@@ -34,7 +31,8 @@ const chip = (text: string) => {
  * hidden state (a padlocked gauge above it) that changes what comes out; the
  * x-ray run opens the gauges. Each step sends one item down the line, and
  * the tray at the end keeps every in → out pair, so the same input giving a
- * different output is plain to see.
+ * different output is plain to see. The clock lives in `lineTimeline.ts`; this
+ * module only draws what the playhead says.
  */
 export const lineSlide = (s: SlideOf<"line">, ctx: SlideContext): SlideView => {
   const v = new Container()
@@ -142,45 +140,10 @@ export const lineSlide = (s: SlideOf<"line">, ctx: SlideContext): SlideView => {
   caption.position.set(DESIGN_W / 2, 905)
   v.addChild(caption)
 
-  // ---------------------------------------------------------------------------
-  // The timeline. Each run is a sequence of segments (travel, work, hold, drop);
-  // everything on screen is a pure function of (run, time), so pausing, stepping
-  // back and changing speed are exact.
-  // ---------------------------------------------------------------------------
-  type Segment =
-    | { readonly kind: "travel"; readonly from: number; readonly to: number; readonly fromY: number; readonly d: number }
-    | { readonly kind: "work"; readonly machine: number; readonly d: number }
-    | { readonly kind: "hold"; readonly x: number; readonly d: number }
-    | { readonly kind: "drop"; readonly d: number }
-  const INBOX_X = 105
-  const ENTRY = 72 // the item disappears into the machine this far left of its centre…
+  // Everything below is drawn from the playhead (run, time).
   const onBelt = BELT_Y - 6
-  const segments: Array<Segment> = []
-  {
-    let x = INBOX_X
-    let y = BELT_Y - 110
-    const travel = (to: number) => {
-      segments.push({ kind: "travel", from: x, to, fromY: y, d: Math.max(500, Math.abs(to - x) / TRAVEL_SPEED) })
-      x = to
-      y = onBelt
-    }
-    xs.forEach((mx, i) => {
-      travel(mx - ENTRY)
-      segments.push({ kind: "work", machine: i, d: WORK_MS })
-      x = mx + ENTRY // …and comes out this far right of it
-      segments.push({ kind: "hold", x, d: HOLD_MS })
-    })
-    travel(trayX)
-    segments.push({ kind: "drop", d: DROP_MS })
-  }
-  const starts: Array<number> = []
-  let total = 0
-  for (const seg of segments) {
-    starts.push(total)
-    total += seg.d
-  }
-  // Stops: where "back" and "forward" land. The start, after each machine has worked, the end.
-  const stops = [0, ...segments.flatMap((seg, k) => (seg.kind === "work" ? [starts[k]! + seg.d] : [])), total]
+  const timeline = buildTimeline({ inbox: { x: 105, y: BELT_Y - 110 }, belt: onBelt, machines: xs, tray: trayX })
+  const head = new Playhead(timeline, s.runs.length)
 
   const opened = (r: number) => s.runs.slice(0, r).some((run) => run.xray === true)
   const stateBefore = (r: number, i: number) => {
@@ -210,13 +173,10 @@ export const lineSlide = (s: SlideOf<"line">, ctx: SlideContext): SlideView => {
     v.addChild(cargo)
   }
 
-  let run = 0 // the run on the line (1-based; 0 = none yet)
-  let time = 0
   let lastHistory = -1
-
   const render = () => {
-    const done = run === 0 || time >= total
-    // History: every finished run.
+    const { run, time } = head
+    const done = head.finished
     const finished = run === 0 ? 0 : done ? run : run - 1
     if (finished !== lastHistory) {
       showHistory(finished, run > 0 && done)
@@ -226,42 +186,33 @@ export const lineSlide = (s: SlideOf<"line">, ctx: SlideContext): SlideView => {
     relabel(caption, current?.caption ?? s.caption ?? "")
     const open = opened(run)
     machines.forEach((m, i) => {
-      let st = stateBefore(run - 1 < 0 ? 0 : run - 1, i)
-      if (current) {
-        const k = segments.findIndex((seg) => seg.kind === "work" && seg.machine === i)
-        const next = current.states?.[i]
-        if (next !== undefined && next !== "" && time >= starts[k]! + segments[k]!.d / 2) st = next
-      }
+      let st = stateBefore(Math.max(0, run - 1), i)
+      const next = current?.states?.[i]
+      if (next !== undefined && next !== "" && time >= timeline.revealAt[i]!) st = next
       if (st !== m.state || m.gauge?.lock.visible === open) setGauge(i, st, open)
       m.art.body.scale.set(1)
     })
     if (!current || done) return setCargo(undefined)
 
-    // Which segment are we in, and what does the item say by now?
-    let k = segments.length - 1
-    while (k > 0 && starts[k]! > time) k--
-    const seg = segments[k]!
-    const local = Math.min(1, (time - starts[k]!) / seg.d)
+    // What the item says by now: the output of the last machine that has worked on it.
     let text = current.input
-    segments.forEach((sg, j) => {
-      if (sg.kind === "work" && time >= starts[j]! + sg.d / 2) text = current.outputs?.[sg.machine] ?? text
+    timeline.revealAt.forEach((at, i) => {
+      if (time >= at) text = current.outputs?.[i] ?? text
     })
     setCargo(text)
     const item = cargo!
     item.visible = true
     item.alpha = 1
     item.scale.set(1)
+    const { segment: seg, local } = segmentAt(timeline, time)
     switch (seg.kind) {
-      case "travel": {
-        const e = ease.inOutSine(local)
-        item.position.set(lerp(seg.from, seg.to, e), lerp(seg.fromY, onBelt, Math.min(1, local * 2)) - Math.sin(local * Math.PI) * 10)
+      case "travel":
+        item.position.set(lerp(seg.from, seg.to, ease.inOutSine(local)), lerp(seg.fromY, onBelt, Math.min(1, local * 2)) - Math.sin(local * Math.PI) * 10)
         break
-      }
       case "work": {
         // The machine swallows the item, works (squash and stretch), and lets it out.
         item.visible = false
-        const m = machines[seg.machine]!
-        m.art.body.scale.set(1 + Math.sin(local * Math.PI * 2) * 0.05, 1 - Math.sin(local * Math.PI) * 0.12)
+        machines[seg.machine]!.art.body.scale.set(1 + Math.sin(local * Math.PI * 2) * 0.05, 1 - Math.sin(local * Math.PI) * 0.12)
         break
       }
       case "hold":
@@ -275,130 +226,48 @@ export const lineSlide = (s: SlideOf<"line">, ctx: SlideContext): SlideView => {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Playback controls: restart · back · play/pause · forward · speed.
-  // ---------------------------------------------------------------------------
-  let playing = false
-  let until = Number.POSITIVE_INFINITY // pause when time reaches this (stepping to a stop)
-  let speed = 1
-  const SPEEDS = [0.5, 1, 2]
-
-  const bar = new Container()
+  // Tapping the bar may change which item is on the line; tell the deck, so → continues from there.
+  let syncedRun = 0
+  const refresh = () => {
+    if (head.run !== syncedRun) ctx.syncStep?.((syncedRun = head.run))
+    render()
+    bar.show({
+      playing: head.playing,
+      canBack: head.canBack,
+      canForward: head.canForward,
+      progress: head.run === 0 ? 0 : head.time / timeline.total,
+      notches: timeline.stops.map((st) => ({ at: st / timeline.total, reached: head.run > 0 && head.time >= st })),
+      status: head.run === 0 ? "press ▶ or → to send the first item"
+        : `item ${head.run} of ${s.runs.length} · ${head.time >= timeline.total ? "done" : head.playing ? "playing" : "paused"}`,
+      speed: head.speed
+    })
+  }
+  const bar = new PlaybackBar(ctx.tweens, {
+    restart: () => head.restart(),
+    back: () => head.back(),
+    playPause: () => head.togglePlay(),
+    forward: () => head.forward(),
+    speed: () => head.cycleSpeed()
+  }, refresh)
   bar.position.set(DESIGN_W / 2, 790)
   v.addChild(bar)
-  const button = (x: number, icon: ((g: Graphics) => void) | undefined, text: string | undefined, onTap: () => void, w = 76) => {
-    const tap = () => {
-      onTap()
-      render()
-      drawControls()
-    }
-    const b = new Button({ width: w, height: 60, color: palette.blue, shade: 0x1f4c85, fontSize: 24, onTap: tap, ...(icon ? { icon } : {}), ...(text ? { text } : {}) }, ctx.tweens)
-    b.position.set(x, 0)
-    bar.addChild(b)
-    return b
-  }
-  const progress = new Graphics()
-  const status = label("", 22, palette.inkSoft, "600")
-  status.position.set(0, 52)
-  bar.addChild(progress, status)
-
-  const sync = () => ctx.syncStep?.(run)
-  const startRun = (r: number, to: number) => {
-    run = r
-    time = 0
-    until = to
-    playing = true
-    sync()
-  }
-  button(-250, icons.restart, undefined, () => {
-    if (run === 0) return startRun(1, Number.POSITIVE_INFINITY)
-    time = 0
-    until = Number.POSITIVE_INFINITY
-    playing = true
-  })
-  const backB = button(-160, icons.back, undefined, () => {
-    playing = false
-    if (run === 0) return
-    // Just past a stop counts as being on it, so back goes to the stop before.
-    const prev = [...stops].reverse().find((st) => st < time - 400)
-    if (prev !== undefined) time = prev
-    else if (run > 1) {
-      run--
-      time = total
-      sync()
-    } else {
-      run = 0
-      time = 0
-      sync()
-    }
-  })
-  const playB = button(-40, icons.play, undefined, () => {
-    if (playing) return void (playing = false)
-    if (run === 0 || (time >= total && run < s.runs.length)) return startRun(run + 1, Number.POSITIVE_INFINITY)
-    if (time >= total) time = 0
-    until = Number.POSITIVE_INFINITY
-    playing = true
-  }, 96)
-  const forwardB = button(80, icons.forward, undefined, () => {
-    if (run === 0 || (time >= total && run < s.runs.length)) return startRun(run + 1, stops[1]!)
-    if (time >= total) return
-    until = stops.find((st) => st > time + 1) ?? total
-    playing = true
-  })
-  const speedB = button(190, undefined, "1×", () => {
-    speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length]!
-    if (speedB.text) relabel(speedB.text, `${speed}×`)
-  }, 96)
-
-  const drawControls = () => {
-    playB.setIcon(playing ? icons.pause : icons.play)
-    backB.enabled = run > 0
-    forwardB.enabled = !(run === s.runs.length && time >= total)
-    // A progress bar with a notch at every stop.
-    const w = 540
-    const x0 = -w / 2 - 40
-    progress.clear()
-      .roundRect(x0, 36, w, 8, 4).fill({ color: palette.ink, alpha: 0.12 })
-      .roundRect(x0, 36, Math.max(8, w * (run === 0 ? 0 : time / total)), 8, 4).fill(palette.blue)
-    for (const st of stops) progress.circle(x0 + (w * st) / total, 40, 5).fill(run > 0 && time >= st ? palette.blue : 0xc9cbe0)
-    const stage = run === 0 ? "press ▶ or → to send the first item"
-      : time >= total ? `item ${run} of ${s.runs.length} · done`
-      : `item ${run} of ${s.runs.length} · ${playing ? "playing" : "paused"}`
-    relabel(status, stage)
-    status.x = -40
-  }
 
   let clock = 0
   return {
     view: v,
     steps: s.runs.length,
     setStep: (step, animate) => {
-      run = step
-      if (animate && step > 0) {
-        time = 0
-        until = Number.POSITIVE_INFINITY
-        playing = true
-      } else {
-        time = total
-        playing = false
-      }
-      render()
-      drawControls()
+      head.jump(step, animate)
+      syncedRun = step
+      refresh()
     },
-    animating: () => playing,
+    animating: () => head.playing,
     tick: (dt) => {
-      if (!playing) return
-      time = Math.min(total, until, time + dt * speed)
-      if (time >= until || time >= total) playing = false
+      if (!head.playing) return
+      head.advance(dt)
       // The belt only moves while an item rides it.
-      let k = segments.length - 1
-      while (k > 0 && starts[k]! > time) k--
-      if (segments[k]!.kind === "travel") {
-        clock += dt * speed
-        drawChevrons(clock / 16)
-      }
-      render()
-      drawControls()
+      if (segmentAt(timeline, head.time).segment.kind === "travel") drawChevrons((clock += dt * head.speed) / 16)
+      refresh()
     },
     destroy: () => v.destroy({ children: true })
   }

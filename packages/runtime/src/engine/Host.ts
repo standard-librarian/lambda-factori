@@ -3,9 +3,11 @@ import type { GameEvent } from "../game/Events.ts"
 import type { Scene } from "../render/Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../render/theme.ts"
 import { Tweens } from "../render/tween.ts"
-import { Toasts } from "../render/ui.ts"
+import { Toasts } from "../render/Toasts.ts"
 import { HomeScene } from "./HomeScene.ts"
 import { OpenScene } from "./OpenScene.ts"
+import { countDevFrame } from "./devHooks.ts"
+import { perfProbe } from "./perfProbe.ts"
 import type { HostApi, Plugin, Services } from "./Plugin.ts"
 import { builtins } from "./registry.ts"
 
@@ -57,6 +59,7 @@ export class Host implements HostApi {
     window.addEventListener("keydown", wake)
     app.renderer.on("resize", wake)
     let idle = 0
+    const probe = perfProbe()
     app.ticker.add((t) => {
       const dt = Math.min(t.deltaMS, 100)
       const moving = this.tweens.active
@@ -64,11 +67,13 @@ export class Host implements HostApi {
       this.scene?.tick?.(dt)
       idle += t.deltaMS
       const animating = this.scene?.animating ? this.scene.animating() : this.scene?.tick !== undefined
-      if (moving || animating || this.dirty || this.tweens.active || idle >= IDLE_FRAME_MS) {
+      const render = moving || animating || this.dirty || this.tweens.active || idle >= IDLE_FRAME_MS
+      probe?.frame(render)
+      if (render) {
         this.dirty = false
         idle = 0
         app.render()
-        if (import.meta.env.DEV) (globalThis as { lfFrames?: number }).lfFrames = ((globalThis as { lfFrames?: number }).lfFrames ?? 0) + 1
+        countDevFrame()
       }
     })
     window.addEventListener("keydown", (e) => {

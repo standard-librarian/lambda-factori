@@ -2,16 +2,7 @@ import { Exit, Schema } from "effect"
 import type { HostApi } from "../../engine/Plugin.ts"
 import { Deck, Slide } from "@lambda-factori/contracts/Deck.ts"
 import { ensureOverlayStyles } from "../../render/overlay.ts"
-
-const TEMPLATES: Record<string, unknown> = {
-  bullets: { kind: "bullets", title: "New slide", items: ["First point", "Second point"] },
-  quote: { kind: "quote", quote: "Say something memorable.", by: "Someone" },
-  dialogue: { kind: "dialogue", title: "A conversation", lines: [{ who: "john", text: "…" }, { who: "bob", text: "…" }] },
-  code: { kind: "code", title: "Some code", panes: [{ label: "Example.java", code: ["class Example {", "}"], analyze: true, metrics: true }] },
-  modules: { kind: "modules", title: "Deep vs shallow", modules: [{ name: "deep", interface: 2, functionality: 10 }, { name: "shallow", interface: 8, functionality: 3 }] },
-  measure: { kind: "measure", title: "Before / after", before: "before", after: "after", rows: [{ metric: "methods", before: 10, after: 2 }] },
-  section: { kind: "section", title: "A new part", number: "0" }
-}
+import { templates } from "./templates.ts"
 
 const decodeSlide = Schema.decodeUnknownExit(Slide)
 const decodeDeck = Schema.decodeUnknownExit(Deck)
@@ -37,7 +28,7 @@ export const openSlideEditor = (o: {
     <div class="lf-error" data-error></div>
     <div class="lf-row">
       <button class="lf-primary" data-apply>apply (⌘↵)</button>
-      <select data-template>${Object.keys(TEMPLATES).map((k) => `<option value="${k}">+ ${k}</option>`).join("")}</select>
+      <select data-template>${Object.keys(templates).map((k) => `<option value="${k}">+ ${k}</option>`).join("")}</select>
       <button data-add>insert after</button>
       <button data-delete>delete slide</button>
     </div>
@@ -47,7 +38,7 @@ export const openSlideEditor = (o: {
       <label class="lf-file">import .json<input type="file" accept="application/json" data-import></label>
       <button data-reset>discard local edits</button>
     </div>
-    <p class="lf-muted">Every slide is JSON checked against the deck schema. Kinds: title, section, bullets, quote, dialogue, code, modules, factory, decisions, curve, poll, theater, measure, versus. Any slide can have "notes" and a "sticky".</p>`
+    <p class="lf-muted">Every slide is JSON checked against the deck schema. Kinds: ${Object.keys(templates).join(", ")}, plus plugin kinds such as office/scene. Any slide can have "notes" and a "sticky".</p>`
   document.body.appendChild(root)
   const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(`[${sel}]`)!
   const json = $<HTMLTextAreaElement>("data-json")
@@ -93,9 +84,9 @@ export const openSlideEditor = (o: {
     e.stopPropagation()
   }
   $("data-add").onclick = () => {
-    const kind = $<HTMLSelectElement>("data-template").value
+    const kind = $<HTMLSelectElement>("data-template").value as keyof typeof templates
     const slides = [...encodeDeck(o.deck()).slides]
-    slides.splice(o.index() + 1, 0, TEMPLATES[kind] as (typeof slides)[number])
+    slides.splice(o.index() + 1, 0, templates[kind] as (typeof slides)[number])
     withSlides(slides, o.index() + 1)
   }
   $("data-delete").onclick = () => {

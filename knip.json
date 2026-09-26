@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": ["apps/mobile-capacitor/ios/**"],
+  "workspaces": {
+    ".": { "entry": ["scripts/*.ts"] },
+    "apps/web": {},
+    "apps/mobile-capacitor": { "entry": ["capacitor.config.ts", "scripts/*.ts"] },
+    "packages/*": {}
+  }
+}

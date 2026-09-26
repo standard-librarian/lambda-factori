@@ -1,5 +1,5 @@
 import { Container } from "pixi.js"
-import { stickerArt } from "./art.ts"
+import { stickerArt } from "./factoryArt.ts"
 
 interface Body {
   readonly view: Container
@@ -20,12 +20,10 @@ export class StickerPile extends Container {
   private readonly bodies: Array<Body> = []
   private readonly heights: Array<number>
   private readonly w: number
-  private readonly floor: number
 
   constructor(width: number, floor: number) {
     super()
     this.w = width
-    this.floor = floor
     this.heights = Array.from({ length: Math.floor(width / (SIZE * 0.9)) }, () => floor)
   }
 

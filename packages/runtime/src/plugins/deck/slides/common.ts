@@ -1,6 +1,6 @@
 import { Container, Graphics, Text, type Ticker } from "pixi.js"
 import type { HostApi } from "../../../engine/Plugin.ts"
-import { fontFor, label } from "../../../render/art.ts"
+import { fontFor, label } from "../../../render/label.ts"
 import { palette } from "../../../render/theme.ts"
 import { ease, lerp, type Tweens } from "../../../render/tween.ts"
 
@@ -159,3 +159,12 @@ export const avatar = (initials: string, fill: number, r = 34) => {
   c.addChild(label(initials, r * 0.8, palette.white, "700"))
   return c
 }
+
+/** A slide with no build steps (or with only a `tick`, via `extra`). */
+export const staticSlide = (view: Container, extra: Partial<SlideView> = {}): SlideView => ({
+  view,
+  steps: 0,
+  setStep: () => {},
+  destroy: () => view.destroy({ children: true }),
+  ...extra
+})

@@ -35,7 +35,6 @@ export const DESIGN_W = 1920
 export const DESIGN_H = 1080
 export const CELL = 40
 export const BOARD_W = 1600
-export const TRAY_X = BOARD_W
 
 export const TICK_MS = 240
 export const FAST_FACTOR = 4

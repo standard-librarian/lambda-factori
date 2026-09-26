@@ -1,77 +1,81 @@
-import { mechanic } from "../../engine/mechanics.ts"
-import { para } from "./slides/common.ts"
+/**
+ * The registry of slide kinds. Every core kind has exactly one entry here: how
+ * to render it and whether it paints its own chrome (its editor template lives
+ * in `templates.ts`, which is pure data so tests can check it). The table's type is mapped over the schema's kinds
+ * (`@lambda-factori/contracts/Deck.ts`), so adding a kind there fails to
+ * compile until it is registered here. Plugin kinds (`<plugin>/<mechanic>`)
+ * are looked up in the mechanics registry instead.
+ */
 import { Container } from "pixi.js"
+import type { CoreKind, Slide, SlideOf } from "@lambda-factori/contracts/Deck.ts"
+import { mechanic } from "../../engine/mechanics.ts"
 import { palette } from "../../render/theme.ts"
-import type { Slide } from "@lambda-factori/contracts/Deck.ts"
 import { codeSlide } from "./slides/code.ts"
-import type { SlideContext, SlideView } from "./slides/common.ts"
-import { curveSlide, theaterSlide } from "./slides/curve.ts"
+import { para, type SlideContext, type SlideView } from "./slides/common.ts"
+import { curveSlide } from "./slides/curve.ts"
+import { theaterSlide } from "./slides/theater.ts"
 import { decisionsSlide } from "./slides/decisions.ts"
 import { lineSlide } from "./slides/line.ts"
-import { factorySlide, modulesSlide } from "./slides/modules.ts"
-import {
-  bulletsSlide,
-  dialogueSlide,
-  measureSlide,
-  pollSlide,
-  quoteSlide,
-  sectionSlide,
-  titleSlide,
-  versusSlide
-} from "./slides/text.ts"
+import { factorySlide } from "./slides/factory.ts"
+import { modulesSlide } from "./slides/modules.ts"
+import { bulletsSlide } from "./slides/bullets.ts"
+import { dialogueSlide } from "./slides/dialogue.ts"
+import { measureSlide } from "./slides/measure.ts"
+import { pollSlide } from "./slides/poll.ts"
+import { quoteSlide } from "./slides/quote.ts"
+import { sectionSlide } from "./slides/section.ts"
+import { titleSlide } from "./slides/title.ts"
+import { versusSlide } from "./slides/versus.ts"
 
-/** The registry of slide mechanics: one renderer per slide kind. */
+interface SlideKind<K extends CoreKind> {
+  readonly render: (s: SlideOf<K>, ctx: SlideContext) => SlideView
+  /** Paints its own full-bleed background and title (no paper, no deck title). */
+  readonly ownsChrome?: true
+}
+
+export const slideKinds: { readonly [K in CoreKind]: SlideKind<K> } = {
+  title: { render: titleSlide, ownsChrome: true },
+  section: { render: sectionSlide, ownsChrome: true },
+  bullets: { render: bulletsSlide },
+  quote: { render: quoteSlide },
+  dialogue: { render: dialogueSlide },
+  code: { render: codeSlide },
+  modules: { render: modulesSlide },
+  factory: { render: factorySlide },
+  decisions: { render: decisionsSlide },
+  line: { render: lineSlide },
+  curve: { render: curveSlide },
+  poll: { render: pollSlide },
+  theater: { render: theaterSlide },
+  measure: { render: measureSlide },
+  versus: { render: versusSlide }
+}
+
+const isCore = (kind: string): kind is CoreKind => kind in slideKinds
+
 export const renderSlide = (s: Slide, ctx: SlideContext): SlideView => {
-  switch (s.kind) {
-    case "title":
-      return titleSlide(s, ctx)
-    case "section":
-      return sectionSlide(s)
-    case "bullets":
-      return bulletsSlide(s, ctx)
-    case "quote":
-      return quoteSlide(s)
-    case "dialogue":
-      return dialogueSlide(s, ctx)
-    case "code":
-      return codeSlide(s, ctx)
-    case "modules":
-      return modulesSlide(s, ctx)
-    case "factory":
-      return factorySlide(s, ctx)
-    case "decisions":
-      return decisionsSlide(s, ctx)
-    case "line":
-      return lineSlide(s, ctx)
-    case "curve":
-      return curveSlide(s, ctx)
-    case "poll":
-      return pollSlide(s, ctx)
-    case "theater":
-      return theaterSlide(s, ctx)
-    case "measure":
-      return measureSlide(s, ctx)
-    case "versus":
-      return versusSlide(s, ctx)
-    default: {
-      const m = mechanic(s.kind)
-      try {
-        if (!m) throw new Error(`no mechanic loaded for “${s.kind}”`)
-        return m.render(s, ctx)
-      } catch (e) {
-        // A broken plugin slide must never take the whole deck down.
-        const v = new Container()
-        const t = para(`this slide couldn't render (${s.kind}):\n${e instanceof Error ? e.message : String(e)}`, 30, palette.bad, 1500, "600", "center")
-        t.position.set(960, 420)
-        v.addChild(t)
-        return { view: v, steps: 0, setStep: () => {}, destroy: () => v.destroy({ children: true }) }
-      }
-    }
+  if (isCore(s.kind)) {
+    // The table pairs each kind with its own renderer; TypeScript can't correlate the two here.
+    const render = slideKinds[s.kind].render as (s: Slide, ctx: SlideContext) => SlideView
+    return render(s, ctx)
+  }
+  const m = mechanic(s.kind)
+  try {
+    if (!m) throw new Error(`no mechanic loaded for “${s.kind}”`)
+    return m.render(s, ctx)
+  } catch (e) {
+    // A broken plugin slide must never take the whole deck down.
+    const v = new Container()
+    const t = para(`this slide couldn't render (${s.kind}):\n${e instanceof Error ? e.message : String(e)}`, 30, palette.bad, 1500, "600", "center")
+    t.position.set(960, 420)
+    v.addChild(t)
+    return { view: v, steps: 0, setStep: () => {}, destroy: () => v.destroy({ children: true }) }
   }
 }
 
-/** Slide kinds that paint their own full-bleed background and title. */
-export const ownsChrome = (s: Slide) => s.kind === "title" || s.kind === "section" || mechanic(s.kind)?.fullBleed === true
+/** Whether a slide paints its own full-bleed background and title. */
+export const ownsChrome = (s: Slide) =>
+  isCore(s.kind) ? slideKinds[s.kind].ownsChrome === true : mechanic(s.kind)?.fullBleed === true
 
 export const slideTitle = (s: Slide, i: number): string =>
   s.title ?? (s.kind === "quote" ? `“${s.quote.slice(0, 40)}…”` : s.kind === "poll" ? s.question : `slide ${i + 1}`)
