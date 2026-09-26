@@ -24,7 +24,10 @@ type Layer = "kernel" | "platform" | "ui" | "host" | "game" | `pure:${string}` |
 
 /** Every package under `packages/` except `runtime` is pure domain logic (rule 9): `core`, `contracts`,
  *  `office`, and any future one, without editing this file to name it. */
-const PURE_PACKAGES = fs.readdirSync(path.join(REPO_ROOT, "packages")).filter((p) => p !== "runtime")
+const PURE_PACKAGES = fs
+  .readdirSync(path.join(REPO_ROOT, "packages"), { withFileTypes: true })
+  .filter((entry) => entry.isDirectory() && entry.name !== "runtime")
+  .map((entry) => entry.name)
 
 const walk = (dir: string, out: Array<string> = []): Array<string> => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -122,7 +125,7 @@ describe("the dependency rule (docs/plans/dependency-rule.md)", () => {
       const resolved = resolveSpecifier(file, spec)
       if (!resolved) {
         // rule 9: a pure package may depend on nothing outside itself but `effect` (plus `vitest`/node builtins in tests).
-        if (source.startsWith("pure:") && spec !== "effect" && spec !== "vitest" && !spec.startsWith("node:")) {
+        if (source.startsWith("pure:") && spec !== "effect" && !spec.startsWith("effect/") && spec !== "vitest" && !spec.startsWith("node:")) {
           found.push({ file, import: spec })
         }
         continue
