@@ -1,0 +1,33 @@
+name: CI
+
+# The gate for main: the branch ruleset requires the `check` job to pass before a pull request
+# can merge. It runs everything `pnpm check` runs (typecheck, tests, knip), then builds the app
+# and the SDK example, so a PR can't merge something that deploys broken.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm build
+      - run: pnpm --filter @lambda-factori/hello-plugin-example build

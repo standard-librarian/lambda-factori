@@ -1,5 +1,8 @@
 name: Deploy to GitHub Pages
 
+# Every push to main is live at https://mdht.me/lambda-factori/. main only changes through a
+# pull request that passed CI (see ci.yml), and this job re-runs the full check before it deploys.
+
 on:
   push:
     branches: [main]
@@ -12,20 +15,22 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # Never cancel a deploy halfway; queue the next one instead.
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+      - run: pnpm check
       - run: pnpm build
         env:
           BASE: /${{ github.event.repository.name }}/
@@ -36,6 +41,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
