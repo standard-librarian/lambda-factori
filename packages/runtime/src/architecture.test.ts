@@ -125,22 +125,29 @@ const allowed = (source: Layer, target: Layer, sourceFile: string): boolean => {
   }
 }
 
-/** Whether every import of "pixi.js" in `text` is type-only (`import type ...from "pixi.js"`, or
- * a named import where every specifier is written `type X`). Kernel may reach pixi.js only for
- * types — a value import would pull in a real Pixi renderer, which a third-party plugin loaded
- * from a URL can't share with the host's copy. */
+/** Whether every mention of "pixi.js" in `text` is type-only: `import type`/`export type … from`,
+ * or a named import whose every specifier is written `type X`. Anything else — a default or
+ * namespace import, a side-effect `import "pixi.js"`, a value re-export, a dynamic `import()` —
+ * would load a real Pixi, which a plugin loaded from a URL can't share with the host's copy. */
 const pixiImportIsTypeOnly = (text: string): boolean => {
-  const re = /\bimport\s+(type\s+)?(\*\s+as\s+[\w$]+|[\w$]+|\{[^}]*\})\s+from\s+["']pixi\.js["']/g
-  for (const m of text.matchAll(re)) {
-    const [, typeKeyword, clause] = m
-    if (typeKeyword) continue
-    if (clause!.startsWith("{")) {
-      const names = clause!.slice(1, -1).split(",").map((s) => s.trim()).filter(Boolean)
-      if (names.every((n) => n.startsWith("type "))) continue
-    }
+  const statements = /\b(?:import|export)\b[^;"'`]*?["']pixi\.js["']|\bimport\s*\(\s*["']pixi\.js["']/g
+  for (const [statement] of text.matchAll(statements)) {
+    if (/^(?:import|export)\s+type\b/.test(statement)) continue
+    const named = /^import\s*\{([^}]*)\}\s*from/.exec(statement)
+    if (named && named[1]!.split(",").map((n) => n.trim()).filter(Boolean).every((n) => n.startsWith("type "))) continue
     return false
   }
   return true
+}
+
+/** Which npm packages a layer may import, or `undefined` if it's unrestricted. `vitest` and `node:`
+ * builtins are always allowed (tests). Pure packages (rule 9) get only `effect`; the SDK and its
+ * worked examples also get `pixi.js`, for types only (`pixiImportIsTypeOnly`). */
+const externalAllowed = (source: Layer): ((spec: string) => boolean) | undefined => {
+  const effect = (spec: string) => spec === "effect" || spec.startsWith("effect/")
+  if (source.startsWith("pure:")) return effect
+  if (source === "kernel" || source.startsWith("example:")) return (spec) => effect(spec) || spec === "pixi.js"
+  return undefined
 }
 
 interface Violation {
@@ -158,15 +165,10 @@ describe("the dependency rule (docs/plans/dependency-rule.md)", () => {
     for (const spec of importsOf(path.join(REPO_ROOT, file))) {
       const resolved = resolveSpecifier(file, spec)
       if (!resolved) {
-        // rule 9: a pure package may depend on nothing outside itself but `effect` (plus `vitest`/node builtins in tests).
-        if (source.startsWith("pure:") && spec !== "effect" && !spec.startsWith("effect/") && spec !== "vitest" && !spec.startsWith("node:")) {
-          found.push({ file, import: spec })
-        }
-        // kernel: nothing of ours, and externally only `effect`/`effect/*` and pixi.js's types.
-        if (source === "kernel" && spec !== "effect" && !spec.startsWith("effect/") && spec !== "pixi.js" && spec !== "vitest" && !spec.startsWith("node:")) {
-          found.push({ file, import: spec })
-        }
-        if (source === "kernel" && spec === "pixi.js" && !pixiImportIsTypeOnly(fs.readFileSync(path.join(REPO_ROOT, file), "utf8"))) {
+        const allowedExternal = externalAllowed(source)
+        if (!allowedExternal || spec === "vitest" || spec.startsWith("node:")) continue
+        if (!allowedExternal(spec)) found.push({ file, import: spec })
+        else if (spec === "pixi.js" && !found.some((v) => v.file === file) && !pixiImportIsTypeOnly(fs.readFileSync(path.join(REPO_ROOT, file), "utf8"))) {
           found.push({ file, import: `${spec} (value import)` })
         }
         continue

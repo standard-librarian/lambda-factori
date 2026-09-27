@@ -1,3 +1,5 @@
+/** The spec for `keyAction.ts`: which key means which deck action, including Escape closing the
+ * topmost overlay before it leaves the deck. */
 import { describe, expect, it } from "vitest"
 import { deckKeyAction } from "./keyAction.ts"
 

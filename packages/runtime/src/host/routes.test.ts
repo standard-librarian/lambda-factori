@@ -1,3 +1,6 @@
+/** The spec for `routes.ts`: every hash shape (empty, share link, hosted pack, third-party URL,
+ * plugin path, URL-encoded and empty segments) parses to the right `Route`, and slide kinds and
+ * pack owners resolve with the same readable errors the host shows. */
 import { describe, expect, it } from "vitest"
 import type { PluginEntry } from "@lambda-factori/kernel/Plugin.ts"
 import { parseMechanicKind, parseRoute, resolveOwner, segments, shadowsBuiltin } from "./routes.ts"

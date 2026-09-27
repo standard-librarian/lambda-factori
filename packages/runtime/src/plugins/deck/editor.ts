@@ -17,7 +17,7 @@ const encodeDeck = Schema.encodeSync(Deck)
 export const openSlideEditor = (o: {
   host: HostApi
   library: DeckLibrary
-  /** The mechanics this deck has resolved, so the insert menu can offer their templates too. */
+  /** Every plugin mechanic the host knows, so the insert menu offers their templates too. */
   mechanics: ReadonlyMap<string, Mechanic>
   deck: () => Deck
   index: () => number
@@ -45,7 +45,7 @@ export const openSlideEditor = (o: {
       <label class="lf-file">import .json<input type="file" accept="application/json" data-import></label>
       <button data-reset>discard local edits</button>
     </div>
-    <p class="lf-muted">Every slide is JSON checked against the deck schema. Kinds: ${Object.keys(templates).join(", ")}${mechanicTemplates.length > 0 ? `, plus this deck's plugin kinds: ${mechanicTemplates.map(([k]) => k).join(", ")}` : ""}. Any slide can have "notes" and a "sticky".</p>`
+    <p class="lf-muted">Every slide is JSON checked against the deck schema. Kinds: ${Object.keys(templates).join(", ")}${mechanicTemplates.length > 0 ? `, plus plugin kinds: ${mechanicTemplates.map(([k]) => k).join(", ")}` : ""}. Any slide can have "notes" and a "sticky".</p>`
   document.body.appendChild(root)
   const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(`[${sel}]`)!
   const json = $<HTMLTextAreaElement>("data-json")

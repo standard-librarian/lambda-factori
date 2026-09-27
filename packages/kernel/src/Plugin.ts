@@ -45,6 +45,10 @@ export interface HostApi {
   share(pack: SharedPack): Promise<string>
   /** Resolve plugin slide kinds ("<plugin>/<mechanic>"), loading their plugins first. Throws a readable error for an unknown kind. */
   mechanics(kinds: ReadonlyArray<string>): Promise<ReadonlyMap<string, Mechanic>>
+  /** Every mechanic of every plugin the host knows (built-in and loaded third-party), keyed
+   * "<plugin>/<mechanic>". Loads every plugin, so call it for authoring (the slide editor's insert
+   * menu), not on a deck's first paint. */
+  allMechanics(): Promise<ReadonlyMap<string, Mechanic>>
 }
 
 export interface PluginManifest {

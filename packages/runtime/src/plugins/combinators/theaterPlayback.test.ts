@@ -1,3 +1,5 @@
+/** The spec for `theaterPlayback.ts`, the theater's play/step state machine with no drawing:
+ * autoplay arming, the busy guard while an animation runs, and when the clock advances or stops. */
 import { describe, expect, it } from "vitest"
 import { TheaterPlayback } from "./theaterPlayback.ts"
 

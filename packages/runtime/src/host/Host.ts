@@ -162,6 +162,14 @@ export class Host implements HostApi {
     return map
   }
 
+  async allMechanics(): Promise<ReadonlyMap<string, Mechanic>> {
+    const ids = new Set([...this.entries.map((e) => e.id), ...this.plugins.keys()])
+    const loaded = await Promise.all([...ids].map(async (id) => [id, await this.plugin(id)] as const))
+    return new Map(loaded.flatMap(([id, plugin]) =>
+      Object.entries(plugin?.mechanics ?? {}).map(([name, m]) => [`${id}/${name}`, m] as const)
+    ))
+  }
+
   private plugin(id: string): Promise<Plugin> | undefined {
     const cached = this.plugins.get(id)
     if (cached) return cached

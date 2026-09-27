@@ -93,7 +93,7 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
             │ runtime/game/     the combinator game's Effect services    │  → platform, core, contracts
             │ runtime/plugins/<id>/  one plugin each                     │  → kernel, ui, platform, game,
             │                                                            │    core, contracts, itself
-            │ examples/<name>/src  a worked third-party plugin           │  → kernel only
+            │ examples/<name>/src  a worked third-party plugin           │  → kernel (+ effect, pixi.js types)
             │ apps/*/src        composition root                        │  → anything
             └───────────────────────────────────────────────────────────┘
 ```
@@ -113,8 +113,10 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
    `effect`, itself and `contracts` — never Pixi or another package. Derived from
    `readdirSync(packages/)`, so a new pure package is covered without editing the rule table.
 10. `examples/<name>/src` (a third-party plugin built as a worked example, e.g.
-    `examples/hello-plugin`) imports only `@lambda-factori/kernel` — proof that the SDK is
-    enough on its own, never the runtime or another package.
+    `examples/hello-plugin`) imports only `@lambda-factori/kernel` of ours — proof that the SDK
+    is enough on its own, never the runtime or another package. Externally it may use only the
+    kernel's own dependencies: `effect` (a mechanic's schema) and `pixi.js` for types only (it
+    builds Pixi objects through `host.pixi`).
 
 ## Recipes
 
