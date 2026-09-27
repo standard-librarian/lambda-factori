@@ -19,8 +19,19 @@ export interface SharedPack {
   readonly data: unknown
 }
 
+/** The pixi.js constructors lent to plugins: a curated subset, not the whole namespace, so the
+ * host's bundle keeps tree-shaking pixi.js (handing out `import * as PIXI` cost ~360KB). Add a
+ * constructor here only when a plugin needs it; the host must already bundle it. */
+export type PixiKit = Pick<typeof import("pixi.js"), "Container" | "Graphics" | "Text" | "Rectangle">
+
 export interface HostApi {
   readonly app: Application
+  /** The host's own Pixi constructors, for a plugin to build scenes and slide views with. A
+   * plugin loaded from a URL (`#/plugin/<url>`) can't `import` pixi.js as a value itself — a
+   * second bundled copy is fragile and ~500KB — so it imports only pixi.js's types and builds
+   * everything through this instead (e.g. `new host.pixi.Graphics()`, or `ctx.host.pixi` inside
+   * a mechanic's `render`, since `SlideContext.host` is this same `HostApi`). */
+  readonly pixi: PixiKit
   readonly tweens: Tweens
   /** Replace the current scene (cross-fades). */
   show(make: () => Scene): void
@@ -34,6 +45,10 @@ export interface HostApi {
   share(pack: SharedPack): Promise<string>
   /** Resolve plugin slide kinds ("<plugin>/<mechanic>"), loading their plugins first. Throws a readable error for an unknown kind. */
   mechanics(kinds: ReadonlyArray<string>): Promise<ReadonlyMap<string, Mechanic>>
+  /** Every mechanic of every plugin the host knows (built-in and loaded third-party), keyed
+   * "<plugin>/<mechanic>". Loads every plugin, so call it for authoring (the slide editor's insert
+   * menu), not on a deck's first paint. */
+  allMechanics(): Promise<ReadonlyMap<string, Mechanic>>
 }
 
 export interface PluginManifest {

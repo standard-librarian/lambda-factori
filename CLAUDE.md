@@ -38,8 +38,9 @@ chosen for what makes that cheap. When they conflict, prefer APOSD's depth over 
    from `(run, time)`, so pause, seek and replay can't drift. Avoid hidden mutable state. When
    state is needed, keep it in one place and name it (*Out of the Tar Pit*: avoid, then
    separate).
-5. **Packages are the information-hiding boundary.** `core` and `contracts` depend only on
-   `effect` (no Pixi, no DOM). Anything that renders lives in `runtime`. Apps are thin shells.
+5. **Packages are the information-hiding boundary.** Every package except `runtime` (`core`,
+   `contracts`, `office`, …) is pure: it depends only on `effect`, itself and `contracts` (no
+   Pixi, no DOM). Anything that renders lives in `runtime`. Apps are thin shells.
    Import across packages by name (`@lambda-factori/core/Term.ts`) and relatively within one.
    Don't re-export another module's names; import them from where they live. Within `runtime`,
    the same boundary applies one level down between its folders — see "Dependency rule".
@@ -79,10 +80,11 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
 
 ```
             ┌───────────────────────────────────────────────────────────┐
-  POLICY    │ packages/core, packages/contracts   pure domain + schemas  │  → effect
-  (stable)  │ runtime/kernel/   the ports: Plugin, HostApi, Scene,       │  → nothing in runtime
+  POLICY    │ every packages/* except runtime and kernel: pure domain   │  → effect, itself,
+  (stable)  │ + schemas (core, contracts, office, …), `pure:<name>` each│    contracts
+            │ packages/kernel   the SDK: Plugin, HostApi, Scene,         │  → nothing of ours
             │                   Slide (SlideView, SlideContext, Mechanic),│  (pixi *types* ok)
-            │                   tween                                     │
+            │                   defineMechanic, tween                    │
  ═══════════╪════════════════════ red line ═════════════════════════════╪══════════
   DETAILS   │ runtime/platform/ Storage, Preload, devHooks (browser)     │  → nothing in runtime
  (volatile) │ runtime/ui/       domain-free Pixi kit                     │  → kernel
@@ -91,20 +93,30 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
             │ runtime/game/     the combinator game's Effect services    │  → platform, core, contracts
             │ runtime/plugins/<id>/  one plugin each                     │  → kernel, ui, platform, game,
             │                                                            │    core, contracts, itself
+            │ examples/<name>/src  a worked third-party plugin           │  → kernel (+ effect, pixi.js types)
             │ apps/*/src        composition root                        │  → anything
             └───────────────────────────────────────────────────────────┘
 ```
 
-1. `kernel/` imports nothing else in `runtime`, and nothing from `core`/`contracts`.
+1. `packages/kernel` imports nothing of ours, and externally only `effect`/`effect/*` and
+   `pixi.js`'s types (`import type`, never a value import — a third-party plugin can't share
+   the host's copy of pixi.js, so the kernel must never force one in).
 2. `platform/` imports nothing else in `runtime`.
 3. `ui/` imports only `kernel/` — the kit is domain-free (no `core`, no `contracts`).
 4. `host/` imports only `kernel/`, `ui/`, `platform/`. **The host never names a plugin.**
-5. `game/` imports only `platform/`, `core`, `contracts` — no Pixi.
+5. `game/` imports only `platform/`, `core`, `contracts` (the pure packages) — no Pixi.
 6. `plugins/<a>/` never imports `plugins/<b>/` or `host/`. Plugins talk to each other only
    through routes (strings) and kernel ports.
 7. `plugins/<a>/manifest.ts` imports only `kernel/` — it is loaded eagerly, before the chunk.
 8. Only `apps/*/src` names concrete plugins and wires services (the composition root).
-9. `packages/core` and `packages/contracts` import only `effect` and themselves.
+9. Every package under `packages/` except `runtime` and `kernel` is pure: it imports only
+   `effect`, itself and `contracts` — never Pixi or another package. Derived from
+   `readdirSync(packages/)`, so a new pure package is covered without editing the rule table.
+10. `examples/<name>/src` (a third-party plugin built as a worked example, e.g.
+    `examples/hello-plugin`) imports only `@lambda-factori/kernel` of ours — proof that the SDK
+    is enough on its own, never the runtime or another package. Externally it may use only the
+    kernel's own dependencies: `effect` (a mechanic's schema) and `pixi.js` for types only (it
+    builds Pixi objects through `host.pixi`).
 
 ## Recipes
 
@@ -126,7 +138,7 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
 - **Add a plugin:**
   1. Give it a folder under `plugins/<id>/` with a `manifest.ts` (`id`, `title`, `subtitle`,
      `kind`, `color`, `shade`, and `packTypes` if it shares anything) and a `plugin.ts` that
-     spreads the manifest onto a `Plugin` (`kernel/Plugin.ts`).
+     spreads the manifest onto a `Plugin` (`@lambda-factori/kernel/Plugin.ts`).
   2. List one entry in `apps/web/src/plugins.ts` — the only file that names concrete plugins —
      with a lazy `load` that imports `plugin.ts` and constructs it with its own port.
   3. Its routes are `#/<id>/…`. A `library` plugin (like `office`) has no route, only
@@ -137,7 +149,7 @@ table lives, with no allowlist: a new violation, of any size, fails the build.
   the format"). `OpenScene` finds the owning entry by matching `packTypes` alone; the host
   never decodes the pack itself.
 - **Add a home-screen shelf:** give the plugin's entry, in `apps/web/src/plugins.ts`, a
-  `shelf: { title, cards() }` (`kernel/Plugin.ts`'s `HomeShelf`; see `plugins/deck/shelf.ts`).
+  `shelf: { title, cards() }` (`@lambda-factori/kernel/Plugin.ts`'s `HomeShelf`; see `plugins/deck/shelf.ts`).
   `HomeScene` renders one row per entry that has a shelf, titled by the shelf itself — never a
   title it guesses from `kind`.
 - **Add a level:** add it to `packages/core/src/data/levels.json`. Find the smallest recipe with
@@ -171,10 +183,12 @@ Plugins (`apps/web/src/plugins.ts`, the composition root — see "Dependency rul
     with labels `a:`).
   - It also has presentation verbs: VISIT/PASS/WORK desks, SAY/THINK, BOSS, CLERK
     <desk> "…", HOLD/DROP, NOTE, and PAUSE as a build beat.
-  - The VM is pure: `plugins/office/vm.ts`.
+  - The VM is a pure package: `packages/office/src/vm.ts` (`@lambda-factori/office/vm.ts`).
 - **Third-party plugins:** `#/plugin/<url>` loads an ES module whose default export is a
   `Plugin`. Plugin slide kinds are namespaced (`<plugin>/<mechanic>`) and preloaded before a
-  deck opens.
+  deck opens. Built only against `@lambda-factori/kernel` (see `examples/hello-plugin` and the
+  README's "Write a plugin"); a deck can resolve a URL plugin's mechanics only after that
+  plugin has already been opened once by route in the same session.
 
 Sharing (no backend): a pack is `{ type, data }`; the host matches `type` against a plugin's
 `packTypes` and asks that plugin's `previewPack` what to show — it never decodes a deck or a
@@ -197,10 +211,19 @@ Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a vers
 - **`packages/contracts`:** the shared schemas: `Deck.ts` (`Slide`, `SlideOf`, `CoreKind`, and
   the migration that still decodes a legacy `kind: "theater"` slide as `combinators/theater`),
   `OfficeSpec.ts`, `TheaterSlide.ts`.
+- **`packages/office`:** the office plugin's HRM interpreter, pure and Pixi-free: `vm.ts`
+  (`run`, `check`) and `program.ts` (the text format). `packages/runtime/src/plugins/office/`
+  holds everything that renders it.
+- **`packages/kernel`:** the plugin SDK — the only package a third-party plugin (or `runtime`)
+  depends on: `Plugin.ts` (`HostApi` including `pixi`, `PluginManifest`, `Plugin`, `PluginEntry`,
+  `HomeShelf`, `SharedPack`, `PackPreview`), `Scene.ts`, `Slide.ts` (`SlideContext`, `SlideView`,
+  `Mechanic`), `mechanic.ts` (`defineMechanic`), `tween.ts`. Depends only on `effect`, and on
+  `pixi.js` as a peerDependency for its types (never a value import — see the dependency rule).
+- **`examples/hello-plugin`:** the SDK's worked example — a third-party plugin built only
+  against `@lambda-factori/kernel`, with a route and the `hello/counter` slide mechanic, built to
+  a single ES module with Vite library mode. Not a dependency of any app; see the README's
+  "Write a plugin" section.
 - **`packages/runtime`:** what every shell loads, laid out by the dependency rule.
-  - `kernel/`: the ports every layer depends on and nothing depends on it back — `Plugin.ts`
-    (`HostApi`, `PluginManifest`, `Plugin`, `PluginEntry`, `HomeShelf`, `SharedPack`,
-    `PackPreview`), `Scene.ts`, `Slide.ts` (`SlideContext`, `SlideView`, `Mechanic`), `tween.ts`.
   - `platform/`: browser details shared by nothing else in `runtime`: `Storage`, `Preload`,
     `devHooks.ts`.
   - `ui/`: the domain-free Pixi kit — `label` (optically centred text), `factoryArt` (the
@@ -216,8 +239,10 @@ Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a vers
   - `plugins/`: combinators, editor, deck, office.
     - **combinators:** `manifest`, `plugin` (its port is `CombinatorsPort`), `GameContext` (the
       game's own window onto the host); `mechanics.ts` + `theaterSlide.ts` (the
-      `combinators/theater` mechanic) and `Theater`/`TheaterSpec`/`TermRow` (the reduction
-      theater modal, opened from a level or the book); `machineArt` (the one factory-art piece
+      `combinators/theater` mechanic) and `Theater`/`TheaterSpec`/`TermRow`/`theaterPlayback`
+      (the reduction theater modal, opened from a level or the book — `theaterPlayback` is its
+      play/step state machine, pure and tested apart from the animation it triggers);
+      `machineArt` (the one factory-art piece
       that needs the catalogue); and the game's scenes —
       `LevelScene`: state and mode;
       `BoardView`: the drawn floor;
@@ -227,7 +252,8 @@ Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a vers
       `archive`.
     - **editor:** `levelText` (the pure model, tested), `form` (the DOM), `plugin`.
     - **deck:** `Decks` (the `DeckLibrary` backend), `shelf` (the home screen's "your decks"
-      row), `DeckScene` (navigation and keys), `DeckChrome`, `slideFrame`, `overlays`,
+      row), `DeckScene` (navigation and keys) with `keyAction` (which key means which action, pure
+      and tested), `DeckChrome`, `slideFrame`, `overlays`,
       `messages` (the presenter protocol), `render.ts` (the kind registry) plus `templates.ts`,
       `slides/` (one kind per file, plus `lineTimeline` and `highlight`), the slide editor on E
       and the presenter window on P.

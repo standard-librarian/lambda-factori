@@ -1,0 +1,18 @@
+{
+  "name": "@lambda-factori/kernel",
+  "private": true,
+  "type": "module",
+  "description": "The plugin SDK: the contract every plugin, scene and slide mechanic is built against (Plugin, Scene, Slide, defineMechanic, tween). Types only against pixi.js, so a third-party plugin bundles no second copy of it.",
+  "exports": {
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "effect": "catalog:"
+  },
+  "peerDependencies": {
+    "pixi.js": "catalog:"
+  }
+}

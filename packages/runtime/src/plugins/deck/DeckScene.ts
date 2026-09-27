@@ -10,12 +10,13 @@ import { Schema } from "effect"
 import { Container } from "pixi.js"
 import { Deck, joinLines } from "@lambda-factori/contracts/Deck.ts"
 import { exposeDev } from "../../platform/devHooks.ts"
-import type { HostApi } from "../../kernel/Plugin.ts"
-import type { Scene } from "../../kernel/Scene.ts"
-import type { Mechanic, SlideView } from "../../kernel/Slide.ts"
-import { ease } from "../../kernel/tween.ts"
+import type { HostApi } from "@lambda-factori/kernel/Plugin.ts"
+import type { Scene } from "@lambda-factori/kernel/Scene.ts"
+import type { Mechanic, SlideView } from "@lambda-factori/kernel/Slide.ts"
+import { ease } from "@lambda-factori/kernel/tween.ts"
 import { DeckChrome } from "./DeckChrome.ts"
 import { openSlideEditor } from "./editor.ts"
+import { deckKeyAction } from "./keyAction.ts"
 import { channelName, type DeckMessage } from "./messages.ts"
 import { notesPanel, overviewGrid } from "./overlays.ts"
 import type { DeckLibrary } from "./plugin.ts"
@@ -37,8 +38,11 @@ export class DeckScene implements Scene {
   private readonly channel: BroadcastChannel | undefined
   private readonly host: HostApi
   private readonly library: DeckLibrary
-  private readonly mechanics: ReadonlyMap<string, Mechanic>
+  /** The deck's own kinds at first; widened to every plugin's mechanics once the slide editor
+   * opens, so a kind inserted from its menu renders. */
+  private mechanics: ReadonlyMap<string, Mechanic>
   private closeEditor: (() => void) | undefined
+  private editorOpening = false
 
   constructor(o: { host: HostApi; library: DeckLibrary; mechanics: ReadonlyMap<string, Mechanic>; deck: Deck; index: number }) {
     this.host = o.host
@@ -178,15 +182,26 @@ export class DeckScene implements Scene {
     this.host.toast("presenter view opened in a new window")
   }
 
-  private toggleEditor() {
+  private async toggleEditor() {
     if (this.closeEditor) {
       this.closeEditor()
       this.closeEditor = undefined
       return
     }
+    if (this.editorOpening) return
+    this.editorOpening = true
+    try {
+      this.mechanics = new Map([...(await this.host.allMechanics()), ...this.mechanics])
+    } catch (e) {
+      this.host.toast(`plugin kinds unavailable: ${e instanceof Error ? e.message : String(e)}`)
+    } finally {
+      this.editorOpening = false
+    }
+    if (this.view.destroyed) return // left the deck while plugins loaded
     this.closeEditor = openSlideEditor({
       host: this.host,
       library: this.library,
+      mechanics: this.mechanics,
       deck: () => this.deck,
       index: () => this.index,
       apply: (deck, index) => {
@@ -198,42 +213,36 @@ export class DeckScene implements Scene {
   }
 
   onKey(e: KeyboardEvent) {
-    switch (e.code) {
-      case "ArrowRight":
-      case "PageDown":
-      case "Space":
-      case "Enter":
+    const action = deckKeyAction(e.code, { overviewOpen: this.overview !== undefined, notesOpen: this.notes !== undefined, editorOpen: this.closeEditor !== undefined })
+    if (!action) return
+    switch (action.type) {
+      case "next":
         e.preventDefault()
         return this.next()
-      case "ArrowLeft":
-      case "PageUp":
-      case "Backspace":
+      case "prev":
         e.preventDefault()
         return this.prev()
-      case "Home":
+      case "first":
         return this.goto(0, 0, -1)
-      case "End":
+      case "last":
         return this.goto(this.deck.slides.length - 1, 0, 1)
-      case "KeyN":
+      case "toggleNotes":
         return this.toggleNotes()
-      case "KeyO":
-      case "KeyG":
+      case "toggleOverview":
         return this.toggleOverview()
-      case "KeyF":
+      case "toggleFullscreen":
         if (document.fullscreenElement) void document.exitFullscreen()
         else void document.documentElement.requestFullscreen()
         return
-      case "KeyP":
+      case "openPresenter":
         return this.openPresenter()
-      case "KeyE":
-        return this.toggleEditor()
-      case "KeyS":
+      case "toggleEditor":
+        void this.toggleEditor()
+        return
+      case "shareLink":
         void this.host.share({ type: "deck", data: encodeDeck(this.deck) }).then(() => this.host.toast("share link copied — anyone can play, keep or remix this deck"))
         return
-      case "Escape":
-        if (this.overview) return this.toggleOverview()
-        if (this.notes) return this.toggleNotes()
-        if (this.closeEditor) return this.toggleEditor()
+      case "home":
         return this.host.home()
     }
   }

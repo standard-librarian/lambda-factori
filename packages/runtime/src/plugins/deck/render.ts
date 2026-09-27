@@ -9,7 +9,7 @@
  */
 import { Container } from "pixi.js"
 import type { CoreKind, Slide, SlideOf } from "@lambda-factori/contracts/Deck.ts"
-import type { Mechanic, SlideContext, SlideView } from "../../kernel/Slide.ts"
+import type { Mechanic, SlideContext, SlideView } from "@lambda-factori/kernel/Slide.ts"
 import { palette } from "../../ui/theme.ts"
 import { codeSlide } from "./slides/code.ts"
 import { para } from "../../ui/text.ts"

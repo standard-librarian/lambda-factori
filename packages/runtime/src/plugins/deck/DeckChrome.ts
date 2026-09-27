@@ -9,7 +9,7 @@ import { Button } from "../../ui/Button.ts"
 import { icons } from "../../ui/icons.ts"
 import { label, relabel } from "../../ui/label.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"
-import type { Tweens } from "../../kernel/tween.ts"
+import type { Tweens } from "@lambda-factori/kernel/tween.ts"
 
 export class DeckChrome extends Container {
   private readonly progress = new Graphics()

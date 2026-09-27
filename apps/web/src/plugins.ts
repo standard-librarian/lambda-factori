@@ -8,7 +8,7 @@
  * `main.ts` and the `Host`'s own load share one in-flight import and one
  * plugin instance.
  */
-import type { PluginEntry } from "@lambda-factori/runtime/kernel/Plugin.ts"
+import type { PluginEntry } from "@lambda-factori/kernel/Plugin.ts"
 import { manifest as combinatorsManifest } from "@lambda-factori/runtime/plugins/combinators/manifest.ts"
 import type { CombinatorsPort } from "@lambda-factori/runtime/plugins/combinators/plugin.ts"
 import { manifest as deckManifest } from "@lambda-factori/runtime/plugins/deck/manifest.ts"

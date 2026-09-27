@@ -11,8 +11,8 @@ import { Schema } from "effect"
 import { describe, expect, it } from "vitest"
 import { Deck } from "@lambda-factori/contracts/Deck.ts"
 import { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
-import { parseProgram } from "./program.ts"
-import { run } from "./vm.ts"
+import { parseProgram } from "@lambda-factori/office/program.ts"
+import { run } from "@lambda-factori/office/vm.ts"
 
 const dir = new URL("../../../../../apps/web/public/decks/", import.meta.url)
 const files = readdirSync(dir).filter((f) => f.endsWith(".json") && f !== "index.json")

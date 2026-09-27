@@ -6,11 +6,11 @@ import { Container, Graphics } from "pixi.js"
 import { applyArt, sourceArt, tokenArt, W as MACHINE_W } from "../../../ui/factoryArt.ts"
 import { label } from "../../../ui/label.ts"
 import { DESIGN_W, palette } from "../../../ui/theme.ts"
-import { ease, lerp } from "../../../kernel/tween.ts"
+import { ease, lerp } from "@lambda-factori/kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
 import { color, Reveal, shade } from "./common.ts"
 import { para } from "../../../ui/text.ts"
-import { CONTENT_TOP, type SlideContext, type SlideView } from "../../../kernel/Slide.ts"
+import { CONTENT_TOP, type SlideContext, type SlideView } from "@lambda-factori/kernel/Slide.ts"
 
 export const factorySlide = (s: SlideOf<"factory">, ctx: SlideContext): SlideView => {
   const v = new Container()

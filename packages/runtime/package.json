@@ -2,7 +2,7 @@
   "name": "@lambda-factori/runtime",
   "private": true,
   "type": "module",
-  "description": "The Pixi runtime every shell loads: kernel, platform, ui, host, game services and plugins.",
+  "description": "The Pixi runtime every shell loads: platform, ui, host, game services and plugins, built on @lambda-factori/kernel.",
   "exports": {
     "./*": "./src/*"
   },
@@ -13,6 +13,8 @@
     "@fontsource/fredoka": "catalog:",
     "@lambda-factori/contracts": "workspace:*",
     "@lambda-factori/core": "workspace:*",
+    "@lambda-factori/kernel": "workspace:*",
+    "@lambda-factori/office": "workspace:*",
     "effect": "catalog:",
     "pixi.js": "catalog:"
   }

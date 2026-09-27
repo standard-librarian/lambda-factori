@@ -5,6 +5,7 @@
     ".": { "entry": ["scripts/*.ts"] },
     "apps/web": {},
     "apps/mobile-capacitor": { "entry": ["capacitor.config.ts", "scripts/*.ts"] },
-    "packages/*": {}
+    "packages/*": {},
+    "examples/*": { "entry": ["src/index.ts", "vite.config.ts"] }
   }
 }

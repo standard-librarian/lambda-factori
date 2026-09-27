@@ -6,8 +6,8 @@
  */
 import { Container } from "pixi.js"
 import type { Level, LevelPack } from "@lambda-factori/core/Level.ts"
-import type { HostApi, Plugin } from "../../kernel/Plugin.ts"
-import type { Scene } from "../../kernel/Scene.ts"
+import type { HostApi, Plugin } from "@lambda-factori/kernel/Plugin.ts"
+import type { Scene } from "@lambda-factori/kernel/Scene.ts"
 import { paperArt, skylineArt } from "../../ui/backdrop.ts"
 import { label } from "../../ui/label.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"

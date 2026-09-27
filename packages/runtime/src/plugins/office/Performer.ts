@@ -8,13 +8,13 @@
  * motion started under an older generation stops touching the stage.
  */
 import type { Container } from "pixi.js"
-import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
+import { ease, lerp, type Tweens } from "@lambda-factori/kernel/tween.ts"
 import { boxArt } from "./roomArt.ts"
 import { CARRY_Y } from "./peopleArt.ts"
 import { inSlot, outSlot, type Pt, SLOT, WORKER_SCALE } from "./layout.ts"
 import type { Belt, Room } from "./Room.ts"
-import type { State } from "./vm.ts"
-import type { Value } from "./program.ts"
+import type { State } from "@lambda-factori/office/vm.ts"
+import type { Value } from "@lambda-factori/office/program.ts"
 
 /** A promise-returning tween, so action scripts read top to bottom. */
 export const tweenP = (tweens: Tweens, target: Container, ms: number, update: (k: number) => void, e = ease.inOutSine) =>

@@ -9,11 +9,12 @@ import { apply, atom, equals, variable } from "@lambda-factori/core/Term.ts"
 import { describeStep, type Step, trace, type Trace } from "@lambda-factori/core/Trace.ts"
 import { label, relabel } from "../../ui/label.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../../ui/theme.ts"
-import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
+import { ease, lerp, type Tweens } from "@lambda-factori/kernel/tween.ts"
 import type { TheaterSpec } from "./TheaterSpec.ts"
 import { Button } from "../../ui/Button.ts"
 import { icons } from "../../ui/icons.ts"
 import { TermRow } from "./TermRow.ts"
+import { TheaterPlayback } from "./theaterPlayback.ts"
 
 const stepCaption = (s: Step) => `${s.redex}  ⟶  ${s.result}   ·   ${describeStep(s)}`
 
@@ -22,10 +23,7 @@ export class Theater extends Container {
   private tr: Trace
   private variant = 0
   private readonly variantButtons: Array<Button> = []
-  private index = 0
-  private playing = false
-  private busy = false
-  private wait = 0
+  private playback: TheaterPlayback
   private readonly caption: Text
   private readonly counter: Text
   private readonly verdict: Text
@@ -43,6 +41,7 @@ export class Theater extends Container {
     this.spec = spec
     this.onClose = onClose
     this.tr = trace(spec.variants?.[0]?.term ?? spec.term, spec.rules ?? defaultRules)
+    this.playback = new TheaterPlayback(this.tr.steps.length)
 
     const dim = new Graphics().rect(0, 0, DESIGN_W, DESIGN_H).fill({ color: palette.ink, alpha: 0.4 })
     dim.eventMode = "static"
@@ -157,13 +156,12 @@ export class Theater extends Container {
     this.row.show(this.tr.terms[0]!)
     this.refresh()
     ticker.add(this.onTick)
-    this.playing = this.tr.steps.length > 0
-    this.wait = 700
   }
 
   private refresh() {
     const n = this.tr.steps.length
-    const atEnd = this.index >= n
+    const index = this.playback.index
+    const atEnd = index >= n
     if (n === 0) {
       relabel(this.caption, this.spec.note ?? "nothing to reduce — no combinator at the head has enough arguments")
       relabel(this.counter, "")
@@ -171,9 +169,9 @@ export class Theater extends Container {
       relabel(this.caption, this.tr.normal ? "normal form — nothing left to reduce" : "still reducing… (stopped after 40 steps)")
       relabel(this.counter, `${n} step${n === 1 ? "" : "s"}`)
     } else {
-      const s = this.tr.steps[this.index]!
+      const s = this.tr.steps[index]!
       relabel(this.caption, stepCaption(s))
-      relabel(this.counter, `step ${this.index + 1} of ${n}`)
+      relabel(this.counter, `step ${index + 1} of ${n}`)
     }
     const goal = this.spec.goal
     const variant = this.spec.variants?.[this.variant]
@@ -187,67 +185,56 @@ export class Theater extends Container {
     } else {
       relabel(this.verdict, "")
     }
-    this.playBtn.setIcon(this.playing ? icons.pause : icons.play)
+    this.playBtn.setIcon(this.playback.playing ? icons.pause : icons.play)
   }
 
   private tick(dt: number) {
-    if (!this.playing || this.busy) return
-    this.wait -= dt
-    if (this.wait <= 0) {
-      if (this.index >= this.tr.steps.length) {
-        this.playing = false
-        this.refresh()
-      } else {
-        this.next()
-      }
-    }
+    const r = this.playback.tick(dt)
+    if (r === "stop") this.refresh()
+    else if (r === "advance") this.next()
   }
 
   private selectVariant(i: number) {
     const v = this.spec.variants?.[i]
-    if (!v || this.busy) return
+    if (!v || this.playback.busy) return
     this.variantButtons.forEach((b, k) => b.highlight(k === i))
     this.variant = i
     this.tr = trace(v.term, this.spec.rules ?? defaultRules)
-    this.restart()
+    const eff = this.playback.reset(this.tr.steps.length)
+    if (eff.type === "show") this.row.show(this.tr.terms[eff.to]!)
+    this.refresh()
   }
 
   next() {
-    if (this.busy || this.index >= this.tr.steps.length) return
-    this.busy = true
-    const step = this.tr.steps[this.index]!
+    const eff = this.playback.next()
+    if (eff.type !== "animate") return
+    const index = eff.to - 1
+    const step = this.tr.steps[index]!
     relabel(this.caption, stepCaption(step))
-    relabel(this.counter, `step ${this.index + 1} of ${this.tr.steps.length}`)
-    this.playBtn.setIcon(this.playing ? icons.pause : icons.play)
-    this.row.animate(this.tr.terms[this.index + 1]!, step, () => {
-      this.index++
-      this.busy = false
-      this.wait = 650
+    relabel(this.counter, `step ${index + 1} of ${this.tr.steps.length}`)
+    this.playBtn.setIcon(this.playback.playing ? icons.pause : icons.play)
+    this.row.animate(this.tr.terms[eff.to]!, step, () => {
+      this.playback.land()
       this.refresh()
     })
   }
 
   prev() {
-    if (this.busy || this.index === 0) return
-    this.playing = false
-    this.index--
-    this.row.show(this.tr.terms[this.index]!)
+    const eff = this.playback.prev()
+    if (eff.type !== "show") return
+    this.row.show(this.tr.terms[eff.to]!)
     this.refresh()
   }
 
   restart() {
-    if (this.busy) return
-    this.index = 0
-    this.row.show(this.tr.terms[0]!)
-    this.playing = this.tr.steps.length > 0
-    this.wait = 500
+    const eff = this.playback.restart()
+    if (eff.type !== "show") return
+    this.row.show(this.tr.terms[eff.to]!)
     this.refresh()
   }
 
   togglePlay() {
-    if (this.index >= this.tr.steps.length) return this.restart()
-    this.playing = !this.playing
-    this.wait = 0
+    if (this.playback.togglePlay() === "restart") return this.restart()
     this.refresh()
   }
 

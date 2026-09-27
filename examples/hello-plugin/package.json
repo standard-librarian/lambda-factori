@@ -1,0 +1,18 @@
+{
+  "name": "@lambda-factori/hello-plugin-example",
+  "private": true,
+  "type": "module",
+  "description": "The SDK's worked example: a third-party plugin built against @lambda-factori/kernel alone, built to a single ES module and loaded by URL (#/plugin/<url>). Not a dependency of any app.",
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@lambda-factori/kernel": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "pixi.js": "catalog:",
+    "vite": "catalog:"
+  }
+}

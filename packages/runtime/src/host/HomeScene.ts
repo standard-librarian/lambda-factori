@@ -7,14 +7,14 @@
  * in by `Host` (it isn't part of `HostApi`: a plugin never sees it).
  */
 import { Container, Graphics, Rectangle } from "pixi.js"
-import type { HostApi, PluginEntry, ShelfCard } from "../kernel/Plugin.ts"
-import type { Scene } from "../kernel/Scene.ts"
+import type { HostApi, PluginEntry, ShelfCard } from "@lambda-factori/kernel/Plugin.ts"
+import type { Scene } from "@lambda-factori/kernel/Scene.ts"
 import { label } from "../ui/label.ts"
 import { paperArt, skylineArt } from "../ui/backdrop.ts"
 import { sourceArt, applyArt, W } from "../ui/factoryArt.ts"
 import { logo } from "../ui/logo.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../ui/theme.ts"
-import { ease, lerp } from "../kernel/tween.ts"
+import { ease, lerp } from "@lambda-factori/kernel/tween.ts"
 import { addRegistry, loadRegistries } from "./registry-community.ts"
 
 /** Row `y`s, top to bottom: one per entry with a shelf (in entry order), then community, then

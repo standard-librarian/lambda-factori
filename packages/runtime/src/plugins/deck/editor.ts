@@ -1,5 +1,6 @@
 import { Exit, Schema } from "effect"
-import type { HostApi } from "../../kernel/Plugin.ts"
+import type { HostApi } from "@lambda-factori/kernel/Plugin.ts"
+import type { Mechanic } from "@lambda-factori/kernel/Slide.ts"
 import { Deck, Slide } from "@lambda-factori/contracts/Deck.ts"
 import { ensureOverlayStyles } from "../../ui/overlay.ts"
 import type { DeckLibrary } from "./plugin.ts"
@@ -16,12 +17,16 @@ const encodeDeck = Schema.encodeSync(Deck)
 export const openSlideEditor = (o: {
   host: HostApi
   library: DeckLibrary
+  /** Every plugin mechanic the host knows, so the insert menu offers their templates too. */
+  mechanics: ReadonlyMap<string, Mechanic>
   deck: () => Deck
   index: () => number
   apply: (deck: Deck, index: number) => void
   onClose: () => void
 }): (() => void) => {
   ensureOverlayStyles()
+  const mechanicTemplates = [...o.mechanics].flatMap(([kind, m]) => (m.template ? [[kind, m.template] as const] : []))
+  const insertable: Record<string, Record<string, unknown>> = { ...templates, ...Object.fromEntries(mechanicTemplates) }
   const root = document.createElement("div")
   root.className = "lf-panel lf-right"
   root.innerHTML = `
@@ -30,7 +35,7 @@ export const openSlideEditor = (o: {
     <div class="lf-error" data-error></div>
     <div class="lf-row">
       <button class="lf-primary" data-apply>apply (⌘↵)</button>
-      <select data-template>${Object.keys(templates).map((k) => `<option value="${k}">+ ${k}</option>`).join("")}</select>
+      <select data-template>${Object.keys(insertable).map((k) => `<option value="${k}">+ ${k}</option>`).join("")}</select>
       <button data-add>insert after</button>
       <button data-delete>delete slide</button>
     </div>
@@ -40,7 +45,7 @@ export const openSlideEditor = (o: {
       <label class="lf-file">import .json<input type="file" accept="application/json" data-import></label>
       <button data-reset>discard local edits</button>
     </div>
-    <p class="lf-muted">Every slide is JSON checked against the deck schema. Kinds: ${Object.keys(templates).join(", ")}, plus plugin kinds such as office/scene. Any slide can have "notes" and a "sticky".</p>`
+    <p class="lf-muted">Every slide is JSON checked against the deck schema. Kinds: ${Object.keys(templates).join(", ")}${mechanicTemplates.length > 0 ? `, plus plugin kinds: ${mechanicTemplates.map(([k]) => k).join(", ")}` : ""}. Any slide can have "notes" and a "sticky".</p>`
   document.body.appendChild(root)
   const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(`[${sel}]`)!
   const json = $<HTMLTextAreaElement>("data-json")
@@ -86,9 +91,9 @@ export const openSlideEditor = (o: {
     e.stopPropagation()
   }
   $("data-add").onclick = () => {
-    const kind = $<HTMLSelectElement>("data-template").value as keyof typeof templates
+    const kind = $<HTMLSelectElement>("data-template").value
     const slides = [...encodeDeck(o.deck()).slides]
-    slides.splice(o.index() + 1, 0, templates[kind] as (typeof slides)[number])
+    slides.splice(o.index() + 1, 0, insertable[kind] as (typeof slides)[number])
     withSlides(slides, o.index() + 1)
   }
   $("data-delete").onclick = () => {

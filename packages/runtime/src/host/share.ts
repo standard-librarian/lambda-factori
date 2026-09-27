@@ -6,7 +6,7 @@
  * reach this through `HostApi.share`, implemented by `Host` with
  * `copyShareLink` below; they never import this module directly.
  */
-import type { SharedPack } from "../kernel/Plugin.ts"
+import type { SharedPack } from "@lambda-factori/kernel/Plugin.ts"
 
 const toB64Url = (bytes: Uint8Array) => {
   let s = ""

@@ -2,7 +2,7 @@
 import { Container, Graphics } from "pixi.js"
 import { label } from "./label.ts"
 import { palette } from "./theme.ts"
-import { ease, type Tweens } from "../kernel/tween.ts"
+import { ease, type Tweens } from "@lambda-factori/kernel/tween.ts"
 
 export class Toasts extends Container {
   private readonly queue: Array<{ text: string; color: number }> = []

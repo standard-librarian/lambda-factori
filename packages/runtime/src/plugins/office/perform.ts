@@ -8,15 +8,15 @@
 import type { Container } from "pixi.js"
 import type { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
 import { label } from "../../ui/label.ts"
-import { ease, lerp } from "../../kernel/tween.ts"
+import { ease, lerp } from "@lambda-factori/kernel/tween.ts"
 import { boxArt } from "./roomArt.ts"
 import { bubbleArt } from "./bubbleArt.ts"
 import { inSlot, outSlot } from "./layout.ts"
 import { type Performer, tweenP } from "./Performer.ts"
 import type { ProgramStrip } from "./ProgramStrip.ts"
 import type { Speech } from "./Speech.ts"
-import type { Action } from "./vm.ts"
-import type { Value } from "./program.ts"
+import type { Action } from "@lambda-factori/office/vm.ts"
+import type { Value } from "@lambda-factori/office/program.ts"
 
 export interface Stage {
   readonly p: Performer

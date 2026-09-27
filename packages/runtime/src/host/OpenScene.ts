@@ -11,12 +11,13 @@ import { Container } from "pixi.js"
 import { label } from "../ui/label.ts"
 import { para } from "../ui/text.ts"
 import { paperArt, skylineArt } from "../ui/backdrop.ts"
-import type { HostApi, PackPreview, PackPreviewAction, PluginEntry } from "../kernel/Plugin.ts"
-import type { Scene } from "../kernel/Scene.ts"
+import type { HostApi, PackPreview, PackPreviewAction, PluginEntry } from "@lambda-factori/kernel/Plugin.ts"
+import type { Scene } from "@lambda-factori/kernel/Scene.ts"
 import { DESIGN_H, DESIGN_W, palette } from "../ui/theme.ts"
-import { ease, lerp } from "../kernel/tween.ts"
+import { ease, lerp } from "@lambda-factori/kernel/tween.ts"
 import { Button } from "../ui/Button.ts"
 import { icons } from "../ui/icons.ts"
+import { resolveOwner } from "./routes.ts"
 import { decodePack } from "./share.ts"
 
 /** A bare (non-enveloped) JSON pack, as served by `#/import/<url>` for a hosted file: a deck has
@@ -56,7 +57,7 @@ export class OpenScene implements Scene {
    * unknown type, or a plugin's `previewPack` throwing) turns into the "doesn't match" card. */
   private resolve(card: Container, status: Container, type: string, data: unknown) {
     status.destroy()
-    const owner = this.entries.find((e) => e.packTypes?.includes(type))
+    const owner = resolveOwner(this.entries, type)
     if (!owner) return this.fail(card, `no plugin recognizes pack type “${type}”`)
     void owner.load().then(
       (plugin) => {

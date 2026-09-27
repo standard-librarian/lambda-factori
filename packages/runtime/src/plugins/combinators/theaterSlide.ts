@@ -11,7 +11,7 @@ import { TermRow } from "./TermRow.ts"
 import { describeStep } from "@lambda-factori/core/Trace.ts"
 import type { TheaterSlide } from "@lambda-factori/contracts/TheaterSlide.ts"
 import { para } from "../../ui/text.ts"
-import { CONTENT_TOP, type SlideContext, type SlideView } from "../../kernel/Slide.ts"
+import { CONTENT_TOP, type SlideContext, type SlideView } from "@lambda-factori/kernel/Slide.ts"
 
 export const theaterSlide = (s: TheaterSlide, ctx: SlideContext): SlideView => {
   const v = new Container()

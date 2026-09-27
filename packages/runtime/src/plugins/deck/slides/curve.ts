@@ -2,11 +2,11 @@
 import { Container, Graphics } from "pixi.js"
 import { label } from "../../../ui/label.ts"
 import { DESIGN_W, palette } from "../../../ui/theme.ts"
-import { ease } from "../../../kernel/tween.ts"
+import { ease } from "@lambda-factori/kernel/tween.ts"
 import type { SlideOf } from "@lambda-factori/contracts/Deck.ts"
 import { color, Reveal } from "./common.ts"
 import { para } from "../../../ui/text.ts"
-import type { SlideContext, SlideView } from "../../../kernel/Slide.ts"
+import type { SlideContext, SlideView } from "@lambda-factori/kernel/Slide.ts"
 
 /** Illustrative shapes (after APOSD fig. 3.1): cumulative progress over time. */
 const SHAPES = {

@@ -19,7 +19,7 @@ import { H, tokenArt, W } from "../../ui/factoryArt.ts"
 import { center, portDot } from "./floorGeometry.ts"
 import { label, relabel } from "../../ui/label.ts"
 import { palette } from "../../ui/theme.ts"
-import { ease, lerp, type Tweens } from "../../kernel/tween.ts"
+import { ease, lerp, type Tweens } from "@lambda-factori/kernel/tween.ts"
 
 export class SimAnimator {
   private readonly tokenViews = new Map<number, Container>()

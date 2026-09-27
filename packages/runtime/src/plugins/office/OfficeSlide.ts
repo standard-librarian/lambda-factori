@@ -10,7 +10,7 @@
  */
 import { Container, Graphics } from "pixi.js"
 import type { OfficeSpec } from "@lambda-factori/contracts/OfficeSpec.ts"
-import type { SlideContext, SlideView } from "../../kernel/Slide.ts"
+import type { SlideContext, SlideView } from "@lambda-factori/kernel/Slide.ts"
 import { Button } from "../../ui/Button.ts"
 import { label } from "../../ui/label.ts"
 import { FLOOR, ROOM_H } from "./layout.ts"
@@ -19,8 +19,8 @@ import { Performer } from "./Performer.ts"
 import { ProgramStrip } from "./ProgramStrip.ts"
 import { Room } from "./Room.ts"
 import { Speech } from "./Speech.ts"
-import { type Action, check, run, type State, type Trace } from "./vm.ts"
-import { parseProgram, type Value } from "./program.ts"
+import { type Action, check, run, type State, type Trace } from "@lambda-factori/office/vm.ts"
+import { parseProgram, type Value } from "@lambda-factori/office/program.ts"
 
 export const officeSlide = (spec: OfficeSpec, ctx: SlideContext): SlideView => {
   const v = new Container()
