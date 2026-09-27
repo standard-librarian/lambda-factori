@@ -1,0 +1,33 @@
+name: Bug report
+description: Something in a deck, the game, the editor or a plugin doesn't work
+labels: [bug]
+body:
+  - type: input
+    id: route
+    attributes:
+      label: Link
+      description: The URL where it happens (the hash route matters, e.g. `#/deck/week1-complexity/12`).
+      placeholder: https://mdht.me/lambda-factori/#/...
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open …\n2. Press …\n3. See …"
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Chrome 140 on macOS, Safari on iPhone 15, …
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors or a screenshot
+      description: Optional, but it often pinpoints the cause.

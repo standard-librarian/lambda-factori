@@ -1,5 +1,9 @@
 # λ factori
 
+[![CI](https://github.com/standard-librarian/lambda-factori/actions/workflows/ci.yml/badge.svg)](https://github.com/standard-librarian/lambda-factori/actions/workflows/ci.yml)
+[![Deploy](https://github.com/standard-librarian/lambda-factori/actions/workflows/pages.yml/badge.svg)](https://github.com/standard-librarian/lambda-factori/actions/workflows/pages.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **A framework for explaining ideas with moving parts.** Talks, study notes and games become
 playable factories: modules are buildings, decisions are gems, state is a padlocked gauge, and a
 function application is a red castle clamping two inputs together. Everything is data, everything
@@ -201,8 +205,8 @@ run (that is how the media in this README was made).
 ```sh
 pnpm install
 pnpm dev          # http://localhost:5173
+pnpm check        # what CI runs: typecheck + tests + knip (dead code)
 pnpm test         # vitest: reduction, sim, levels, decks (every code step, line and change map)
-pnpm typecheck
 pnpm build        # BASE=/sub/path/ for a subpath deploy
 pnpm search Ψ S,K,B,C,W,I 8          # brute-force recipe search for level design
 pnpm drive '[{"shot":"home"}]'       # headless play-tester (1920×1080 design coordinates)
@@ -234,6 +238,14 @@ scripts/              drive.ts (headless play-tester), search.ts (recipe search)
 
 Packages export their sources directly (`"exports": { "./*": "./src/*" }`), so there is no build
 step between them: `import { parse } from "@lambda-factori/core/Term.ts"`.
+
+## Contributing
+
+Pull requests are welcome: new levels, decks, slide mechanics and plugins especially. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for setup and the PR process, and [CLAUDE.md](CLAUDE.md) for how
+the code is organized. `main` is protected: every change lands through a pull request that has
+passed CI, and every push to `main` deploys the live site. Please report security issues
+privately ([SECURITY.md](SECURITY.md)).
 
 ## Credits
 
