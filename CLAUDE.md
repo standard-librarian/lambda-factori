@@ -237,8 +237,10 @@ Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a vers
   - `plugins/`: combinators, editor, deck, office.
     - **combinators:** `manifest`, `plugin` (its port is `CombinatorsPort`), `GameContext` (the
       game's own window onto the host); `mechanics.ts` + `theaterSlide.ts` (the
-      `combinators/theater` mechanic) and `Theater`/`TheaterSpec`/`TermRow` (the reduction
-      theater modal, opened from a level or the book); `machineArt` (the one factory-art piece
+      `combinators/theater` mechanic) and `Theater`/`TheaterSpec`/`TermRow`/`theaterPlayback`
+      (the reduction theater modal, opened from a level or the book — `theaterPlayback` is its
+      play/step state machine, pure and tested apart from the animation it triggers);
+      `machineArt` (the one factory-art piece
       that needs the catalogue); and the game's scenes —
       `LevelScene`: state and mode;
       `BoardView`: the drawn floor;
@@ -248,7 +250,8 @@ Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a vers
       `archive`.
     - **editor:** `levelText` (the pure model, tested), `form` (the DOM), `plugin`.
     - **deck:** `Decks` (the `DeckLibrary` backend), `shelf` (the home screen's "your decks"
-      row), `DeckScene` (navigation and keys), `DeckChrome`, `slideFrame`, `overlays`,
+      row), `DeckScene` (navigation and keys) with `keyAction` (which key means which action, pure
+      and tested), `DeckChrome`, `slideFrame`, `overlays`,
       `messages` (the presenter protocol), `render.ts` (the kind registry) plus `templates.ts`,
       `slides/` (one kind per file, plus `lineTimeline` and `highlight`), the slide editor on E
       and the presenter window on P.

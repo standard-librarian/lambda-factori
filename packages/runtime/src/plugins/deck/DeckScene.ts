@@ -16,6 +16,7 @@ import type { Mechanic, SlideView } from "@lambda-factori/kernel/Slide.ts"
 import { ease } from "@lambda-factori/kernel/tween.ts"
 import { DeckChrome } from "./DeckChrome.ts"
 import { openSlideEditor } from "./editor.ts"
+import { deckKeyAction } from "./keyAction.ts"
 import { channelName, type DeckMessage } from "./messages.ts"
 import { notesPanel, overviewGrid } from "./overlays.ts"
 import type { DeckLibrary } from "./plugin.ts"
@@ -199,42 +200,35 @@ export class DeckScene implements Scene {
   }
 
   onKey(e: KeyboardEvent) {
-    switch (e.code) {
-      case "ArrowRight":
-      case "PageDown":
-      case "Space":
-      case "Enter":
+    const action = deckKeyAction(e.code, { overviewOpen: this.overview !== undefined, notesOpen: this.notes !== undefined, editorOpen: this.closeEditor !== undefined })
+    if (!action) return
+    switch (action.type) {
+      case "next":
         e.preventDefault()
         return this.next()
-      case "ArrowLeft":
-      case "PageUp":
-      case "Backspace":
+      case "prev":
         e.preventDefault()
         return this.prev()
-      case "Home":
+      case "first":
         return this.goto(0, 0, -1)
-      case "End":
+      case "last":
         return this.goto(this.deck.slides.length - 1, 0, 1)
-      case "KeyN":
+      case "toggleNotes":
         return this.toggleNotes()
-      case "KeyO":
-      case "KeyG":
+      case "toggleOverview":
         return this.toggleOverview()
-      case "KeyF":
+      case "toggleFullscreen":
         if (document.fullscreenElement) void document.exitFullscreen()
         else void document.documentElement.requestFullscreen()
         return
-      case "KeyP":
+      case "openPresenter":
         return this.openPresenter()
-      case "KeyE":
+      case "toggleEditor":
         return this.toggleEditor()
-      case "KeyS":
+      case "shareLink":
         void this.host.share({ type: "deck", data: encodeDeck(this.deck) }).then(() => this.host.toast("share link copied — anyone can play, keep or remix this deck"))
         return
-      case "Escape":
-        if (this.overview) return this.toggleOverview()
-        if (this.notes) return this.toggleNotes()
-        if (this.closeEditor) return this.toggleEditor()
+      case "home":
         return this.host.home()
     }
   }

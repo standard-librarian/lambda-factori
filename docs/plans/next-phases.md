@@ -85,3 +85,34 @@ target is ≤150k per phase.
   full check once at the end.
 - Screenshots only where a phase changes what's on screen, at most four, at the default size.
 - Report in 250 words or fewer.
+
+## Phase 10 outcome
+Audited `packages/runtime/src/**` by headers and signatures (`wc -l`, `grep -n`), starting from
+the named candidates.
+
+Splits made (two, both extracting a pure part CLAUDE.md rule 4 asks for, each tested apart from
+Pixi):
+- `plugins/deck/keyAction.ts`: hides the decision "which key means which deck action", including
+  Escape's overlay-priority rule (overview, then notes, then editor, else home). `DeckScene.onKey`
+  now just looks up the action and carries out the effect. Interface: one function
+  `deckKeyAction(code, overlays) => DeckAction`. Tests: `keyAction.test.ts` (5 cases).
+- `plugins/combinators/theaterPlayback.ts`: hides the reduction theater's play/step state machine
+  (which step is showing, whether autoplay is armed, how long to wait) apart from the animation
+  it triggers. `Theater` asks it what to do (`next`/`prev`/`restart`/`togglePlay`/`tick`) and
+  acts on the effect, calling `land()` once `TermRow`'s animation finishes. Interface: one class,
+  five methods, three-case effect type. Tests: `theaterPlayback.test.ts` (8 cases).
+
+Rejected:
+- `combinators/LevelScene.ts`: already a clean composition root (board/editor/animator/tray/
+  panel/theater each in its own file); its mode state machine is entangled with `Sim` stepping
+  and event publishing, not a clean pure extraction without deeper surgery than this phase's
+  budget allows.
+- `office/OfficeSlide.ts`: reads as three jobs in its header, but is already split into closures
+  (`statsChips`, `idleLife`) with no class or shared mutable state hiding two decisions — no win
+  from a file split.
+- Files flagged by a header-level "and" grep were mostly false positives (already single-job,
+  e.g. `ui/factoryArt.ts`, `host/routes.ts`, `game/*.ts`); none needed splitting.
+
+`pnpm check` exit 0. Smoke: deck slide navigation (arrow key), the theater's autoplay/pause/
+step/mid-animation-guard on a level, all behaviour-preserving — screenshots in `/tmp/lf-arch/p10`
+(not committed).
