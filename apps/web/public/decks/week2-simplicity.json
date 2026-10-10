@@ -934,7 +934,7 @@
       "sticky": {
         "text": "“Everything that I just said was wrong. Dead wrong.”",
         "color": "red",
-        "step": 5
+        "step": 6
       },
       "notes": [
         "“How many people are uncomfortable right now?”",
@@ -1071,7 +1071,7 @@
         {
           "text": "Values aggregate to values",
           "sub": [
-            "a list of immutable things is itself immutable"
+            "an immutable collection of values is itself a value"
           ]
         }
       ],
@@ -1158,19 +1158,19 @@
         {
           "input": "Mar: ann@new",
           "outputs": [
-            "ok",
+            "Mar: ann@new",
             "ok"
           ],
           "states": [
             "email: ann@new",
             "Jan old · Mar new"
           ],
-          "caption": "A friend changes their email address."
+          "caption": "A friend changes their email address. Each fact rides on to the ledger."
         },
         {
           "input": "Jun: ann@work",
           "outputs": [
-            "ok",
+            "Jun: ann@work",
             "ok"
           ],
           "states": [
@@ -1182,7 +1182,7 @@
         {
           "input": "email in Feb?",
           "outputs": [
-            "ann@work ✗",
+            "email in Feb?\n(it says ann@work ✗)",
             "ann@old ✓"
           ],
           "xray": true,
