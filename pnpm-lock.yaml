@@ -153,6 +153,12 @@ importers:
         specifier: 'catalog:'
         version: 8.22.0
 
+  packages/sysdesign:
+    dependencies:
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.1
+
 packages:
 
   '@capacitor/cli@8.5.3':

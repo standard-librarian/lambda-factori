@@ -214,6 +214,10 @@ Layout (a pnpm workspace organized like t3code; `pnpm-workspace.yaml` has a vers
 - **`packages/office`:** the office plugin's HRM interpreter, pure and Pixi-free: `vm.ts`
   (`run`, `check`) and `program.ts` (the text format). `packages/runtime/src/plugins/office/`
   holds everything that renders it.
+- **`packages/sysdesign`:** the sysdesign plugin's pure model (the plugin itself is a later phase; see
+  `docs/plans/sysdesign.md`): `Catalogue` (component kinds), `Level` (schema + `check`), `Design`
+  (pure edits), `Sim` (deterministic traffic sim, seekable), `score`, `estimate`, `rng`,
+  `data/levels.json` (Bitly, FB News Feed, Uber).
 - **`packages/kernel`:** the plugin SDK — the only package a third-party plugin (or `runtime`)
   depends on: `Plugin.ts` (`HostApi` including `pixi`, `PluginManifest`, `Plugin`, `PluginEntry`,
   `HomeShelf`, `SharedPack`, `PackPreview`), `Scene.ts`, `Slide.ts` (`SlideContext`, `SlideView`,
