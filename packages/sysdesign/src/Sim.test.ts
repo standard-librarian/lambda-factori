@@ -1,6 +1,12 @@
+/**
+ * Pins the simulation's behaviour on the bitly level: determinism and seek, queueing, cache and
+ * shard effects, replica staleness, chaos, async acknowledgement and robustness to bad designs.
+ * Tests pin the lessons (what rises, what rejects), not exact digits.
+ */
 import { describe, expect, it } from "vitest"
 import { configure } from "./Design.ts"
 import type { Design, Level } from "./Level.ts"
+import { buildRoutes } from "./routing.ts"
 import { levels } from "./levels.ts"
 import { createSim, runStage } from "./Sim.ts"
 
@@ -124,10 +130,22 @@ describe("chaos", () => {
 })
 
 describe("async work", () => {
-  it("enqueue ends client latency before the background work finishes", () => {
-    const s = stats(bitly, bitly.reference, "build")
-    expect(s.types.redirect!.latenciesMs.length).toBeGreaterThan(0)
-    expect(s.types.redirect!.ok).toBeLessThanOrEqual(s.types.redirect!.latenciesMs.length)
+  it("enqueue ends client latency while the background work is still unfinished", () => {
+    const stuckWorker: Level = {
+      ...bitly,
+      stages: {
+        ...bitly.stages,
+        build: { ...bitly.stages.build, chaos: [{ atMs: 0, forMs: 20_000, target: "click-worker", event: { type: "slow", x: 5000 } }] }
+      }
+    }
+    const sim = createSim(stuckWorker, stuckWorker.reference, "build")
+    let acked = false
+    while (!acked && sim.now() < 2_000) acked = sim.step().some((e) => e.ev === "done")
+    expect(acked).toBe(true)
+    const redirect = sim.stats().types.redirect!
+    expect(redirect.latenciesMs.length).toBeGreaterThan(0)
+    expect(Math.max(...redirect.latenciesMs)).toBeLessThan(100)
+    expect(redirect.ok).toBe(0)
   })
 
   it("a request type nothing can serve is rejected, not lost", () => {
@@ -135,5 +153,118 @@ describe("async work", () => {
     const s = stats(bitly, broken).types.redirect!
     expect(s.ok).toBe(0)
     expect(s.rejected).toBe(s.emitted)
+  })
+})
+
+describe("recovery", () => {
+  it("a machine that was slow accepts traffic again once the slowness ends", () => {
+    const slowThenFine: Level = {
+      ...bitly,
+      stages: {
+        ...bitly.stages,
+        build: { ...bitly.stages.build, chaos: [{ atMs: 0, forMs: 3_000, target: "api", event: { type: "slow", x: 40 } }] }
+      }
+    }
+    const sim = createSim(slowThenFine, slowThenFine.reference, "build")
+    sim.seek(3_000)
+    expect(sim.stats().types.redirect!.rejected).toBeGreaterThan(0)
+    sim.seek(10_000)
+    const before = sim.stats().types.redirect!
+    sim.seek(20_000)
+    const after = sim.stats().types.redirect!
+    expect((after.ok - before.ok) / (after.emitted - before.emitted)).toBeGreaterThan(0.95)
+    expect(after.rejected - before.rejected).toBeLessThan((after.emitted - before.emitted) * 0.05)
+  })
+})
+
+describe("derived datasets", () => {
+  const feed = levels.find((l) => l.id === "news-feed")!
+  const withoutFanout = {
+    components: feed.reference.components.filter((c) => c.id !== "fanout-queue" && c.id !== "fanout-worker"),
+    wires: feed.reference.wires.filter((w) => !w.from.startsWith("fanout") && !w.to.startsWith("fanout"))
+  }
+
+  it("a feed nothing builds is empty: its reads find nothing, however good the store", () => {
+    const empty = stats(feed, withoutFanout).types.feed!
+    expect(empty.ok).toBe(0)
+    expect(stats(feed, feed.reference).types.feed!.ok).toBeGreaterThan(stats(feed, feed.reference).types.feed!.emitted * 0.95)
+  })
+})
+
+describe("replica lag", () => {
+  it("comes from write load: a read-only store with a replica has no stale reads", () => {
+    const readOnly: Level = {
+      ...bitly,
+      requests: [{
+        ...bitly.requests[0]!,
+        ops: [{ do: "read", dataset: "urls", consistency: "strong" }]
+      }],
+      stages: { ...bitly.stages, scale: { ...bitly.stages.scale, traffic: 12 } }
+    }
+    const design = configure(withoutCache, "urls-db", { shards: 1, replicas: 1 })
+    const s = runStage(readOnly, design, "scale")
+    expect(s.strongReads).toBeGreaterThan(0)
+    expect(s.util["urls-db"]).toBeGreaterThan(0.5)
+    expect(s.staleReads).toBe(0)
+  })
+})
+
+describe("routing loops", () => {
+  const ping: Level = {
+    ...bitly,
+    requests: [{ id: "ping", label: "ping", color: "#fff", rps: 200, traffic: { shape: "steady" }, ops: [{ do: "compute", ms: 1 }] }]
+  }
+  const at = { col: 0, row: 0 }
+  const node = (id: string, kind: "lb" | "service" | "client"): Design["components"][number] => ({ id, kind, at, config: {} })
+  // a and b point at each other, and the way out (c, then the service) hangs off a.
+  const cyclic: Design = {
+    components: [node("clients", "client"), node("b", "lb"), node("a", "lb"), node("c", "lb"), node("svc", "service")],
+    wires: [
+      { from: "clients", to: "b" },
+      { from: "clients", to: "a" },
+      { from: "b", to: "a" },
+      { from: "a", to: "b" },
+      { from: "a", to: "c" },
+      { from: "c", to: "svc" }
+    ]
+  }
+
+  it("every hop gets closer to a server, so wires in a cycle never hold a token", () => {
+    const routes = buildRoutes(ping, cyclic)
+    expect(routes.next(2, 0, 0)).toEqual([3])
+    expect(routes.next(1, 0, 0)).toEqual([2])
+  })
+
+  it("so every request through such a design finishes", () => {
+    const s = runStage(ping, cyclic, "build").types.ping!
+    expect(s.ok).toBeGreaterThan(s.emitted * 0.95)
+  })
+})
+
+describe("bad designs", () => {
+  it("settings that give zero machines don't crash the sim", () => {
+    for (const instances of [0, "many", Number.NaN]) {
+      const s = runStage(bitly, configure(bitly.reference, "api", { instances }), "build").types.redirect!
+      expect(s.ok + s.rejected).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe("seek", () => {
+  it("clamps to [0, durationMs] and ignores invalid input", () => {
+    const sim = createSim(bitly, bitly.reference, "build")
+    sim.seek(2_000)
+    sim.seek(-500)
+    expect(sim.now()).toBe(0)
+    sim.seek(Number.NaN)
+    expect(sim.now()).toBe(0)
+    sim.seek(1_000)
+    const run = createSim(bitly, bitly.reference, "build")
+    while (run.now() < 1_000) run.step()
+    expect(JSON.stringify(sim.stats())).toBe(JSON.stringify(run.stats()))
+    sim.seek(Number.POSITIVE_INFINITY)
+    expect(sim.now()).toBe(sim.durationMs)
+    sim.seek(sim.durationMs + 50_000)
+    expect(sim.now()).toBe(sim.durationMs)
   })
 })

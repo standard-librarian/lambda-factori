@@ -1283,6 +1283,127 @@
      "stage": "scale",
      "fails": "p99:feed",
      "why": "Fan-out on write partitioned by author: a celebrity's posts hammer one shard."
+    },
+    {
+     "design": {
+      "components": [
+       {
+        "id": "clients",
+        "kind": "client",
+        "at": {
+         "col": 0,
+         "row": 2
+        },
+        "config": {},
+        "locked": true
+       },
+       {
+        "id": "exit-feed",
+        "kind": "exit",
+        "at": {
+         "col": 9,
+         "row": 1
+        },
+        "config": {
+         "type": "feed"
+        },
+        "locked": true
+       },
+       {
+        "id": "exit-post",
+        "kind": "exit",
+        "at": {
+         "col": 9,
+         "row": 3
+        },
+        "config": {
+         "type": "post"
+        },
+        "locked": true
+       },
+       {
+        "id": "lb",
+        "kind": "lb",
+        "at": {
+         "col": 1,
+         "row": 2
+        },
+        "config": {
+         "instances": 2,
+         "healthCheckMs": 1000
+        }
+       },
+       {
+        "id": "api",
+        "kind": "service",
+        "at": {
+         "col": 2,
+         "row": 2
+        },
+        "config": {
+         "instances": 4
+        }
+       },
+       {
+        "id": "posts-db",
+        "kind": "sqlDb",
+        "at": {
+         "col": 4,
+         "row": 3
+        },
+        "config": {
+         "shards": 3,
+         "replicas": 0,
+         "partitionKey": "uniform"
+        }
+       },
+       {
+        "id": "inbox",
+        "kind": "kvStore",
+        "at": {
+         "col": 7,
+         "row": 2
+        },
+        "config": {
+         "shards": 6,
+         "replicas": 1,
+         "partitionKey": "uniform",
+         "failoverMs": 2000
+        }
+       }
+      ],
+      "wires": [
+       {
+        "from": "clients",
+        "to": "lb"
+       },
+       {
+        "from": "lb",
+        "to": "api"
+       },
+       {
+        "from": "api",
+        "to": "posts-db",
+        "only": [
+         "post"
+        ]
+       },
+       {
+        "from": "api",
+        "to": "inbox",
+        "only": [
+         "feed"
+        ]
+       }
+      ]
+     },
+     "stage": "build",
+     "fails": "serve:feed",
+     "why": "The feed store is wired and sized right, but nothing ever fills it: without the fan-out queue and worker no post is pushed into anyone's inbox, so every feed read finds it empty.",
+     "alsoFails": [
+      "p99:feed",
+      "served"
+     ]
     }
    ],
    "deck": "sd-news-feed"

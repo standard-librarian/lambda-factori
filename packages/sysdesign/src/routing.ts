@@ -1,7 +1,7 @@
 /**
  * Which component a token may go to next. Hides the graph search: for every (component,
  * request type, op index) it precomputes the wired successors that can still make progress on
- * that op, direct servers first. Pure and built once per (level, design); the sim only looks
+ * that op, direct servers first, otherwise strictly closer to one. Pure and built once per (level, design); the sim only looks
  * entries up. Clients and exits are never routed to.
  */
 import { catalogue } from "./Catalogue.ts"
@@ -29,29 +29,36 @@ export const buildRoutes = (level: Level, design: Design): Routes => {
   const successors = (from: number, type: number): ReadonlyArray<number> =>
     out[from]!.filter((e) => routable(e.to) && (e.only === undefined || e.only.includes(level.requests[type]!.id))).map((e) => e.to)
 
-  const memo = new Map<string, boolean>()
-  const canFinish = (c: number, type: number, op: number, seen: Set<number>): boolean => {
-    if (serves(c, type, op)) return true
-    const key = `${c}/${type}/${op}`
-    const cached = memo.get(key)
-    if (cached !== undefined) return cached
-    if (seen.has(c)) return false
-    seen.add(c)
-    const ok = successors(c, type).some((n) => canFinish(n, type, op, seen))
-    seen.delete(c)
-    if (ok) memo.set(key, true)
-    return ok
+  // Hops to the nearest machine that serves each op, by breadth-first search backwards from the
+  // servers. A hop must come strictly closer, so no cycle of wires can keep a token circling.
+  const hopsToServer = (type: number, op: number): ReadonlyArray<number> => {
+    const hops = design.components.map((_, i) => (routable(i) && serves(i, type, op) ? 0 : Infinity))
+    for (let frontier = hops.flatMap((h, i) => (h === 0 ? [i] : [])); frontier.length > 0;) {
+      const next: Array<number> = []
+      for (const to of frontier) {
+        design.components.forEach((_, from) => {
+          if (hops[from] === Infinity && successors(from, type).includes(to)) {
+            hops[from] = hops[to]! + 1
+            next.push(from)
+          }
+        })
+      }
+      frontier = next
+    }
+    return hops
   }
 
   const table = new Map<string, ReadonlyArray<number>>()
-  for (let c = 0; c < design.components.length; c++) {
-    level.requests.forEach((r, type) => {
-      r.ops.forEach((_, op) => {
-        const ok = successors(c, type).filter((n) => canFinish(n, type, op, new Set([c])))
-        const direct = ok.filter((n) => serves(n, type, op))
+  level.requests.forEach((r, type) => {
+    r.ops.forEach((_, op) => {
+      const hops = hopsToServer(type, op)
+      design.components.forEach((_, c) => {
+        // A server itself (after a cache miss, say) may pass on to any server that can still be reached.
+        const ok = successors(c, type).filter((n) => hops[n]! < Infinity && (hops[c] === 0 || hops[n]! < hops[c]!))
+        const direct = ok.filter((n) => hops[n] === 0)
         table.set(`${c}/${type}/${op}`, direct.length > 0 ? direct : ok)
       })
     })
-  }
+  })
   return { next: (from, type, op) => table.get(`${from}/${type}/${op}`) ?? [] }
 }

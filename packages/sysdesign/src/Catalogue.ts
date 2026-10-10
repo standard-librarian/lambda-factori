@@ -5,7 +5,7 @@
  * numbers: round, plausible, and tuned so trade-offs show; tests pin the lessons, not the digits.
  */
 import { Schema } from "effect"
-import type { OpName } from "./Op.ts"
+import { NonNegative, Positive, PositiveInt, type OpName } from "./Op.ts"
 
 export const ComponentKind = Schema.Literals([
   "client",
@@ -56,18 +56,18 @@ export interface CatalogueEntry {
   readonly config: Schema.Top
 }
 
-const count = Schema.optional(Schema.Int)
+const count = Schema.optional(PositiveInt)
 const partitionKey = Schema.optional(Schema.Literals(["natural", "uniform"]))
 
 const poolConfig = Schema.Struct({ instances: count })
 const storeConfig = Schema.Struct({
   shards: count,
-  replicas: count,
+  replicas: Schema.optional(Schema.Int.check(Schema.isGreaterThanOrEqualTo(0))),
   /** "natural" partitions by the (skewed) entity key, so one shard runs hot; "uniform" spreads evenly. */
   partitionKey,
   /** "any" spreads reads over replicas too (cheap, may be stale); "primary" never reads a replica. */
   readFrom: Schema.optional(Schema.Literals(["any", "primary"])),
-  failoverMs: Schema.optional(Schema.Number)
+  failoverMs: Schema.optional(NonNegative)
 })
 const storeDefaults: Config = { shards: 1, replicas: 0, partitionKey: "natural", readFrom: "any", failoverMs: 3000 }
 
@@ -105,7 +105,7 @@ export const catalogue: { readonly [K in ComponentKind]: CatalogueEntry } = {
     materialised: false,
     defaults: { instances: 1, healthCheckMs: 1000 },
     /** `healthCheckMs`: how long a dead machine behind this balancer keeps receiving traffic. */
-    config: Schema.Struct({ instances: count, healthCheckMs: Schema.optional(Schema.Number) })
+    config: Schema.Struct({ instances: count, healthCheckMs: Schema.optional(NonNegative) })
   },
   service: {
     label: "Service",
@@ -128,7 +128,7 @@ export const catalogue: { readonly [K in ComponentKind]: CatalogueEntry } = {
     usdPerGb: 15,
     materialised: false,
     defaults: { instances: 1, gb: 1 },
-    config: Schema.Struct({ instances: count, gb: Schema.optional(Schema.Number) })
+    config: Schema.Struct({ instances: count, gb: Schema.optional(Positive) })
   },
   sqlDb: {
     label: "SQL database",
@@ -162,7 +162,7 @@ export const catalogue: { readonly [K in ComponentKind]: CatalogueEntry } = {
     materialised: false,
     /** `depth`: how many requests it buffers before it starts rejecting. */
     defaults: { instances: 1, depth: 20_000 },
-    config: Schema.Struct({ instances: count, depth: Schema.optional(Schema.Number) })
+    config: Schema.Struct({ instances: count, depth: Schema.optional(Positive) })
   },
   worker: {
     label: "Worker",
@@ -205,6 +205,12 @@ export const configOf = (kind: ComponentKind, config: Config): Config => ({ ...c
 /** Reads a numeric setting; callers only ask for keys the kind's defaults define. */
 export const num = (config: Config, key: string): number => Number(config[key])
 
+/** A machine count: whole and at least `min`; a setting that isn't a number (a hand-edited design) counts as `min`. */
+const wholeCount = (config: Config, key: string, min: number): number => {
+  const n = Math.floor(num(config, key))
+  return Number.isFinite(n) ? Math.max(min, n) : min
+}
+
 /** How many machines a placed component expands to: `shards` groups of `perShard` machines each. */
 export const layout = (kind: ComponentKind, config: Config): { shards: number; perShard: number } => {
   const entry = catalogue[kind]
@@ -214,9 +220,9 @@ export const layout = (kind: ComponentKind, config: Config): { shards: number; p
     case "sink":
       return { shards: 0, perShard: 0 }
     case "pool":
-      return { shards: 1, perShard: Math.max(1, num(full, "instances")) }
+      return { shards: 1, perShard: wholeCount(full, "instances", 1) }
     case "store":
-      return { shards: Math.max(1, num(full, "shards")), perShard: 1 + Math.max(0, num(full, "replicas")) }
+      return { shards: wholeCount(full, "shards", 1), perShard: 1 + wholeCount(full, "replicas", 0) }
   }
 }
 

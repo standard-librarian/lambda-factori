@@ -1,3 +1,8 @@
+/**
+ * Pins the bundled levels as data: each passes `check`, its reference design passes every stage,
+ * each naive design fails exactly the goals it names (so a hint never lies), and every goal is
+ * reported. Per-level tests are generated from `levels`, so a new level is covered unseen.
+ */
 import { describe, expect, it } from "vitest"
 import { check, goalIds, stageNames } from "./Level.ts"
 import { levels } from "./levels.ts"
@@ -30,9 +35,9 @@ describe("bundled levels", () => {
       }
 
       for (const naive of level.naive ?? []) {
-        it(`naive "${naive.why.slice(0, 40)}" fails exactly ${naive.fails}`, () => {
+        it(`naive "${naive.why.slice(0, 40)}" fails ${naive.fails}${naive.alsoFails ? ` (and ${naive.alsoFails.join(", ")})` : ""}`, () => {
           const result = score(level, naive.stage, naive.design, runStage(level, naive.design, naive.stage))
-          expect(result.goals.filter((g) => !g.pass).map((g) => g.id)).toEqual([naive.fails])
+          expect(result.goals.filter((g) => !g.pass).map((g) => g.id).sort()).toEqual([naive.fails, ...(naive.alsoFails ?? [])].sort())
         })
       }
 

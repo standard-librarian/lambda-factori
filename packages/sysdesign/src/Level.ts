@@ -7,29 +7,29 @@
 import { Schema } from "effect"
 import { catalogue, ComponentKind } from "./Catalogue.ts"
 import { evaluate } from "./estimate.ts"
-import { Id, Op } from "./Op.ts"
+import { Id, NonNegative, Op, Positive, PositiveInt } from "./Op.ts"
 
 export const Dataset = Schema.Struct({
   id: Id,
   label: Schema.String,
   /** Average size of one object, KB: sets how many fit in a cache. */
-  objectKb: Schema.Number,
+  objectKb: Positive,
   /** Distinct keys. */
-  keys: Schema.Number,
+  keys: PositiveInt,
   /** Zipf exponent of key popularity; 0 is uniform, above 1 is "a few celebrities". */
-  skew: Schema.Number,
+  skew: NonNegative,
   /** Rows a read of this derived dataset must gather when nothing precomputed it (a feed's followees). */
-  fanin: Schema.optional(Schema.Number)
+  fanin: Schema.optional(Positive)
 })
 export type Dataset = typeof Dataset.Type
 
 export const Traffic = Schema.Union([
   Schema.Struct({ shape: Schema.Literal("steady") }),
   /** Linear from `fromX` times the stage's rate up to 1× at the end. */
-  Schema.Struct({ shape: Schema.Literal("ramp"), fromX: Schema.Number }),
-  Schema.Struct({ shape: Schema.Literal("spike"), atMs: Schema.Number, x: Schema.Number, forMs: Schema.Number }),
+  Schema.Struct({ shape: Schema.Literal("ramp"), fromX: NonNegative }),
+  Schema.Struct({ shape: Schema.Literal("spike"), atMs: NonNegative, x: NonNegative, forMs: Positive }),
   /** One slow day: 1× at the ends, `peakX` in the middle. */
-  Schema.Struct({ shape: Schema.Literal("diurnal"), peakX: Schema.Number })
+  Schema.Struct({ shape: Schema.Literal("diurnal"), peakX: NonNegative })
 ])
 export type Traffic = typeof Traffic.Type
 
@@ -40,7 +40,7 @@ export const RequestType = Schema.Struct({
   color: Schema.String,
   ops: Schema.NonEmptyArray(Op),
   /** Requests per second at stage traffic 1. */
-  rps: Schema.Number,
+  rps: NonNegative,
   traffic: Traffic
 })
 export type RequestType = typeof RequestType.Type
@@ -72,14 +72,14 @@ export type Design = typeof Design.Type
  * `x`, `spike` multiplies all traffic by `x`.
  */
 export const Chaos = Schema.Struct({
-  atMs: Schema.Number,
-  forMs: Schema.Number,
+  atMs: NonNegative,
+  forMs: Positive,
   target: Schema.String,
   event: Schema.Union([
     Schema.Struct({ type: Schema.Literal("kill") }),
     Schema.Struct({ type: Schema.Literal("partition") }),
-    Schema.Struct({ type: Schema.Literal("slow"), x: Schema.Number }),
-    Schema.Struct({ type: Schema.Literal("spike"), x: Schema.Number })
+    Schema.Struct({ type: Schema.Literal("slow"), x: Positive }),
+    Schema.Struct({ type: Schema.Literal("spike"), x: NonNegative })
   ])
 })
 export type Chaos = typeof Chaos.Type
@@ -105,8 +105,8 @@ export type Goals = typeof Goals.Type
 
 export const Stage = Schema.Struct({
   /** Multiplies every request type's `rps`. */
-  traffic: Schema.Number,
-  durationMs: Schema.Number,
+  traffic: NonNegative,
+  durationMs: Positive,
   chaos: Schema.Array(Chaos),
   goals: Goals
 })
@@ -135,6 +135,8 @@ export const Naive = Schema.Struct({
   /** The stage it is run in, and the goal id (see `goalIds`) it must fail. */
   stage: StageName,
   fails: Schema.String,
+  /** Other goals it fails as a direct consequence (an empty feed also misses its latency and served goals). */
+  alsoFails: Schema.optional(Schema.Array(Schema.String)),
   /** One line on why a real design makes this mistake. */
   why: Schema.String
 })
@@ -149,7 +151,7 @@ export const Level = Schema.Struct({
   brief: Schema.String,
   estimates: Schema.Array(Estimate),
   /** Requests one token stands for. */
-  rpsPerToken: Schema.Number,
+  rpsPerToken: Positive,
   seed: Schema.Int,
   datasets: Schema.Array(Dataset),
   requests: Schema.NonEmptyArray(RequestType),
@@ -182,6 +184,11 @@ const checkDesign = (level: Level, name: string, design: Design, problems: Array
     if (ids.has(c.id)) problems.push(`${name}: duplicate component id "${c.id}"`)
     ids.add(c.id)
     const keys = Object.keys(catalogue[c.kind].defaults)
+    try {
+      Schema.decodeUnknownSync(catalogue[c.kind].config as Schema.Decoder<unknown>)(c.config)
+    } catch (e) {
+      problems.push(`${name}: ${c.id} (${c.kind}) has a bad setting: ${(e as Error).message.split("\n").join(" ")}`)
+    }
     for (const key of Object.keys(c.config)) {
       if (!keys.includes(key)) {
         problems.push(`${name}: ${c.id} (${c.kind}) has no setting "${key}"`)
@@ -242,7 +249,9 @@ export const check = (level: Level): ReadonlyArray<string> => {
   for (const n of level.naive ?? []) {
     checkDesign(level, `naive(${n.fails})`, n.design, problems)
     outsidePalette(n.design, `naive(${n.fails})`)
-    if (!goalIds(level.stages[n.stage].goals).includes(n.fails)) problems.push(`naive fails "${n.fails}", which ${n.stage} doesn't check`)
+    for (const id of [n.fails, ...(n.alsoFails ?? [])]) {
+      if (!goalIds(level.stages[n.stage].goals).includes(id)) problems.push(`naive fails "${id}", which ${n.stage} doesn't check`)
+    }
   }
 
   const targets = new Set<string>([...referenceIds.keys(), ...level.reference.components.map((c) => c.kind)])

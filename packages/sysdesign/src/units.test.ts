@@ -1,3 +1,7 @@
+/**
+ * Pins the pure units apart from the sim: design edits (locked parts, refused edits), catalogue
+ * layout and cost, the estimate expression format, the rng and traffic curves.
+ */
 import { describe, expect, it } from "vitest"
 import { catalogue, layout, monthlyUsd } from "./Catalogue.ts"
 import { configure, move, place, remove, unwire, wire } from "./Design.ts"
@@ -64,6 +68,27 @@ describe("estimate", () => {
     for (const bad of ["2 +", "foo", "(1", "1 2", "process.exit()", "1 $ 2"]) {
       expect(evaluate(bad, [])).toHaveProperty("error")
     }
+  })
+})
+
+describe("estimate arithmetic edge cases", () => {
+  it("division by zero and non-finite results are errors, not Infinity or NaN", () => {
+    for (const bad of ["1 / 0", "0 / 0", "5 / (3 - 3)", "1e999", "1e999 * 10"]) {
+      expect(evaluate(bad, [])).toHaveProperty("error")
+    }
+    expect(evaluate("0 / 5", [])).toEqual({ value: 0 })
+  })
+})
+
+describe("layout with hand-edited settings", () => {
+  it("never yields zero or NaN machines, whatever the setting says", () => {
+    for (const bad of [0, -3, "many", Number.NaN, 2.7]) {
+      const { shards, perShard } = layout("sqlDb", { shards: bad, replicas: bad })
+      expect(Number.isInteger(shards) && shards >= 1).toBe(true)
+      expect(Number.isInteger(perShard) && perShard >= 1).toBe(true)
+      expect(layout("service", { instances: bad }).perShard).toBeGreaterThanOrEqual(1)
+    }
+    expect(layout("service", { instances: 2.7 }).perShard).toBe(2)
   })
 })
 

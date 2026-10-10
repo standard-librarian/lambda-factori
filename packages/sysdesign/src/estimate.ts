@@ -2,7 +2,7 @@
  * The envelope warm-up's arithmetic: a tiny expression format, parsed by hand (no `eval`, no
  * `Function`). Numbers take `k`, `M`, `B` suffixes (`86400`, `300M`, `1.5k`); names refer to
  * earlier estimates by id (lowercase letters and digits, no hyphen); `+ - * /`, unary minus and
- * parentheses. `evaluate` never throws: a bad expression is a readable `error`.
+ * parentheses. `evaluate` never throws: a bad expression, a division by zero or a result that isn't finite is a readable `error`.
  */
 
 /** An estimate already worked out; later expressions may name it. */
@@ -66,7 +66,9 @@ export const evaluate = (expr: string, known: ReadonlyArray<Known>): Evaluated =
     let acc = factor()
     for (let t = peek(); t?.text === "*" || t?.text === "/"; t = peek()) {
       take()
-      acc = t.text === "*" ? acc * factor() : acc / factor()
+      const operand = factor()
+      if (t.text === "/" && operand === 0) throw new ParseError("division by zero")
+      acc = t.text === "*" ? acc * operand : acc / operand
     }
     return acc
   }
@@ -82,6 +84,7 @@ export const evaluate = (expr: string, known: ReadonlyArray<Known>): Evaluated =
     const value = sum()
     const rest = peek()
     if (rest !== undefined) throw new ParseError(`unexpected "${rest.text}"`)
+    if (!Number.isFinite(value)) throw new ParseError("the result is not a finite number")
     return { value }
   } catch (e) {
     if (e instanceof ParseError) return { error: e.message }

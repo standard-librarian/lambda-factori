@@ -6,6 +6,12 @@
  */
 import { Schema } from "effect"
 
+/** Numbers the sim divides by or loops on must be finite and above 0, or it would hang or divide by zero. */
+export const Positive = Schema.Finite.check(Schema.isGreaterThan(0))
+export const PositiveInt = Schema.Int.check(Schema.isGreaterThan(0))
+/** Rates, multipliers and durations that may be 0 but never negative or infinite. */
+export const NonNegative = Schema.Finite.check(Schema.isGreaterThanOrEqualTo(0))
+
 /** Ids are lowercase kebab-case so they survive URLs, JSON keys and CSS classes unchanged. */
 export const Id = Schema.String.check(Schema.isPattern(/^[a-z][a-z0-9-]*$/))
 export type Id = typeof Id.Type
@@ -17,11 +23,11 @@ export type Id = typeof Id.Type
  * - `amp`: how many units of work one request makes the serving machine do (a fan-out of 100
  *   followers is a push with `amp: 100`).
  */
-const shared = { optional: Schema.optional(Schema.Boolean), amp: Schema.optional(Schema.Number) }
+const shared = { optional: Schema.optional(Schema.Boolean), amp: Schema.optional(NonNegative) }
 
 export const Op = Schema.Union([
   /** CPU work. `ms` is pure latency added on top of the queueing at whichever machine serves it. */
-  Schema.Struct({ do: Schema.Literal("compute"), ms: Schema.Number, ...shared }),
+  Schema.Struct({ do: Schema.Literal("compute"), ms: NonNegative, ...shared }),
   Schema.Struct({
     do: Schema.Literal("read"),
     dataset: Id,

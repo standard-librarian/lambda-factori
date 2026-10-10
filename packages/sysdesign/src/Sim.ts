@@ -21,6 +21,8 @@ export const STEP_MS = 10
  * that fans out to 100 writes from counting as one cheap slot.
  */
 const QUEUE_MS = 500
+/** Replica lag, ms, at a primary whose writes alone take all of its capacity; it grows with the square of write load. */
+const REPLICA_LAG_MS = 400
 /** Replica lag, ms, past which a strong read of a replica counts as stale. */
 const STALE_LAG_MS = 50
 /**
@@ -72,7 +74,7 @@ export interface Sim {
   now(): number
   /** Advances one step and returns what happened. */
   step(): ReadonlyArray<SimEvent>
-  /** Jumps to `tMs` (rounded to a step); the result equals running from 0. */
+  /** Jumps to `tMs` (rounded to a step, clamped to [0, durationMs]; NaN means 0); the result equals running from 0. */
   seek(tMs: number): void
   stats(): Stats
 }
@@ -90,16 +92,24 @@ interface Token {
   /** Health-check window of the load balancer that just routed it, or -1 when routed directly. */
   lb: number
   at: number
+  /** Capacity-ms this token still counts in its machine's `backlogMs`; drained by exactly that much, whatever `slowX` is by then. */
+  charged: number
+  /** Components visited for op `trailOp`; a token never returns to one, so a loop of wires can't hold it forever. */
+  trail: Array<number>
+  trailOp: number
 }
 
 interface Server {
   queue: Array<Token>
-  /** Capacity-ms of work waiting in `queue`. */
+  /** Capacity-ms of work waiting in `queue`: the sum of its tokens' `charged`. */
   backlogMs: number
   credit: number
   workMs: number
   stepWork: number
   load: number
+  /** Like `stepWork` and `load`, counting only writes: what a replica has to catch up on. */
+  writeStepWork: number
+  writeLoad: number
   alive: boolean
   deadSince: number
   slowX: number
@@ -110,6 +120,8 @@ interface CompState {
   rr: number
   primary: Array<number>
   lag: Array<number>
+  /** Writes and pushes this component has completed, per dataset or channel: what a derived dataset is built from. */
+  built: Record<string, number>
   hits: number
   misses: number
 }
@@ -173,11 +185,12 @@ export const createSim = (level: Level, design: Design, stageName: StageName, se
     rng: makeRng(seed),
     comps: statics.map((s) => ({
       servers: Array.from({ length: s.shards * s.perShard }, () => ({
-        queue: [], backlogMs: 0, credit: 0, workMs: 0, stepWork: 0, load: 0, alive: true, deadSince: -1, slowX: 1
+        queue: [], backlogMs: 0, credit: 0, workMs: 0, stepWork: 0, load: 0, writeStepWork: 0, writeLoad: 0, alive: true, deadSince: -1, slowX: 1
       })),
       rr: 0,
       primary: Array.from({ length: s.shards }, () => 0),
       lag: Array.from({ length: s.shards }, () => 0),
+      built: {},
       hits: 0,
       misses: 0
     })),
@@ -214,7 +227,12 @@ export const createSim = (level: Level, design: Design, stageName: StageName, se
   const route = (from: number, tk: Token): number => {
     const ops = level.requests[tk.type]!.ops
     while (tk.op < ops.length) {
-      const options = routes.next(from, tk.type, tk.op)
+      if (tk.trailOp !== tk.op) {
+        tk.trail = []
+        tk.trailOp = tk.op
+      }
+      if (!tk.trail.includes(from)) tk.trail.push(from)
+      const options = routes.next(from, tk.type, tk.op).filter((n) => !tk.trail.includes(n))
       if (options.length > 0) return options[tk.id % options.length]!
       if (!ops[tk.op]!.optional) return STUCK
       tk.op++
@@ -257,13 +275,16 @@ export const createSim = (level: Level, design: Design, stageName: StageName, se
     const s = statics[ci]!
     const si = pick(ci, tk)
     if (si < 0) return reject(tk, ci, "noRoute")
-    const server = state.comps[ci]!.servers[si]!
+    const server = state.comps[ci]!.servers[si]
+    if (server === undefined) return reject(tk, ci, "noRoute")
     if (!server.alive) return reject(tk, ci, "dead")
     const work = costMs(ci, tk) * server.slowX
     server.workMs += work
     server.stepWork += work
+    if (opOf(tk).do === "write" || opOf(tk).do === "push") server.writeStepWork += work
     if (full(ci, server)) return reject(tk, ci, "queueFull")
     server.backlogMs += work
+    tk.charged = work
     tk.at = ci
     server.queue.push(tk)
     events.push({ ev: "queue", token: tk.id, at: s.id, depth: server.queue.length })
@@ -280,6 +301,11 @@ export const createSim = (level: Level, design: Design, stageName: StageName, se
     const s = statics[ci]!
     const op = opOf(tk)
     let handled = op.do in s.entry.serves
+    // A materialised store holds a derived dataset only once something has written it there; until
+    // then the read is a miss, and a design with nothing else to gather the rows from fails it.
+    if (handled && op.do === "read" && s.entry.materialised && datasetOf.get(op.dataset)?.fanin !== undefined) {
+      handled = (state.comps[ci]!.built[op.dataset] ?? 0) > 0
+    }
     if (handled && s.kind === "cache") {
       const ds = datasetOf.get((op as { dataset: string }).dataset)!
       const gb = num(s.cfg, "gb") * s.perShard
@@ -295,6 +321,11 @@ export const createSim = (level: Level, design: Design, stageName: StageName, se
       if (si % s.perShard !== state.comps[ci]!.primary[shard] && state.comps[ci]!.lag[shard]! > STALE_LAG_MS) state.staleReads++
     }
     let extra = 0
+    if (handled && s.entry.shape === "store" && (op.do === "write" || op.do === "push")) {
+      const built = state.comps[ci]!.built
+      const name = op.do === "write" ? op.dataset : op.channel
+      built[name] = (built[name] ?? 0) + 1
+    }
     if (handled) {
       if (op.do === "compute") extra = op.ms
       tk.op++
@@ -360,7 +391,7 @@ export const createSim = (level: Level, design: Design, stageName: StageName, se
         state.acc[type]!--
         const ds = keyDataset[type]
         const tk: Token = {
-          id: state.nextId++, type, op: 0, born: t, acked: false, rem: 0, lb: -1, at: client,
+          id: state.nextId++, type, op: 0, born: t, acked: false, rem: 0, lb: -1, at: client, charged: 0, trail: [], trailOp: -1,
           key: ds === undefined ? 0 : zipfRank(state.rng, ds.keys, ds.skew)
         }
         state.types[type]!.emitted++
@@ -404,10 +435,11 @@ export const createSim = (level: Level, design: Design, stageName: StageName, se
           m.queue.shift()
           const total = (tk.rem > 0 ? tk.rem : costMs(ci, tk)) * m.slowX
           const slice = Math.min(total, SLICE_MS)
-          m.backlogMs = Math.max(0, m.backlogMs - slice)
+          const drained = total > slice ? (tk.charged * slice) / total : tk.charged
+          m.backlogMs = Math.max(0, m.backlogMs - drained)
           m.credit -= slice
           if (tk.rem === 0) complete(ci, si, tk)
-          if (total > slice) m.queue.push({ ...tk, rem: (total - slice) / m.slowX })
+          if (total > slice) m.queue.push({ ...tk, rem: (total - slice) / m.slowX, charged: tk.charged - drained })
         }
         if (m.credit > 0) m.credit = 0
       })
@@ -420,11 +452,13 @@ export const createSim = (level: Level, design: Design, stageName: StageName, se
       for (const m of d.servers) {
         m.load += (m.stepWork / STEP_MS - m.load) * 0.05
         m.stepWork = 0
+        m.writeLoad += (m.writeStepWork / STEP_MS - m.writeLoad) * 0.05
+        m.writeStepWork = 0
       }
       if (s.perShard > 1 && s.entry.shape === "store") {
         for (let shard = 0; shard < s.shards; shard++) {
-          const load = d.servers[shard * s.perShard + d.primary[shard]!]!.load
-          d.lag[shard] = 20 + 2000 * Math.max(0, load - 0.5) ** 2
+          const load = d.servers[shard * s.perShard + d.primary[shard]!]!.writeLoad
+          d.lag[shard] = 20 + REPLICA_LAG_MS * load ** 2
         }
       }
     })
@@ -458,7 +492,8 @@ export const createSim = (level: Level, design: Design, stageName: StageName, se
     now: () => state.t,
     step,
     seek: (tMs) => {
-      const target = Math.round(tMs / STEP_MS) * STEP_MS
+      const wanted = Number.isNaN(tMs) ? 0 : tMs
+      const target = Math.round(Math.min(Math.max(wanted, 0), stage.durationMs) / STEP_MS) * STEP_MS
       if (target < state.t) {
         const sec = Math.min(Math.floor(target / 1000), Math.max(...snapshots.keys()))
         state = structuredClone(snapshots.get(sec)!)
