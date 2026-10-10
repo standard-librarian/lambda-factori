@@ -10,10 +10,10 @@
     "build:sim": "xcodebuild -project ios/App/App.xcodeproj -scheme App -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build"
   },
   "dependencies": {
-    "@capacitor/core": "8.5.2",
-    "@capacitor/ios": "8.5.2"
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.5.2"
+    "@capacitor/cli": "8.5.3"
   }
 }
