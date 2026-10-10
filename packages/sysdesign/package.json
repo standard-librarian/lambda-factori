@@ -1,0 +1,15 @@
+{
+  "name": "@lambda-factori/sysdesign",
+  "private": true,
+  "type": "module",
+  "description": "The sysdesign plugin's pure model: component catalogue, level schema, deterministic traffic simulation, scoring. No Pixi or DOM.",
+  "exports": {
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "effect": "catalog:"
+  }
+}

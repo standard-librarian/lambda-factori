@@ -1,0 +1,2082 @@
+{
+ "version": 1,
+ "levels": [
+  {
+   "id": "bitly",
+   "title": "A URL shortener",
+   "difficulty": "easy",
+   "practice": {
+    "name": "Bitly",
+    "url": "https://www.hellointerview.com/learn/system-design/problem-breakdowns/bitly"
+   },
+   "brief": "People paste long links and get short codes back; far more people follow short codes than create them. A follow must answer fast, and counting clicks must never slow it down. Build it, then 10x the traffic, then lose a server.",
+   "estimates": [
+    {
+     "id": "dau",
+     "label": "Daily active users",
+     "expr": "100M",
+     "value": 100000000,
+     "unit": "users"
+    },
+    {
+     "id": "follows",
+     "label": "Follows per user per day",
+     "expr": "5",
+     "value": 5,
+     "unit": "per day"
+    },
+    {
+     "id": "avgrps",
+     "label": "Average follows per second",
+     "expr": "dau * follows / 86400",
+     "value": 5787,
+     "unit": "rps"
+    },
+    {
+     "id": "peakrps",
+     "label": "Peak follows per second (x2)",
+     "expr": "avgrps * 2",
+     "value": 11574,
+     "unit": "rps"
+    }
+   ],
+   "rpsPerToken": 50,
+   "seed": 11,
+   "datasets": [
+    {
+     "id": "urls",
+     "label": "short code -> long URL",
+     "objectKb": 0.5,
+     "keys": 100000000,
+     "skew": 1.1
+    },
+    {
+     "id": "clicks",
+     "label": "click counters",
+     "objectKb": 0.1,
+     "keys": 100000000,
+     "skew": 0
+    }
+   ],
+   "requests": [
+    {
+     "id": "redirect",
+     "label": "GET /:code",
+     "color": "#4da3ff",
+     "rps": 1000,
+     "traffic": {
+      "shape": "steady"
+     },
+     "ops": [
+      {
+       "do": "compute",
+       "ms": 1
+      },
+      {
+       "do": "read",
+       "dataset": "urls",
+       "consistency": "eventual"
+      },
+      {
+       "do": "enqueue",
+       "topic": "clicks"
+      },
+      {
+       "do": "compute",
+       "ms": 0,
+       "amp": 0.1
+      },
+      {
+       "do": "write",
+       "dataset": "clicks",
+       "amp": 0.1
+      }
+     ]
+    },
+    {
+     "id": "shorten",
+     "label": "POST /links",
+     "color": "#ffb84d",
+     "rps": 50,
+     "traffic": {
+      "shape": "steady"
+     },
+     "ops": [
+      {
+       "do": "compute",
+       "ms": 2
+      },
+      {
+       "do": "write",
+       "dataset": "urls"
+      }
+     ]
+    }
+   ],
+   "palette": [
+    "lb",
+    "service",
+    "cache",
+    "sqlDb",
+    "kvStore",
+    "queue",
+    "worker"
+   ],
+   "fixed": {
+    "components": [
+     {
+      "id": "clients",
+      "kind": "client",
+      "at": {
+       "col": 0,
+       "row": 2
+      },
+      "config": {},
+      "locked": true
+     },
+     {
+      "id": "exit-redirect",
+      "kind": "exit",
+      "at": {
+       "col": 8,
+       "row": 1
+      },
+      "config": {
+       "type": "redirect"
+      },
+      "locked": true
+     },
+     {
+      "id": "exit-shorten",
+      "kind": "exit",
+      "at": {
+       "col": 8,
+       "row": 3
+      },
+      "config": {
+       "type": "shorten"
+      },
+      "locked": true
+     }
+    ],
+    "wires": []
+   },
+   "stages": {
+    "build": {
+     "traffic": 1,
+     "durationMs": 20000,
+     "chaos": [],
+     "goals": {
+      "serve": [
+       "redirect",
+       "shorten"
+      ],
+      "p99Ms": {
+       "redirect": 100
+      },
+      "minServed": 0.95
+     }
+    },
+    "scale": {
+     "traffic": 10,
+     "durationMs": 30000,
+     "chaos": [],
+     "goals": {
+      "serve": [
+       "redirect",
+       "shorten"
+      ],
+      "p99Ms": {
+       "redirect": 100
+      },
+      "budget": 2500
+     }
+    },
+    "chaos": {
+     "traffic": 5,
+     "durationMs": 30000,
+     "chaos": [
+      {
+       "atMs": 8000,
+       "forMs": 8000,
+       "target": "api",
+       "event": {
+        "type": "kill"
+       }
+      },
+      {
+       "atMs": 20000,
+       "forMs": 4000,
+       "target": "client",
+       "event": {
+        "type": "spike",
+        "x": 2
+       }
+      }
+     ],
+     "goals": {
+      "serve": [
+       "redirect",
+       "shorten"
+      ],
+      "availability": 0.97,
+      "p99Ms": {
+       "redirect": 100
+      }
+     }
+    }
+   },
+   "reference": {
+    "components": [
+     {
+      "id": "clients",
+      "kind": "client",
+      "at": {
+       "col": 0,
+       "row": 2
+      },
+      "config": {},
+      "locked": true
+     },
+     {
+      "id": "exit-redirect",
+      "kind": "exit",
+      "at": {
+       "col": 8,
+       "row": 1
+      },
+      "config": {
+       "type": "redirect"
+      },
+      "locked": true
+     },
+     {
+      "id": "exit-shorten",
+      "kind": "exit",
+      "at": {
+       "col": 8,
+       "row": 3
+      },
+      "config": {
+       "type": "shorten"
+      },
+      "locked": true
+     },
+     {
+      "id": "lb",
+      "kind": "lb",
+      "at": {
+       "col": 1,
+       "row": 2
+      },
+      "config": {
+       "instances": 2,
+       "healthCheckMs": 1000
+      }
+     },
+     {
+      "id": "api",
+      "kind": "service",
+      "at": {
+       "col": 2,
+       "row": 2
+      },
+      "config": {
+       "instances": 4
+      }
+     },
+     {
+      "id": "cache",
+      "kind": "cache",
+      "at": {
+       "col": 3,
+       "row": 1
+      },
+      "config": {
+       "instances": 1,
+       "gb": 1
+      }
+     },
+     {
+      "id": "urls-db",
+      "kind": "sqlDb",
+      "at": {
+       "col": 4,
+       "row": 2
+      },
+      "config": {
+       "shards": 2,
+       "replicas": 1,
+       "partitionKey": "uniform"
+      }
+     },
+     {
+      "id": "clicks-queue",
+      "kind": "queue",
+      "at": {
+       "col": 5,
+       "row": 3
+      },
+      "config": {
+       "instances": 1,
+       "depth": 20000
+      }
+     },
+     {
+      "id": "click-worker",
+      "kind": "worker",
+      "at": {
+       "col": 6,
+       "row": 3
+      },
+      "config": {
+       "instances": 2
+      }
+     },
+     {
+      "id": "clicks-kv",
+      "kind": "kvStore",
+      "at": {
+       "col": 7,
+       "row": 3
+      },
+      "config": {
+       "shards": 1,
+       "replicas": 0,
+       "partitionKey": "uniform"
+      }
+     }
+    ],
+    "wires": [
+     {
+      "from": "clients",
+      "to": "lb"
+     },
+     {
+      "from": "lb",
+      "to": "api"
+     },
+     {
+      "from": "api",
+      "to": "cache"
+     },
+     {
+      "from": "cache",
+      "to": "urls-db"
+     },
+     {
+      "from": "cache",
+      "to": "clicks-queue"
+     },
+     {
+      "from": "urls-db",
+      "to": "clicks-queue"
+     },
+     {
+      "from": "clicks-queue",
+      "to": "click-worker"
+     },
+     {
+      "from": "click-worker",
+      "to": "clicks-kv"
+     }
+    ]
+   },
+   "naive": [
+    {
+     "design": {
+      "components": [
+       {
+        "id": "clients",
+        "kind": "client",
+        "at": {
+         "col": 0,
+         "row": 2
+        },
+        "config": {},
+        "locked": true
+       },
+       {
+        "id": "exit-redirect",
+        "kind": "exit",
+        "at": {
+         "col": 8,
+         "row": 1
+        },
+        "config": {
+         "type": "redirect"
+        },
+        "locked": true
+       },
+       {
+        "id": "exit-shorten",
+        "kind": "exit",
+        "at": {
+         "col": 8,
+         "row": 3
+        },
+        "config": {
+         "type": "shorten"
+        },
+        "locked": true
+       },
+       {
+        "id": "lb",
+        "kind": "lb",
+        "at": {
+         "col": 1,
+         "row": 2
+        },
+        "config": {
+         "instances": 2,
+         "healthCheckMs": 1000
+        }
+       },
+       {
+        "id": "api",
+        "kind": "service",
+        "at": {
+         "col": 2,
+         "row": 2
+        },
+        "config": {
+         "instances": 4
+        }
+       },
+       {
+        "id": "urls-db",
+        "kind": "sqlDb",
+        "at": {
+         "col": 4,
+         "row": 2
+        },
+        "config": {
+         "shards": 2,
+         "replicas": 1,
+         "partitionKey": "uniform"
+        }
+       },
+       {
+        "id": "clicks-queue",
+        "kind": "queue",
+        "at": {
+         "col": 5,
+         "row": 3
+        },
+        "config": {
+         "instances": 1,
+         "depth": 20000
+        }
+       },
+       {
+        "id": "click-worker",
+        "kind": "worker",
+        "at": {
+         "col": 6,
+         "row": 3
+        },
+        "config": {
+         "instances": 2
+        }
+       },
+       {
+        "id": "clicks-kv",
+        "kind": "kvStore",
+        "at": {
+         "col": 7,
+         "row": 3
+        },
+        "config": {
+         "shards": 1,
+         "replicas": 0,
+         "partitionKey": "uniform"
+        }
+       }
+      ],
+      "wires": [
+       {
+        "from": "clients",
+        "to": "lb"
+       },
+       {
+        "from": "lb",
+        "to": "api"
+       },
+       {
+        "from": "api",
+        "to": "urls-db"
+       },
+       {
+        "from": "urls-db",
+        "to": "clicks-queue"
+       },
+       {
+        "from": "clicks-queue",
+        "to": "click-worker"
+       },
+       {
+        "from": "click-worker",
+        "to": "clicks-kv"
+       }
+      ]
+     },
+     "stage": "scale",
+     "fails": "p99:redirect",
+     "why": "Every follow hits the database: it works at launch and melts at 10x."
+    },
+    {
+     "design": {
+      "components": [
+       {
+        "id": "clients",
+        "kind": "client",
+        "at": {
+         "col": 0,
+         "row": 2
+        },
+        "config": {},
+        "locked": true
+       },
+       {
+        "id": "exit-redirect",
+        "kind": "exit",
+        "at": {
+         "col": 8,
+         "row": 1
+        },
+        "config": {
+         "type": "redirect"
+        },
+        "locked": true
+       },
+       {
+        "id": "exit-shorten",
+        "kind": "exit",
+        "at": {
+         "col": 8,
+         "row": 3
+        },
+        "config": {
+         "type": "shorten"
+        },
+        "locked": true
+       },
+       {
+        "id": "api",
+        "kind": "service",
+        "at": {
+         "col": 2,
+         "row": 2
+        },
+        "config": {
+         "instances": 4
+        }
+       },
+       {
+        "id": "cache",
+        "kind": "cache",
+        "at": {
+         "col": 3,
+         "row": 1
+        },
+        "config": {
+         "instances": 1,
+         "gb": 1
+        }
+       },
+       {
+        "id": "urls-db",
+        "kind": "sqlDb",
+        "at": {
+         "col": 4,
+         "row": 2
+        },
+        "config": {
+         "shards": 2,
+         "replicas": 1,
+         "partitionKey": "uniform"
+        }
+       },
+       {
+        "id": "clicks-queue",
+        "kind": "queue",
+        "at": {
+         "col": 5,
+         "row": 3
+        },
+        "config": {
+         "instances": 1,
+         "depth": 20000
+        }
+       },
+       {
+        "id": "click-worker",
+        "kind": "worker",
+        "at": {
+         "col": 6,
+         "row": 3
+        },
+        "config": {
+         "instances": 2
+        }
+       },
+       {
+        "id": "clicks-kv",
+        "kind": "kvStore",
+        "at": {
+         "col": 7,
+         "row": 3
+        },
+        "config": {
+         "shards": 1,
+         "replicas": 0,
+         "partitionKey": "uniform"
+        }
+       }
+      ],
+      "wires": [
+       {
+        "from": "clients",
+        "to": "api"
+       },
+       {
+        "from": "api",
+        "to": "cache"
+       },
+       {
+        "from": "cache",
+        "to": "urls-db"
+       },
+       {
+        "from": "cache",
+        "to": "clicks-queue"
+       },
+       {
+        "from": "urls-db",
+        "to": "clicks-queue"
+       },
+       {
+        "from": "clicks-queue",
+        "to": "click-worker"
+       },
+       {
+        "from": "click-worker",
+        "to": "clicks-kv"
+       }
+      ]
+     },
+     "stage": "chaos",
+     "fails": "availability",
+     "why": "Without a load balancer, a dead server keeps receiving its share of requests."
+    }
+   ],
+   "deck": "sd-bitly"
+  },
+  {
+   "id": "news-feed",
+   "title": "A social feed",
+   "difficulty": "medium",
+   "practice": {
+    "name": "FB News Feed",
+    "url": "https://www.hellointerview.com/learn/system-design/problem-breakdowns/fb-news-feed"
+   },
+   "brief": "People post; their followers read a feed of what the people they follow posted. Reading a feed is far more common than posting. Posting must feel instant, a feed must load fast, and a few celebrities have millions of followers.",
+   "estimates": [
+    {
+     "id": "dau",
+     "label": "Daily active users",
+     "expr": "500M",
+     "value": 500000000,
+     "unit": "users"
+    },
+    {
+     "id": "opens",
+     "label": "Feed opens per user per day",
+     "expr": "10",
+     "value": 10,
+     "unit": "per day"
+    },
+    {
+     "id": "reads",
+     "label": "Feed reads per second",
+     "expr": "dau * opens / 86400",
+     "value": 57870,
+     "unit": "rps"
+    },
+    {
+     "id": "posts",
+     "label": "Posts per second at 1 post per 20 users per day",
+     "expr": "dau / 20 / 86400",
+     "value": 289,
+     "unit": "rps"
+    }
+   ],
+   "rpsPerToken": 25,
+   "seed": 23,
+   "datasets": [
+    {
+     "id": "posts",
+     "label": "posts by author",
+     "objectKb": 1,
+     "keys": 50000000,
+     "skew": 1.5
+    },
+    {
+     "id": "feed",
+     "label": "a user's feed",
+     "objectKb": 2,
+     "keys": 50000000,
+     "skew": 0.8,
+     "fanin": 5
+    }
+   ],
+   "requests": [
+    {
+     "id": "feed",
+     "label": "GET /feed",
+     "color": "#4da3ff",
+     "rps": 2000,
+     "traffic": {
+      "shape": "steady"
+     },
+     "ops": [
+      {
+       "do": "compute",
+       "ms": 2
+      },
+      {
+       "do": "read",
+       "dataset": "feed",
+       "consistency": "eventual"
+      }
+     ]
+    },
+    {
+     "id": "post",
+     "label": "POST /posts",
+     "color": "#ffb84d",
+     "rps": 250,
+     "traffic": {
+      "shape": "steady"
+     },
+     "ops": [
+      {
+       "do": "compute",
+       "ms": 2
+      },
+      {
+       "do": "write",
+       "dataset": "posts"
+      },
+      {
+       "do": "enqueue",
+       "topic": "fanout",
+       "optional": true
+      },
+      {
+       "do": "compute",
+       "ms": 0,
+       "optional": true
+      },
+      {
+       "do": "push",
+       "channel": "feed",
+       "optional": true,
+       "amp": 40
+      }
+     ]
+    }
+   ],
+   "palette": [
+    "lb",
+    "service",
+    "cache",
+    "sqlDb",
+    "kvStore",
+    "queue",
+    "worker"
+   ],
+   "fixed": {
+    "components": [
+     {
+      "id": "clients",
+      "kind": "client",
+      "at": {
+       "col": 0,
+       "row": 2
+      },
+      "config": {},
+      "locked": true
+     },
+     {
+      "id": "exit-feed",
+      "kind": "exit",
+      "at": {
+       "col": 9,
+       "row": 1
+      },
+      "config": {
+       "type": "feed"
+      },
+      "locked": true
+     },
+     {
+      "id": "exit-post",
+      "kind": "exit",
+      "at": {
+       "col": 9,
+       "row": 3
+      },
+      "config": {
+       "type": "post"
+      },
+      "locked": true
+     }
+    ],
+    "wires": []
+   },
+   "stages": {
+    "build": {
+     "traffic": 1,
+     "durationMs": 20000,
+     "chaos": [],
+     "goals": {
+      "serve": [
+       "feed",
+       "post"
+      ],
+      "p99Ms": {
+       "feed": 100
+      },
+      "minServed": 0.95
+     }
+    },
+    "scale": {
+     "traffic": 5,
+     "durationMs": 30000,
+     "chaos": [],
+     "goals": {
+      "serve": [
+       "feed",
+       "post"
+      ],
+      "p99Ms": {
+       "feed": 120
+      },
+      "budget": 3500
+     }
+    },
+    "chaos": {
+     "traffic": 3,
+     "durationMs": 30000,
+     "chaos": [
+      {
+       "atMs": 8000,
+       "forMs": 8000,
+       "target": "inbox",
+       "event": {
+        "type": "kill"
+       }
+      }
+     ],
+     "goals": {
+      "serve": [
+       "feed",
+       "post"
+      ],
+      "availability": 0.95,
+      "p99Ms": {
+       "feed": 100
+      }
+     }
+    }
+   },
+   "reference": {
+    "components": [
+     {
+      "id": "clients",
+      "kind": "client",
+      "at": {
+       "col": 0,
+       "row": 2
+      },
+      "config": {},
+      "locked": true
+     },
+     {
+      "id": "exit-feed",
+      "kind": "exit",
+      "at": {
+       "col": 9,
+       "row": 1
+      },
+      "config": {
+       "type": "feed"
+      },
+      "locked": true
+     },
+     {
+      "id": "exit-post",
+      "kind": "exit",
+      "at": {
+       "col": 9,
+       "row": 3
+      },
+      "config": {
+       "type": "post"
+      },
+      "locked": true
+     },
+     {
+      "id": "lb",
+      "kind": "lb",
+      "at": {
+       "col": 1,
+       "row": 2
+      },
+      "config": {
+       "instances": 2,
+       "healthCheckMs": 1000
+      }
+     },
+     {
+      "id": "api",
+      "kind": "service",
+      "at": {
+       "col": 2,
+       "row": 2
+      },
+      "config": {
+       "instances": 4
+      }
+     },
+     {
+      "id": "posts-db",
+      "kind": "sqlDb",
+      "at": {
+       "col": 4,
+       "row": 3
+      },
+      "config": {
+       "shards": 3,
+       "replicas": 0,
+       "partitionKey": "uniform"
+      }
+     },
+     {
+      "id": "fanout-queue",
+      "kind": "queue",
+      "at": {
+       "col": 5,
+       "row": 4
+      },
+      "config": {
+       "instances": 1,
+       "depth": 50000
+      }
+     },
+     {
+      "id": "fanout-worker",
+      "kind": "worker",
+      "at": {
+       "col": 6,
+       "row": 4
+      },
+      "config": {
+       "instances": 2
+      }
+     },
+     {
+      "id": "inbox",
+      "kind": "kvStore",
+      "at": {
+       "col": 7,
+       "row": 2
+      },
+      "config": {
+       "shards": 6,
+       "replicas": 1,
+       "partitionKey": "uniform",
+       "failoverMs": 2000
+      }
+     }
+    ],
+    "wires": [
+     {
+      "from": "clients",
+      "to": "lb"
+     },
+     {
+      "from": "lb",
+      "to": "api"
+     },
+     {
+      "from": "api",
+      "to": "posts-db",
+      "only": [
+       "post"
+      ]
+     },
+     {
+      "from": "api",
+      "to": "inbox",
+      "only": [
+       "feed"
+      ]
+     },
+     {
+      "from": "posts-db",
+      "to": "fanout-queue"
+     },
+     {
+      "from": "fanout-queue",
+      "to": "fanout-worker"
+     },
+     {
+      "from": "fanout-worker",
+      "to": "inbox"
+     }
+    ]
+   },
+   "naive": [
+    {
+     "design": {
+      "components": [
+       {
+        "id": "clients",
+        "kind": "client",
+        "at": {
+         "col": 0,
+         "row": 2
+        },
+        "config": {},
+        "locked": true
+       },
+       {
+        "id": "exit-feed",
+        "kind": "exit",
+        "at": {
+         "col": 9,
+         "row": 1
+        },
+        "config": {
+         "type": "feed"
+        },
+        "locked": true
+       },
+       {
+        "id": "exit-post",
+        "kind": "exit",
+        "at": {
+         "col": 9,
+         "row": 3
+        },
+        "config": {
+         "type": "post"
+        },
+        "locked": true
+       },
+       {
+        "id": "lb",
+        "kind": "lb",
+        "at": {
+         "col": 1,
+         "row": 2
+        },
+        "config": {
+         "instances": 2,
+         "healthCheckMs": 1000
+        }
+       },
+       {
+        "id": "api",
+        "kind": "service",
+        "at": {
+         "col": 2,
+         "row": 2
+        },
+        "config": {
+         "instances": 4
+        }
+       },
+       {
+        "id": "posts-db",
+        "kind": "sqlDb",
+        "at": {
+         "col": 4,
+         "row": 3
+        },
+        "config": {
+         "shards": 8,
+         "replicas": 0,
+         "partitionKey": "uniform"
+        }
+       }
+      ],
+      "wires": [
+       {
+        "from": "clients",
+        "to": "lb"
+       },
+       {
+        "from": "lb",
+        "to": "api"
+       },
+       {
+        "from": "api",
+        "to": "posts-db"
+       }
+      ]
+     },
+     "stage": "scale",
+     "fails": "p99:feed",
+     "why": "Fan-out on read: every feed open gathers 40 authors' posts from the database."
+    },
+    {
+     "design": {
+      "components": [
+       {
+        "id": "clients",
+        "kind": "client",
+        "at": {
+         "col": 0,
+         "row": 2
+        },
+        "config": {},
+        "locked": true
+       },
+       {
+        "id": "exit-feed",
+        "kind": "exit",
+        "at": {
+         "col": 9,
+         "row": 1
+        },
+        "config": {
+         "type": "feed"
+        },
+        "locked": true
+       },
+       {
+        "id": "exit-post",
+        "kind": "exit",
+        "at": {
+         "col": 9,
+         "row": 3
+        },
+        "config": {
+         "type": "post"
+        },
+        "locked": true
+       },
+       {
+        "id": "lb",
+        "kind": "lb",
+        "at": {
+         "col": 1,
+         "row": 2
+        },
+        "config": {
+         "instances": 2,
+         "healthCheckMs": 1000
+        }
+       },
+       {
+        "id": "api",
+        "kind": "service",
+        "at": {
+         "col": 2,
+         "row": 2
+        },
+        "config": {
+         "instances": 4
+        }
+       },
+       {
+        "id": "posts-db",
+        "kind": "sqlDb",
+        "at": {
+         "col": 4,
+         "row": 3
+        },
+        "config": {
+         "shards": 3,
+         "replicas": 0,
+         "partitionKey": "uniform"
+        }
+       },
+       {
+        "id": "fanout-queue",
+        "kind": "queue",
+        "at": {
+         "col": 5,
+         "row": 4
+        },
+        "config": {
+         "instances": 1,
+         "depth": 50000
+        }
+       },
+       {
+        "id": "fanout-worker",
+        "kind": "worker",
+        "at": {
+         "col": 6,
+         "row": 4
+        },
+        "config": {
+         "instances": 2
+        }
+       },
+       {
+        "id": "inbox",
+        "kind": "kvStore",
+        "at": {
+         "col": 7,
+         "row": 2
+        },
+        "config": {
+         "shards": 6,
+         "replicas": 1,
+         "partitionKey": "natural",
+         "failoverMs": 2000
+        }
+       }
+      ],
+      "wires": [
+       {
+        "from": "clients",
+        "to": "lb"
+       },
+       {
+        "from": "lb",
+        "to": "api"
+       },
+       {
+        "from": "api",
+        "to": "posts-db",
+        "only": [
+         "post"
+        ]
+       },
+       {
+        "from": "api",
+        "to": "inbox",
+        "only": [
+         "feed"
+        ]
+       },
+       {
+        "from": "posts-db",
+        "to": "fanout-queue"
+       },
+       {
+        "from": "fanout-queue",
+        "to": "fanout-worker"
+       },
+       {
+        "from": "fanout-worker",
+        "to": "inbox"
+       }
+      ]
+     },
+     "stage": "scale",
+     "fails": "p99:feed",
+     "why": "Fan-out on write partitioned by author: a celebrity's posts hammer one shard."
+    },
+    {
+     "design": {
+      "components": [
+       {
+        "id": "clients",
+        "kind": "client",
+        "at": {
+         "col": 0,
+         "row": 2
+        },
+        "config": {},
+        "locked": true
+       },
+       {
+        "id": "exit-feed",
+        "kind": "exit",
+        "at": {
+         "col": 9,
+         "row": 1
+        },
+        "config": {
+         "type": "feed"
+        },
+        "locked": true
+       },
+       {
+        "id": "exit-post",
+        "kind": "exit",
+        "at": {
+         "col": 9,
+         "row": 3
+        },
+        "config": {
+         "type": "post"
+        },
+        "locked": true
+       },
+       {
+        "id": "lb",
+        "kind": "lb",
+        "at": {
+         "col": 1,
+         "row": 2
+        },
+        "config": {
+         "instances": 2,
+         "healthCheckMs": 1000
+        }
+       },
+       {
+        "id": "api",
+        "kind": "service",
+        "at": {
+         "col": 2,
+         "row": 2
+        },
+        "config": {
+         "instances": 4
+        }
+       },
+       {
+        "id": "posts-db",
+        "kind": "sqlDb",
+        "at": {
+         "col": 4,
+         "row": 3
+        },
+        "config": {
+         "shards": 3,
+         "replicas": 0,
+         "partitionKey": "uniform"
+        }
+       },
+       {
+        "id": "inbox",
+        "kind": "kvStore",
+        "at": {
+         "col": 7,
+         "row": 2
+        },
+        "config": {
+         "shards": 6,
+         "replicas": 1,
+         "partitionKey": "uniform",
+         "failoverMs": 2000
+        }
+       }
+      ],
+      "wires": [
+       {
+        "from": "clients",
+        "to": "lb"
+       },
+       {
+        "from": "lb",
+        "to": "api"
+       },
+       {
+        "from": "api",
+        "to": "posts-db",
+        "only": [
+         "post"
+        ]
+       },
+       {
+        "from": "api",
+        "to": "inbox",
+        "only": [
+         "feed"
+        ]
+       }
+      ]
+     },
+     "stage": "build",
+     "fails": "serve:feed",
+     "why": "The feed store is wired and sized right, but nothing ever fills it: without the fan-out queue and worker no post is pushed into anyone's inbox, so every feed read finds it empty.",
+     "alsoFails": [
+      "p99:feed",
+      "served"
+     ]
+    }
+   ],
+   "deck": "sd-news-feed"
+  },
+  {
+   "id": "uber",
+   "title": "A ride-hailing marketplace",
+   "difficulty": "hard",
+   "practice": {
+    "name": "Uber",
+    "url": "https://www.hellointerview.com/learn/system-design/problem-breakdowns/uber"
+   },
+   "brief": "Drivers report their location every few seconds; riders ask for a ride and get matched to a nearby free driver, and no driver may be given two rides. Location writes dwarf everything else, and a matcher dying must not strand riders.",
+   "estimates": [
+    {
+     "id": "drivers",
+     "label": "Drivers online at peak",
+     "expr": "1M",
+     "value": 1000000,
+     "unit": "drivers"
+    },
+    {
+     "id": "interval",
+     "label": "Seconds between location pings",
+     "expr": "4",
+     "value": 4,
+     "unit": "s"
+    },
+    {
+     "id": "pings",
+     "label": "Location writes per second",
+     "expr": "drivers / interval",
+     "value": 250000,
+     "unit": "rps"
+    },
+    {
+     "id": "rides",
+     "label": "Ride requests per second",
+     "expr": "pings / 250",
+     "value": 1000,
+     "unit": "rps"
+    }
+   ],
+   "rpsPerToken": 50,
+   "seed": 37,
+   "datasets": [
+    {
+     "id": "drivers",
+     "label": "driver locations by city cell",
+     "objectKb": 0.2,
+     "keys": 1000000,
+     "skew": 1.2
+    },
+    {
+     "id": "rides",
+     "label": "rides",
+     "objectKb": 1,
+     "keys": 100000000,
+     "skew": 0
+    }
+   ],
+   "requests": [
+    {
+     "id": "ping",
+     "label": "PUT /location",
+     "color": "#4da3ff",
+     "rps": 4000,
+     "traffic": {
+      "shape": "steady"
+     },
+     "ops": [
+      {
+       "do": "compute",
+       "ms": 1
+      },
+      {
+       "do": "geo",
+       "dataset": "drivers"
+      }
+     ]
+    },
+    {
+     "id": "request",
+     "label": "POST /rides",
+     "color": "#ffb84d",
+     "rps": 200,
+     "traffic": {
+      "shape": "steady"
+     },
+     "ops": [
+      {
+       "do": "compute",
+       "ms": 3
+      },
+      {
+       "do": "geo",
+       "dataset": "drivers",
+       "amp": 5
+      },
+      {
+       "do": "lock",
+       "resource": "ride"
+      },
+      {
+       "do": "write",
+       "dataset": "rides"
+      }
+     ]
+    }
+   ],
+   "palette": [
+    "lb",
+    "service",
+    "geoIndex",
+    "lock",
+    "sqlDb",
+    "kvStore",
+    "cache",
+    "queue",
+    "worker"
+   ],
+   "fixed": {
+    "components": [
+     {
+      "id": "clients",
+      "kind": "client",
+      "at": {
+       "col": 0,
+       "row": 2
+      },
+      "config": {},
+      "locked": true
+     },
+     {
+      "id": "exit-ping",
+      "kind": "exit",
+      "at": {
+       "col": 8,
+       "row": 1
+      },
+      "config": {
+       "type": "ping"
+      },
+      "locked": true
+     },
+     {
+      "id": "exit-request",
+      "kind": "exit",
+      "at": {
+       "col": 8,
+       "row": 3
+      },
+      "config": {
+       "type": "request"
+      },
+      "locked": true
+     }
+    ],
+    "wires": []
+   },
+   "stages": {
+    "build": {
+     "traffic": 1,
+     "durationMs": 20000,
+     "chaos": [],
+     "goals": {
+      "serve": [
+       "ping",
+       "request"
+      ],
+      "p99Ms": {
+       "request": 100
+      },
+      "minServed": 0.95
+     }
+    },
+    "scale": {
+     "traffic": 3,
+     "durationMs": 30000,
+     "chaos": [],
+     "goals": {
+      "serve": [
+       "ping",
+       "request"
+      ],
+      "p99Ms": {
+       "request": 100
+      },
+      "budget": 3200
+     }
+    },
+    "chaos": {
+     "traffic": 2,
+     "durationMs": 30000,
+     "chaos": [
+      {
+       "atMs": 8000,
+       "forMs": 8000,
+       "target": "matcher",
+       "event": {
+        "type": "kill"
+       }
+      },
+      {
+       "atMs": 20000,
+       "forMs": 4000,
+       "target": "client",
+       "event": {
+        "type": "spike",
+        "x": 2
+       }
+      }
+     ],
+     "goals": {
+      "serve": [
+       "ping",
+       "request"
+      ],
+      "availability": 0.95,
+      "p99Ms": {
+       "request": 150
+      }
+     }
+    }
+   },
+   "reference": {
+    "components": [
+     {
+      "id": "clients",
+      "kind": "client",
+      "at": {
+       "col": 0,
+       "row": 2
+      },
+      "config": {},
+      "locked": true
+     },
+     {
+      "id": "exit-ping",
+      "kind": "exit",
+      "at": {
+       "col": 8,
+       "row": 1
+      },
+      "config": {
+       "type": "ping"
+      },
+      "locked": true
+     },
+     {
+      "id": "exit-request",
+      "kind": "exit",
+      "at": {
+       "col": 8,
+       "row": 3
+      },
+      "config": {
+       "type": "request"
+      },
+      "locked": true
+     },
+     {
+      "id": "lb",
+      "kind": "lb",
+      "at": {
+       "col": 1,
+       "row": 2
+      },
+      "config": {
+       "instances": 2,
+       "healthCheckMs": 1000
+      }
+     },
+     {
+      "id": "api",
+      "kind": "service",
+      "at": {
+       "col": 2,
+       "row": 1
+      },
+      "config": {
+       "instances": 5
+      }
+     },
+     {
+      "id": "matcher",
+      "kind": "service",
+      "at": {
+       "col": 2,
+       "row": 3
+      },
+      "config": {
+       "instances": 3
+      }
+     },
+     {
+      "id": "drivers-geo",
+      "kind": "geoIndex",
+      "at": {
+       "col": 4,
+       "row": 2
+      },
+      "config": {
+       "shards": 4,
+       "replicas": 0,
+       "partitionKey": "uniform"
+      }
+     },
+     {
+      "id": "ride-lock",
+      "kind": "lock",
+      "at": {
+       "col": 5,
+       "row": 3
+      },
+      "config": {
+       "instances": 2
+      }
+     },
+     {
+      "id": "rides-db",
+      "kind": "sqlDb",
+      "at": {
+       "col": 6,
+       "row": 3
+      },
+      "config": {
+       "shards": 3,
+       "replicas": 0,
+       "partitionKey": "uniform"
+      }
+     }
+    ],
+    "wires": [
+     {
+      "from": "clients",
+      "to": "lb"
+     },
+     {
+      "from": "lb",
+      "to": "api",
+      "only": [
+       "ping"
+      ]
+     },
+     {
+      "from": "lb",
+      "to": "matcher",
+      "only": [
+       "request"
+      ]
+     },
+     {
+      "from": "api",
+      "to": "drivers-geo"
+     },
+     {
+      "from": "matcher",
+      "to": "drivers-geo"
+     },
+     {
+      "from": "drivers-geo",
+      "to": "ride-lock"
+     },
+     {
+      "from": "ride-lock",
+      "to": "rides-db"
+     }
+    ]
+   },
+   "naive": [
+    {
+     "design": {
+      "components": [
+       {
+        "id": "clients",
+        "kind": "client",
+        "at": {
+         "col": 0,
+         "row": 2
+        },
+        "config": {},
+        "locked": true
+       },
+       {
+        "id": "exit-ping",
+        "kind": "exit",
+        "at": {
+         "col": 8,
+         "row": 1
+        },
+        "config": {
+         "type": "ping"
+        },
+        "locked": true
+       },
+       {
+        "id": "exit-request",
+        "kind": "exit",
+        "at": {
+         "col": 8,
+         "row": 3
+        },
+        "config": {
+         "type": "request"
+        },
+        "locked": true
+       },
+       {
+        "id": "lb",
+        "kind": "lb",
+        "at": {
+         "col": 1,
+         "row": 2
+        },
+        "config": {
+         "instances": 2,
+         "healthCheckMs": 1000
+        }
+       },
+       {
+        "id": "api",
+        "kind": "service",
+        "at": {
+         "col": 2,
+         "row": 1
+        },
+        "config": {
+         "instances": 5
+        }
+       },
+       {
+        "id": "matcher",
+        "kind": "service",
+        "at": {
+         "col": 2,
+         "row": 3
+        },
+        "config": {
+         "instances": 3
+        }
+       },
+       {
+        "id": "drivers-geo",
+        "kind": "geoIndex",
+        "at": {
+         "col": 4,
+         "row": 2
+        },
+        "config": {
+         "shards": 1,
+         "replicas": 0,
+         "partitionKey": "uniform"
+        }
+       },
+       {
+        "id": "ride-lock",
+        "kind": "lock",
+        "at": {
+         "col": 5,
+         "row": 3
+        },
+        "config": {
+         "instances": 2
+        }
+       },
+       {
+        "id": "rides-db",
+        "kind": "sqlDb",
+        "at": {
+         "col": 6,
+         "row": 3
+        },
+        "config": {
+         "shards": 3,
+         "replicas": 0,
+         "partitionKey": "uniform"
+        }
+       }
+      ],
+      "wires": [
+       {
+        "from": "clients",
+        "to": "lb"
+       },
+       {
+        "from": "lb",
+        "to": "api",
+        "only": [
+         "ping"
+        ]
+       },
+       {
+        "from": "lb",
+        "to": "matcher",
+        "only": [
+         "request"
+        ]
+       },
+       {
+        "from": "api",
+        "to": "drivers-geo"
+       },
+       {
+        "from": "matcher",
+        "to": "drivers-geo"
+       },
+       {
+        "from": "drivers-geo",
+        "to": "ride-lock"
+       },
+       {
+        "from": "ride-lock",
+        "to": "rides-db"
+       }
+      ]
+     },
+     "stage": "scale",
+     "fails": "p99:request",
+     "why": "One location store takes every driver ping and every nearby search."
+    },
+    {
+     "design": {
+      "components": [
+       {
+        "id": "clients",
+        "kind": "client",
+        "at": {
+         "col": 0,
+         "row": 2
+        },
+        "config": {},
+        "locked": true
+       },
+       {
+        "id": "exit-ping",
+        "kind": "exit",
+        "at": {
+         "col": 8,
+         "row": 1
+        },
+        "config": {
+         "type": "ping"
+        },
+        "locked": true
+       },
+       {
+        "id": "exit-request",
+        "kind": "exit",
+        "at": {
+         "col": 8,
+         "row": 3
+        },
+        "config": {
+         "type": "request"
+        },
+        "locked": true
+       },
+       {
+        "id": "lb",
+        "kind": "lb",
+        "at": {
+         "col": 1,
+         "row": 2
+        },
+        "config": {
+         "instances": 2,
+         "healthCheckMs": 1000
+        }
+       },
+       {
+        "id": "api",
+        "kind": "service",
+        "at": {
+         "col": 2,
+         "row": 1
+        },
+        "config": {
+         "instances": 5
+        }
+       },
+       {
+        "id": "matcher",
+        "kind": "service",
+        "at": {
+         "col": 2,
+         "row": 3
+        },
+        "config": {
+         "instances": 1
+        }
+       },
+       {
+        "id": "drivers-geo",
+        "kind": "geoIndex",
+        "at": {
+         "col": 4,
+         "row": 2
+        },
+        "config": {
+         "shards": 4,
+         "replicas": 0,
+         "partitionKey": "uniform"
+        }
+       },
+       {
+        "id": "ride-lock",
+        "kind": "lock",
+        "at": {
+         "col": 5,
+         "row": 3
+        },
+        "config": {
+         "instances": 2
+        }
+       },
+       {
+        "id": "rides-db",
+        "kind": "sqlDb",
+        "at": {
+         "col": 6,
+         "row": 3
+        },
+        "config": {
+         "shards": 3,
+         "replicas": 0,
+         "partitionKey": "uniform"
+        }
+       }
+      ],
+      "wires": [
+       {
+        "from": "clients",
+        "to": "lb"
+       },
+       {
+        "from": "lb",
+        "to": "api",
+        "only": [
+         "ping"
+        ]
+       },
+       {
+        "from": "lb",
+        "to": "matcher",
+        "only": [
+         "request"
+        ]
+       },
+       {
+        "from": "api",
+        "to": "drivers-geo"
+       },
+       {
+        "from": "matcher",
+        "to": "drivers-geo"
+       },
+       {
+        "from": "drivers-geo",
+        "to": "ride-lock"
+       },
+       {
+        "from": "ride-lock",
+        "to": "rides-db"
+       }
+      ]
+     },
+     "stage": "chaos",
+     "fails": "availability",
+     "why": "A single matcher is a single point of failure for every ride request."
+    }
+   ],
+   "deck": "sd-uber"
+  }
+ ]
+}
