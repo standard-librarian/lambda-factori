@@ -5,8 +5,10 @@ loads from elsewhere:
 - **third-party plugins** loaded by `#/plugin/<url>`. These are ES modules and run with full page
   privileges, like any script you include, so only open plugin links from people you trust. A
   plugin can't take over a built-in plugin's id;
-- **shared packs** (`#/open/…`, `#/import/<url>`) and community registries. These are data,
-  decoded with `Schema` before use.
+- **shared packs** (`#/open/…`, `#/import/<url>`) and community registries. These are data.
+  The host checks only the envelope (a `type` and its `data`) and hands the data to the plugin
+  that owns the type. The built-in plugins decode their packs with `Schema`; a third-party
+  plugin's packs are only as safe as that plugin's own validation.
 
 ## Supported versions
 

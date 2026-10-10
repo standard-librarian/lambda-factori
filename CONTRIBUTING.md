@@ -6,7 +6,7 @@ bug reports with a link to the route where things go wrong.
 ## Setup
 
 You need Node 24 or later (see `.nvmrc`) and pnpm 10 (`corepack enable` picks the version pinned in
-`package.json`).
+`package.json`). Node 25 and later no longer ship Corepack, so run `npm install -g corepack` first.
 
 ```sh
 pnpm install

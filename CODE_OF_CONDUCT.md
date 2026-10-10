@@ -10,6 +10,6 @@ want in a classroom:
 - Credit other people's work, and quote sources accurately.
 
 The maintainer may edit or remove comments, and block people who break these rules. To report
-a problem privately, open a
-[private security advisory](https://github.com/standard-librarian/lambda-factori/security/advisories/new)
-titled "Conduct".
+a problem privately, contact the maintainer directly through the contact details on
+[@standard-librarian's GitHub profile](https://github.com/standard-librarian), not through
+issues or security advisories. Reports are kept confidential.
