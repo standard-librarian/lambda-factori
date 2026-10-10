@@ -43,5 +43,6 @@ export const frameSlide = (s: Slide, view: SlideView, tweens: Tweens, mechanics:
       } })
     } else note.visible = show
   }
-  return { frame, view: { ...view, setStep } }
+  // A note set after the view's last step gets a click of its own.
+  return { frame, view: { ...view, steps: Math.max(view.steps, at), setStep } }
 }

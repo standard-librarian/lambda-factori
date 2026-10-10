@@ -1,0 +1,1846 @@
+{
+  "id": "week2-simplicity",
+  "title": "Week 2 · Simple made easy",
+  "subtitle": "Rich Hickey: Simple Made Easy · The Value of Values · Hammock Driven Development",
+  "author": "Medhat",
+  "date": "2026-10-10",
+  "slides": [
+    {
+      "kind": "title",
+      "title": "Simple made easy",
+      "subtitle": "Track B · Week 2 — Simplicity, values, and thinking",
+      "byline": "Medhat",
+      "date": "Rich Hickey × 3: Simple Made Easy · The Value of Values · Hammock Driven Development",
+      "notes": [
+        "Week 2 of Track B. Three talks by one speaker, taken as lectures.",
+        "Quotes are verbatim from the community transcripts at github.com/matthiasn/talk-transcripts."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "Week 2",
+      "items": [
+        {
+          "text": "Simple vs easy, complecting, value-oriented design, deliberate design time",
+          "tag": "topic"
+        },
+        {
+          "text": "Rich Hickey, Simple Made Easy (2011)",
+          "tag": "watch"
+        },
+        {
+          "text": "Rich Hickey, The Value of Values (2012)",
+          "tag": "watch"
+        },
+        {
+          "text": "Rich Hickey, Hammock Driven Development (2010)",
+          "tag": "watch"
+        },
+        {
+          "text": "Three places where code confused “easy” with “simple”, and what untangling costs now",
+          "tag": "present"
+        }
+      ],
+      "notes": "From the track document: “Take notes as if they were lectures, because they are.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "Where Week 1 left us",
+      "items": [
+        {
+          "text": "Ousterhout: complexity is whatever makes a system hard to understand and modify",
+          "tag": "APOSD",
+          "sub": [
+            "“Complexity is anything related to the structure of a software system that makes it hard to understand and modify the system.”"
+          ]
+        },
+        {
+          "text": "Parnas: hide each decision that is likely to change",
+          "tag": "Parnas"
+        },
+        {
+          "text": "Moseley & Marks: most of it is accidental, and mostly state",
+          "tag": "Tar Pit",
+          "sub": [
+            "“the major contributor to this complexity in many systems is the handling of state”"
+          ]
+        },
+        {
+          "text": "Open question: is there an objective test for “complex”?",
+          "tag": "wk 2"
+        }
+      ],
+      "notes": "Ousterhout's definition is about a reader's experience. Hickey offers one you can check by looking at the code: is anything braided together?"
+    },
+    {
+      "kind": "bullets",
+      "title": "Three talks, one argument",
+      "items": [
+        {
+          "text": "2011 · Simple Made Easy: a vocabulary — simple is objective, easy is relative",
+          "tag": "simple"
+        },
+        {
+          "text": "2012 · The Value of Values: the biggest braid is place — use values and facts",
+          "tag": "values"
+        },
+        {
+          "text": "2010 · Hammock Driven Development: none of it happens without time to think",
+          "tag": "thinking"
+        }
+      ],
+      "notes": "Not in chronological order: the vocabulary first, then its main application, then the practice that makes it possible."
+    },
+    {
+      "kind": "section",
+      "title": "Simple Made Easy",
+      "subtitle": "Rich Hickey · Strange Loop, September 2011",
+      "color": "blue",
+      "number": "01"
+    },
+    {
+      "kind": "quote",
+      "quote": "Simplicity is prerequisite for reliability",
+      "by": "Edsger W. Dijkstra",
+      "source": "the first slide of Simple Made Easy",
+      "notes": "“We need to build simple systems if we want to build good systems. I do not think we focus enough on that.”"
+    },
+    {
+      "kind": "versus",
+      "title": "Two words we use as one",
+      "left": {
+        "name": "Simple",
+        "color": "blue",
+        "points": [
+          "sim-plex: one fold, one braid — opposite: complex",
+          "one role, one task, one concept, one dimension",
+          "About lack of interleaving, not cardinality",
+          "Objective: you can go and look for the braids"
+        ]
+      },
+      "right": {
+        "name": "Easy",
+        "color": "orange",
+        "points": [
+          "adjacens: to lie near — opposite: hard",
+          "near at hand: installed, in the toolkit",
+          "near our understanding: familiar · near our capabilities",
+          "Relative: easy for whom?"
+        ]
+      },
+      "agree": [
+        "both are worth having",
+        "they are different things"
+      ],
+      "notes": [
+        "“What matters for simplicity is that there is no interleaving, not that there is only one thing.”",
+        "He admits the last step of the “easy” etymology is speculative: “I bought it because it serves this talk really well”"
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "Easy is relative",
+      "items": [
+        "“Now I cannot read German. Does that mean German is unreadable? No. I do not know German.”",
+        "“if you want everything to be familiar, you will never learn anything new”",
+        "“easy is always going to be: easy for whom, or hard for whom?”",
+        {
+          "text": "How the words get swapped:",
+          "sub": [
+            "“‘Oh, I like to use that technology because it is simple,’ and when I am saying simple, I mean easy.”"
+          ]
+        }
+      ],
+      "notes": "The third sense of easy — near our capabilities — is the one we avoid talking about: “due to a combination of hubris and insecurity, we never really talk about whether or not something is outside of our capabilities.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "Constructs vs artifacts",
+      "items": [
+        {
+          "text": "“We program with constructs.”",
+          "sub": [
+            "languages, libraries, the code as we type it"
+          ]
+        },
+        {
+          "text": "“But we are in a business of artifacts.”",
+          "sub": [
+            "the running program: quality, correctness, maintenance, change"
+          ]
+        },
+        {
+          "text": "We judge the construct by how it feels to type",
+          "sub": [
+            "“Oh, look; I only had to type 16 characters. Wow! That is great.”"
+          ]
+        },
+        {
+          "text": "Employers like the first two kinds of easy too",
+          "sub": [
+            "“They just care that somebody can go sit in your seat, start typing.”"
+          ]
+        },
+        "“We must assess constructs by their artifacts”"
+      ],
+      "notes": "This is the distinction behind the whole talk: ease is a property of the authoring experience, simplicity a property of what you ship."
+    },
+    {
+      "kind": "bullets",
+      "title": "Limits",
+      "items": [
+        "“We can only hope to make reliable those things we can understand”",
+        "“We can only consider a few things at a time”",
+        "“Intertwined things must be considered together”",
+        "“Complexity undermines understanding”"
+      ],
+      "notes": "“every intertwining is adding this burden, and the burden is kind of combinatorial as to the number of things that we can consider.”"
+    },
+    {
+      "kind": "dialogue",
+      "title": "What's true of every bug in the field?",
+      "context": "Hickey on change and debugging: you can't change or fix what you can't reason about. He asks the room a question.",
+      "speakers": {
+        "rich": {
+          "name": "Rich Hickey",
+          "color": "blue",
+          "initials": "RH"
+        },
+        "room": {
+          "name": "the audience",
+          "color": "grey",
+          "initials": "··"
+        }
+      },
+      "lines": [
+        {
+          "who": "rich",
+          "text": "And I like to ask this question: what is true of every bug found in the field?"
+        },
+        {
+          "who": "room",
+          "text": "It got written."
+        },
+        {
+          "who": "rich",
+          "text": "It got written. Yes. What is a more interesting fact about it? It passed the type checker."
+        },
+        {
+          "who": "rich",
+          "text": "What else did it do?"
+        },
+        {
+          "who": "rich",
+          "text": "It passed all the tests. OK. So now what do you do? I think we are in this world I would like to call guardrail programming."
+        }
+      ],
+      "notes": "“Your ability to reason about your program is critical to debugging”"
+    },
+    {
+      "kind": "quote",
+      "quote": "Who drives their car around banging against the guardrail saying, \"Whoa! I am glad I have got these guardrails because I would never make it to the show on time.\"",
+      "by": "Rich Hickey",
+      "source": "Simple Made Easy (Strange Loop 2011)",
+      "notes": [
+        "“Do guardrails guide you places? No.”",
+        "Not “don't test”: tests and types are safety nets. They don't point the car anywhere."
+      ]
+    },
+    {
+      "kind": "dialogue",
+      "title": "Sprinters",
+      "context": "On development speed: “But I have all this speed. I am agile. I am fast.”",
+      "speakers": {
+        "rich": {
+          "name": "Rich Hickey",
+          "color": "blue",
+          "initials": "RH"
+        },
+        "room": {
+          "name": "the audience",
+          "color": "grey",
+          "initials": "··"
+        }
+      },
+      "lines": [
+        {
+          "who": "rich",
+          "text": "What kind of runner can run as fast as they possibly can from the very start of a race?"
+        },
+        {
+          "who": "room",
+          "text": "Sprinter"
+        },
+        {
+          "who": "rich",
+          "text": "Only somebody who runs really short races, OK?"
+        },
+        {
+          "who": "rich",
+          "text": "But of course, we are programmers, and we are smarter than runners, apparently, because we know how to fix that problem. We just fire the starting pistol every hundred yards and call it a new sprint."
+        }
+      ]
+    },
+    {
+      "kind": "curve",
+      "title": "Easy gives early speed",
+      "xLabel": "time",
+      "yLabel": "what you've built",
+      "series": [
+        {
+          "label": "easy",
+          "shape": "tactical",
+          "color": "red"
+        },
+        {
+          "label": "simple",
+          "shape": "strategic",
+          "color": "green"
+        }
+      ],
+      "caption": "if you ignore complexity, you will slow down. You will invariably slow down over the long haul.",
+      "notes": [
+        "His chart plots speed (easy starts high and drops; simple starts lower and climbs). This one plots its running total — the same story, drawn like APOSD figure 3.1 from Week 1.",
+        "“this is my really scientific graph. You notice how none of the axes are -- there is no numbers on it because I just completely made it up.”",
+        "Why can't simple go fast from the start? “You have to think.”"
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "Easy yet complex",
+      "items": [
+        {
+          "text": "Many complicating constructs are",
+          "sub": [
+            "succinctly described · familiar · available · easy to use"
+          ]
+        },
+        "“What matters is the complexity they yield”",
+        {
+          "text": "Complexity you chose, not the problem's, is incidental",
+          "sub": [
+            "“incidental is Latin for ‘your fault’.”"
+          ]
+        },
+        "“are you programming with a loom?”"
+      ],
+      "notes": "“Is having a test suite and refactoring tools going to make changing the knitted castle faster than changing the Lego castle? No way.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "Making things easy",
+      "items": [
+        {
+          "text": "Near at hand: install it, get it approved",
+          "tag": "you can"
+        },
+        {
+          "text": "Familiar: learn it, try it",
+          "tag": "you can"
+        },
+        {
+          "text": "Near our capabilities?",
+          "tag": "you can't",
+          "sub": [
+            "“We are not going to move our brain closer to the complexity. We have to make things near by simplifying them.”"
+          ]
+        },
+        {
+          "text": "Jugglers: three balls on average, nine or twelve at the very best",
+          "sub": [
+            "“How many of those balls do you want to be incidental complexity and how many do you want to be problem complexity?”"
+          ]
+        }
+      ],
+      "notes": "“Compared to the complexity we can create, we are all statistically at the same point in our ability to understand it, which is not very good.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "His own example: parens are hard",
+      "items": [
+        {
+          "text": "Not at hand: no editor support for structural editing",
+          "tag": "easy"
+        },
+        {
+          "text": "Not familiar: parens on the other side of the verb",
+          "tag": "easy"
+        },
+        {
+          "text": "But are they simple? Not in Common Lisp or Scheme",
+          "tag": "simple",
+          "sub": [
+            "“Parens wrap calls. They wrap grouping. They wrap data structures.”"
+          ]
+        },
+        {
+          "text": "The fix is more things, not fewer: add a data structure (Clojure's vectors)",
+          "sub": [
+            "“now the simplicity is back in the construct, and it is just a familiarity thing, which you can solve for yourself.”"
+          ]
+        }
+      ],
+      "notes": "The first two complaints are about ease and are the learner's job. The third is a real complexity complaint and the language designer's fault — overloading one construct for three jobs is complecting."
+    },
+    {
+      "kind": "quote",
+      "quote": "LISP programmers know the value of everything and the cost of nothing.",
+      "by": "Alan Perlis",
+      "source": "quoted in Simple Made Easy",
+      "notes": [
+        "Hickey lifts it to all of us: “You never see in these discussions: was there a tradeoff? Is there any downside? Is there anything bad that comes along with this? Never.”"
+      ]
+    },
+    {
+      "kind": "versus",
+      "title": "Complect vs compose",
+      "left": {
+        "name": "complect",
+        "color": "red",
+        "points": [
+          "“To interleave, entwine, braid”",
+          "“Complecting things is the source of complexity”",
+          "“Best to avoid in the first place”"
+        ]
+      },
+      "right": {
+        "name": "compose",
+        "color": "green",
+        "points": [
+          "“To place together”",
+          "“Composing simple components is the key to robust software”",
+          "Lego, not knitting"
+        ]
+      },
+      "notes": [
+        "“Complect” is archaic, chosen because braid and entwine have no good/bad connotation: “Complect is obviously bad.”",
+        "“It is the same stuff in both those diagrams. It is the same strips! What happened? They got complected.”"
+      ]
+    },
+    {
+      "kind": "decisions",
+      "title": "Modular isn't simple",
+      "decisions": [
+        {
+          "id": "blue",
+          "label": "blue's insides",
+          "color": "blue"
+        },
+        {
+          "id": "yellow",
+          "label": "yellow's insides",
+          "color": "yellow"
+        },
+        {
+          "id": "studs",
+          "label": "the studs (the abstraction)",
+          "color": "green"
+        }
+      ],
+      "layouts": [
+        {
+          "label": "(a) two blocks, no calls between them",
+          "modules": [
+            {
+              "name": "blue",
+              "knows": [
+                "blue"
+              ],
+              "secretly": [
+                "yellow"
+              ]
+            },
+            {
+              "name": "yellow",
+              "knows": [
+                "yellow"
+              ],
+              "secretly": [
+                "blue"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "(b) each thinks only about the studs",
+          "modules": [
+            {
+              "name": "blue",
+              "knows": [
+                "blue",
+                "studs"
+              ]
+            },
+            {
+              "name": "yellow",
+              "knows": [
+                "yellow",
+                "studs"
+              ]
+            }
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "label": "yellow's insides",
+          "decision": "yellow"
+        },
+        {
+          "label": "blue's insides",
+          "decision": "blue"
+        }
+      ],
+      "unit": "block",
+      "caption": "Partitioning and stratification don't imply simplicity",
+      "notes": [
+        "His three Lego slides: two blocks; then each with a thought balloon of the other; then each thinking only of the other's studs.",
+        "“You can write modular software with all kinds of interconnections between them. They may not call each other, but they are completely complected.”",
+        "This is Parnas's test from Week 1 with Hickey's picture: count who must change."
+      ]
+    },
+    {
+      "kind": "quote",
+      "quote": "Then you get out in the field and you are like, oh, my God! This thing presumes that that thing never returns the number 17.",
+      "by": "Rich Hickey",
+      "source": "Simple Made Easy (Strange Loop 2011)",
+      "notes": "“I would encourage you to be particularly careful not to be fooled by code organization.”"
+    },
+    {
+      "kind": "line",
+      "title": "State complects value and time",
+      "machines": [
+        {
+          "name": "parse",
+          "icon": "P"
+        },
+        {
+          "name": "price",
+          "icon": "$",
+          "state": "welcome discount: unused"
+        },
+        {
+          "name": "receipt",
+          "icon": "R"
+        }
+      ],
+      "runs": [
+        {
+          "input": "2 × coffee",
+          "outputs": [
+            "coffee ×2",
+            "$5.40",
+            "total $5.40"
+          ],
+          "states": [
+            "",
+            "welcome discount: used",
+            ""
+          ],
+          "caption": "The first order gets 10% off."
+        },
+        {
+          "input": "2 × coffee",
+          "outputs": [
+            "coffee ×2",
+            "$6.00",
+            "total $6.00"
+          ],
+          "caption": "Same question, different answer."
+        },
+        {
+          "input": "2 × coffee",
+          "outputs": [
+            "coffee ×2",
+            "$6.00",
+            "total $6.00"
+          ],
+          "xray": true,
+          "caption": "The variable is private. The complexity isn't."
+        }
+      ],
+      "caption": "Every machine downstream now depends on when you asked.",
+      "notes": [
+        "“if every time you call that method with the same arguments, you can get a different result, guess what happened? That complexity just leaked right out of there.”",
+        "An invented example: a pricing step that remembers whether the welcome discount was used."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "State is never simple",
+      "items": [
+        "“Complects value and time”",
+        {
+          "text": "“It is easy, in the at-hand and familiar senses”"
+        },
+        {
+          "text": "“Interweaves everything that touches it, directly or indirectly”",
+          "sub": [
+            "“Not mitigated by modules, encapsulation”"
+          ]
+        },
+        {
+          "text": "The only way out is a functional interface",
+          "sub": [
+            "“same input, same output.”"
+          ]
+        },
+        "“This is not about concurrency.”"
+      ],
+      "notes": [
+        "“It is like dropping some dark liquid into a vase. It is just going to end up all over the place.”",
+        "Moseley & Marks (Week 1) say the same thing about testing: “a test (of any kind) that uses one particular set of inputs tells you nothing at all about the behaviour of the system or component when it is given a different set of inputs.”"
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "What each construct complects",
+      "items": [
+        {
+          "text": "State",
+          "tag": "everything",
+          "sub": [
+            "everything that touches it"
+          ]
+        },
+        {
+          "text": "Objects",
+          "sub": [
+            "state, identity, value"
+          ]
+        },
+        {
+          "text": "Methods",
+          "sub": [
+            "function and state, namespaces"
+          ]
+        },
+        {
+          "text": "Syntax",
+          "sub": [
+            "meaning, order"
+          ]
+        },
+        {
+          "text": "Inheritance",
+          "sub": [
+            "types"
+          ]
+        },
+        {
+          "text": "Switch / matching",
+          "sub": [
+            "multiple who/what pairs"
+          ]
+        }
+      ],
+      "notes": "The left half of “The Complexity Toolkit” slide."
+    },
+    {
+      "kind": "bullets",
+      "title": "…and the rest",
+      "items": [
+        {
+          "text": "var(iable)s",
+          "sub": [
+            "value, time"
+          ]
+        },
+        {
+          "text": "Imperative loops, fold",
+          "sub": [
+            "what / how — fold implies an order"
+          ]
+        },
+        {
+          "text": "Actors",
+          "sub": [
+            "what / who"
+          ]
+        },
+        {
+          "text": "ORM",
+          "sub": [
+            "OMG"
+          ]
+        },
+        {
+          "text": "Conditionals",
+          "sub": [
+            "why, and the rest of the program"
+          ]
+        }
+      ],
+      "notes": "“object relational mapping has ‘oh, my God’ complecting going on. You cannot even begin to talk about how bad it is.”"
+    },
+    {
+      "kind": "versus",
+      "title": "What's in your toolkit?",
+      "left": {
+        "name": "Complexity",
+        "color": "red",
+        "points": [
+          "State, objects · methods · vars",
+          "Inheritance, switch, matching",
+          "Syntax · imperative loops, fold",
+          "Actors · ORM · conditionals · inconsistency"
+        ]
+      },
+      "right": {
+        "name": "Simplicity",
+        "color": "green",
+        "points": [
+          "Values (final, persistent collections) · functions, namespaces · managed refs",
+          "Polymorphism à la carte (protocols, type classes)",
+          "Data (maps, arrays, sets, JSON) · set functions",
+          "Queues · declarative data manipulation (SQL, Datalog) · rules · consistency (transactions, values)"
+        ]
+      },
+      "notes": [
+        "“The simplicity column just means simpler.”",
+        "“we can create precisely the same programs we are creating right now with these tools of complexity, with dramatically drastically simpler tools.”"
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "Designing simple things: abstract, don't hide",
+      "items": [
+        {
+          "text": "Abstract means drawn away — not “hiding stuff”",
+          "sub": [
+            "“That is not what abstraction is, and that is not going to help you in this space.”"
+          ]
+        },
+        {
+          "text": "Take a job apart with six questions",
+          "sub": [
+            "who · what · when · where · why · how"
+          ]
+        },
+        {
+          "text": "“I don't know, I don't want to know”",
+          "sub": [
+            "a student made him a shirt: a Booch diagram where every line said it"
+          ]
+        }
+      ],
+      "notes": "“I don't want to know” is Parnas's information hiding from Week 1, as a habit."
+    },
+    {
+      "kind": "bullets",
+      "title": "Who, what, how, when, where, why",
+      "items": [
+        {
+          "text": "Operations: small sets of functions, as specifications",
+          "tag": "what",
+          "sub": [
+            "“Strictly separating ‘what’ from ‘how’ is the key to making ‘how’ somebody else's problem.”"
+          ]
+        },
+        {
+          "text": "Entities built from many subcomponents, passed in",
+          "tag": "who"
+        },
+        {
+          "text": "Implementations as islands, joined by polymorphism",
+          "tag": "how"
+        },
+        {
+          "text": "Don't let callers know where or when",
+          "tag": "when/where",
+          "sub": [
+            "“if thing A calls thing B, you just complected it.”",
+            "“Stick a queue in there.”"
+          ]
+        },
+        {
+          "text": "Policy and rules, usually strewn through conditionals",
+          "tag": "why"
+        }
+      ],
+      "notes": "“If you go in saying, ‘this is a job, and I have done who, what, when, where, why,’ and I found five components, do not feel bad. That is great.”"
+    },
+    {
+      "kind": "decisions",
+      "title": "More things, hanging straight",
+      "decisions": [
+        {
+          "id": "rule",
+          "label": "a pricing rule (why)",
+          "color": "red"
+        },
+        {
+          "id": "where",
+          "label": "where B runs (where/when)",
+          "color": "teal"
+        },
+        {
+          "id": "store",
+          "label": "the storage engine (how)",
+          "color": "orange"
+        }
+      ],
+      "layouts": [
+        {
+          "label": "(a) A calls B; rules live in conditionals",
+          "modules": [
+            {
+              "name": "A: checkout",
+              "knows": [
+                "rule"
+              ],
+              "secretly": [
+                "where"
+              ]
+            },
+            {
+              "name": "B: billing",
+              "knows": [
+                "rule",
+                "store"
+              ]
+            },
+            {
+              "name": "C: receipts",
+              "knows": [
+                "store"
+              ],
+              "secretly": [
+                "rule"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "(b) who / what / how / when / why apart",
+          "modules": [
+            {
+              "name": "A: checkout",
+              "knows": []
+            },
+            {
+              "name": "queue",
+              "knows": [
+                "where"
+              ]
+            },
+            {
+              "name": "B: billing",
+              "knows": []
+            },
+            {
+              "name": "store",
+              "knows": [
+                "store"
+              ]
+            },
+            {
+              "name": "rules",
+              "knows": [
+                "rule"
+              ]
+            }
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "label": "a pricing rule",
+          "decision": "rule"
+        },
+        {
+          "label": "B moves to another box",
+          "decision": "where"
+        },
+        {
+          "label": "the storage engine",
+          "decision": "store"
+        }
+      ],
+      "caption": "Simplicity often means making more things, not fewer",
+      "notes": [
+        "An invented checkout to make the slide concrete. (b) has more modules and every change touches one.",
+        "“I would rather have more things hanging nice, straight down, not twisted together, than just a couple of things tied in a knot.”"
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "Information is simple",
+      "items": [
+        "“The only thing you can possibly do with information is ruin it.”",
+        {
+          "text": "Don't hide it behind a micro-language",
+          "sub": [
+            "a class with information-specific methods",
+            "it thwarts generic data composition and ties logic to the representation du jour"
+          ]
+        },
+        {
+          "text": "Objects were for I/O devices",
+          "sub": [
+            "“They were never supposed to be applied to information.”"
+          ]
+        },
+        "“Represent data as data”"
+      ],
+      "notes": "“Please start using maps and sets directly. Don't feel like I have to write a class now because I have a new piece of information.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "Simplicity is a choice",
+      "items": [
+        "“It is your fault if you do not have a simple system.”",
+        {
+          "text": "“Your sensibilities about simplicity being equal to ease of use are wrong.”",
+          "sub": [
+            "“You have to have entanglement radar.”"
+          ]
+        },
+        {
+          "text": "Testing, refactoring and type systems don't care",
+          "sub": [
+            "“They are safety nets, but they are nothing more than that.”"
+          ]
+        },
+        {
+          "text": "Simplicity made easy",
+          "sub": [
+            "choose simple constructs: It's the artifacts, not the authoring",
+            "create abstractions with simplicity as a basis",
+            "simplify the problem space before you start"
+          ]
+        }
+      ],
+      "notes": "“You want to start seeing interconnections between things that could be independent. That is where you are going to get the most power.”"
+    },
+    {
+      "kind": "section",
+      "title": "The Value of Values",
+      "subtitle": "Rich Hickey · JaxConf, July 2012 (the 30-minute keynote)",
+      "color": "teal",
+      "number": "02",
+      "notes": "There is also an hour-long version (GOTO 2012); the transcript used here is the JaxConf keynote."
+    },
+    {
+      "kind": "bullets",
+      "title": "What is a fact?",
+      "items": [
+        "“Place where specific information is stored”",
+        "“There is a place for every piece of information”",
+        "“Facts have operations, e.g. get and set”",
+        "“Operations control how facts can change”",
+        "“To convey a fact, convey its location”"
+      ],
+      "sticky": {
+        "text": "“Everything that I just said was wrong. Dead wrong.”",
+        "color": "red",
+        "step": 6
+      },
+      "notes": [
+        "“How many people are uncomfortable right now?”",
+        "Let the room sit with it before the last click."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "PLOP: place-oriented programming",
+      "items": [
+        {
+          "text": "Mutable objects are abstractions of places; tables, documents and records are places",
+          "sub": [
+            "“any time new information replaces old information, you are doing Place-Oriented Programming.”"
+          ]
+        },
+        {
+          "text": "“Born of limitations of early computers”",
+          "sub": [
+            "four kilowords of memory: you knew which addresses held the jump table"
+          ]
+        },
+        {
+          "text": "“Those limitations are long gone”",
+          "sub": [
+            "“the capacity of these two things have increased a million-fold.”"
+          ]
+        },
+        "“So why does PLOP still rule?”"
+      ],
+      "notes": "“It totally made sense. And the key word there, the key aspect of that is: it made sense. It used to make sense.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "Memory and records, before computers",
+      "items": [
+        {
+          "text": "Memory is open and associative",
+          "sub": [
+            "“If your friend gets a new email address, that does not go into your brain and find your friend's email address cells”"
+          ]
+        },
+        {
+          "text": "Records endure and accrete",
+          "sub": [
+            "“We did not go and smooth over the marble and chisel new stuff.”"
+          ]
+        },
+        {
+          "text": "Accountants never used erasers",
+          "sub": [
+            "“They only made correcting entries.”"
+          ]
+        }
+      ],
+      "notes": "“we have now been doing this for so long that we believe our own myths about what these things mean.”"
+    },
+    {
+      "kind": "poll",
+      "title": "Hickey's poll",
+      "question": "Is a string a value?",
+      "options": [
+        {
+          "label": "yes",
+          "color": "green"
+        },
+        {
+          "label": "no",
+          "color": "red"
+        },
+        {
+          "label": "it depends",
+          "color": "blue"
+        }
+      ],
+      "notes": [
+        "“You always wait for ‘it depends,’ right? It is the best answer, so you hold out for it.”",
+        "“Is it immutable? If the string is immutable, it is a value. If it is not immutable, it is not a value.”",
+        "“How many people want to go back? No.”"
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "Values, in programming",
+      "items": [
+        {
+          "text": "Immutable",
+          "tag": "1"
+        },
+        {
+          "text": "Semantically transparent",
+          "tag": "2",
+          "sub": [
+            "“A value is about saying, ‘Compare me to something else. I am telling you what my precise meaning or significance is.’”"
+          ]
+        },
+        {
+          "text": "Equality and comparison are where logic starts",
+          "sub": [
+            "“comparability is where we derive our ability to do logic, and to make decisions.”"
+          ]
+        }
+      ],
+      "notes": "“Value is not about encapsulating something in methods, and doing things.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "The value propositions, in the small",
+      "items": [
+        {
+          "text": "Values can be shared",
+          "sub": [
+            "neither side has to worry about the other"
+          ]
+        },
+        {
+          "text": "Reproducible results",
+          "sub": [
+            "“If you define a function in terms of places, every time you are on that function, will you get the same answer? No.”"
+          ]
+        },
+        {
+          "text": "Easy to fabricate",
+          "sub": [
+            "“Can I make an instance of your fancy interface in any other language? No.”"
+          ]
+        },
+        {
+          "text": "Language independent, generic",
+          "sub": [
+            "“More code equals more bugs.”"
+          ]
+        },
+        {
+          "text": "Values aggregate to values",
+          "sub": [
+            "an immutable collection of values is itself a value"
+          ]
+        }
+      ],
+      "notes": "“Objects were supposed to support reuse. They have done the exact opposite thing, especially in typed languages.”"
+    },
+    {
+      "kind": "versus",
+      "title": "Aggregates",
+      "left": {
+        "name": "objects",
+        "color": "red",
+        "points": [
+          "Each class needs a locking policy and cloning semantics",
+          "Combine them and the policies don't combine",
+          "“It all falls away.”"
+        ]
+      },
+      "right": {
+        "name": "values",
+        "color": "green",
+        "points": [
+          "No locks: nothing can change",
+          "No cloning: just keep the reference",
+          "“Values aggregate to values. All the benefits apply to aggregates.”"
+        ]
+      },
+      "notes": "“It is like there is this napkin and on it, we have defined how we are going to use this object.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "The value propositions, in the large",
+      "items": [
+        {
+          "text": "Conveyance",
+          "sub": [
+            "“If I see something interesting and I communicate to you the place where I saw it, what have I actually conveyed to you? Nothing, right?”"
+          ]
+        },
+        {
+          "text": "Perception",
+          "sub": [
+            "to look at many places at once you have to stop the world"
+          ]
+        },
+        {
+          "text": "Memory",
+          "sub": [
+            "“Clone it. How do you do that? It depends. Exactly. It depends.”"
+          ]
+        },
+        {
+          "text": "“Values make the best interfaces”",
+          "sub": [
+            "we already send JSON over the wire, not objects"
+          ]
+        },
+        {
+          "text": "Reduced coordination · location flexibility",
+          "sub": [
+            "move a part to another thread, language or box"
+          ]
+        }
+      ],
+      "notes": "“In the large, we communicate values. But in the small, in a programming language, we start doing icky things.”"
+    },
+    {
+      "kind": "line",
+      "title": "Same facts, two systems",
+      "machines": [
+        {
+          "name": "a record (update in place)",
+          "icon": "□",
+          "color": "red",
+          "state": "email: ann@old"
+        },
+        {
+          "name": "a ledger (new facts, new space)",
+          "icon": "≡",
+          "color": "teal",
+          "state": "Jan: ann@old"
+        }
+      ],
+      "runs": [
+        {
+          "input": "Mar: ann@new",
+          "outputs": [
+            "Mar: ann@new",
+            "ok"
+          ],
+          "states": [
+            "email: ann@new",
+            "Jan old · Mar new"
+          ],
+          "caption": "A friend changes their email address. Each fact rides on to the ledger."
+        },
+        {
+          "input": "Jun: ann@work",
+          "outputs": [
+            "Jun: ann@work",
+            "ok"
+          ],
+          "states": [
+            "email: ann@work",
+            "Jan old · Mar new · Jun work"
+          ],
+          "caption": "And again."
+        },
+        {
+          "input": "email in Feb?",
+          "outputs": [
+            "email in Feb?\n(it says ann@work ✗)",
+            "ann@old ✓"
+          ],
+          "xray": true,
+          "caption": "Open them up: one remembers only the most recent fact."
+        }
+      ],
+      "caption": "You cannot update a fact",
+      "notes": [
+        "“the reason why you cannot update a fact is because you cannot change the past.”",
+        "The line itself is a nice picture of his other point: every program has a machine part (the belt and stations) and an information part (what rides the belt). Machines are fine for process; information should be values."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "Facts are values",
+      "items": [
+        {
+          "text": "Facts incorporate time",
+          "sub": [
+            "“A fact is something that happened. It is not a place.”"
+          ]
+        },
+        {
+          "text": "Knowledge comes from comparing and combining facts",
+          "sub": [
+            "especially from different points in time: trends, rates, totals"
+          ]
+        },
+        {
+          "text": "Most systems keep only the most recent facts",
+          "sub": [
+            "“Imagine if you only knew the present value of any property or attribute in the world. How good would your decision making capability be?”"
+          ]
+        },
+        {
+          "text": "“Place has no role in an information model”"
+        }
+      ],
+      "notes": "“information is not a little machine. It is not at all like a machine, and so you have to separate out these process constructs.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "Programmer I.T.: we already know",
+      "items": [
+        {
+          "text": "Source control",
+          "tag": "accrete",
+          "sub": [
+            "Update in place? — No.  Timestamps? — Of course!"
+          ]
+        },
+        {
+          "text": "Logs",
+          "tag": "accrete",
+          "sub": [
+            "“Anyone use a log that says: the last latency was five?”"
+          ]
+        },
+        {
+          "text": "“Big data”",
+          "tag": "irony",
+          "sub": [
+            "the business to programmers: “That database you have, I like better than the one you gave me.”"
+          ]
+        }
+      ],
+      "notes": "“We are already... we are in the space age for ourselves, but we need to be in the space age for the businesses we are supporting.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "The space age",
+      "items": [
+        {
+          "text": "Space: place and time together",
+          "sub": [
+            "“If S3 never fills up, that is not the cloud, that is space.”"
+          ]
+        },
+        {
+          "text": "“new facts require new space”",
+          "sub": [
+            "“This should be the end of Place-Oriented Programming.”"
+          ]
+        },
+        {
+          "text": "“If you could afford to do this, why would you do anything else?”",
+          "sub": [
+            "“There will be garbage.”"
+          ]
+        }
+      ],
+      "notes": "“What I would recommend is that you try to take an information-oriented approach to the way you build your programs.”"
+    },
+    {
+      "kind": "section",
+      "title": "Hammock Driven Development",
+      "subtitle": "Rich Hickey · Clojure/conj, October 2010",
+      "color": "plum",
+      "number": "03",
+      "notes": "Its first title was “Step Away from the Computer”. Other titles on his slides: “If We're Not Solving Problems, What are We Doing?” and “What Rich Does When He's Not Writing Tests”. He calls it an experience report, not science."
+    },
+    {
+      "kind": "bullets",
+      "title": "When was the last time you…",
+      "items": [
+        {
+          "text": "“Thought hard about something for an hour”",
+          "sub": [
+            "a day? over the course of a month? a year?"
+          ]
+        },
+        "“Felt confident implementing something for the first time?”"
+      ],
+      "notes": "“I consider myself extremely lucky to have had the ability to think about probably three different things for a year or more. One of them was Clojure.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "Where bugs are cheapest",
+      "items": [
+        {
+          "text": "“Most expensive in production”",
+          "tag": "$$$$"
+        },
+        {
+          "text": "“Expensive in QA”",
+          "tag": "$$$"
+        },
+        {
+          "text": "“Cheaper to fix in dev”",
+          "tag": "$$"
+        },
+        {
+          "text": "“Least expensive to avoid in design”",
+          "tag": "$"
+        },
+        {
+          "text": "The biggest problems are problems of misconception, not implementation",
+          "sub": [
+            "“There are not really type systems that can tell us if we have got a good idea, or what we are doing addresses that idea.”"
+          ]
+        }
+      ],
+      "notes": "“We do not have a good idea of what we are doing before we do it.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "Analysis and design, simplified",
+      "items": [
+        {
+          "text": "Not UML, not the waterfall: two things",
+          "sub": [
+            "identify the problem you're trying to solve",
+            "assess whether your solution solves it"
+          ]
+        },
+        {
+          "text": "“We should be solving problems. We should not be building features.”",
+          "sub": [
+            "“Features are results, not objectives”"
+          ]
+        },
+        "“Avoiding problems != solving them”",
+        {
+          "text": "Problem solving is a skill you can practice",
+          "sub": [
+            "Pólya, How to Solve It (1945)",
+            "“Practice methodology X” → get good at methodology X"
+          ]
+        }
+      ],
+      "notes": "“I would like you to ask yourself, where do you think there is more leverage? I do not care what X is.”"
+    },
+    {
+      "kind": "bullets",
+      "title": "The steps",
+      "items": [
+        {
+          "text": "State the problem — out loud, or (heaven forbid) write it down",
+          "tag": "state"
+        },
+        {
+          "text": "What do you know? What don't you know? Related problems?",
+          "tag": "understand",
+          "sub": [
+            "“‘We have this problem. We need a NoSQL database.’ We have not actually said why.”"
+          ]
+        },
+        {
+          "text": "Find the problems in your solutions, and solve those too",
+          "tag": "discern"
+        },
+        {
+          "text": "Read in and around your space; look critically at other solutions",
+          "tag": "input"
+        },
+        {
+          "text": "Enumerate two or more solutions, with their attributes and deficits",
+          "tag": "tradeoffs"
+        }
+      ],
+      "notes": "Each step ends the same way on his slides: write it down."
+    },
+    {
+      "kind": "quote",
+      "quote": "There should be question marks on that page. If there are no question marks, you are missing this step.",
+      "by": "Rich Hickey",
+      "source": "Hammock Driven Development (Clojure/conj 2010)",
+      "notes": "Stu Halloway's name for Hickey's design notes: the “document of despair”. Hickey: “It is not despairing. It is positive.”"
+    },
+    {
+      "kind": "quote",
+      "quote": "Usually when they talk about tradeoffs in their software, they are talking about the parts of their software that suck. I had to make these tradeoffs. That is not what a tradeoff is, right?",
+      "by": "Rich Hickey",
+      "source": "Hammock Driven Development (Clojure/conj 2010)",
+      "notes": "“You have to look at, at least, two solutions to your problem. At least two.”"
+    },
+    {
+      "kind": "versus",
+      "title": "Two minds",
+      "left": {
+        "name": "waking mind",
+        "color": "orange",
+        "points": [
+          "Good at critical thinking: analysis, tactics",
+          "“Prone to finding local maxima”",
+          "Picks apart what the background mind brings back"
+        ]
+      },
+      "right": {
+        "name": "background mind",
+        "color": "plum",
+        "points": [
+          "Good at making connections: synthesis, strategy",
+          "Abstracts and draws analogies",
+          "“Unfortunately you can only feed it” — not direct it"
+        ]
+      },
+      "agree": [
+        "Use waking mind time to feed work to background mind"
+      ],
+      "notes": [
+        "Abstractions are strategy: “you are making some super global decision that is going to need to be correct in a whole bunch of contexts in which you cannot make tactical decisions yet.”",
+        "So the hammock is where Simple Made Easy's “simplify the problem space before you start” gets done."
+      ]
+    },
+    {
+      "kind": "line",
+      "title": "Feeding the background mind",
+      "machines": [
+        {
+          "name": "waking mind",
+          "icon": "W",
+          "color": "orange"
+        },
+        {
+          "name": "notes",
+          "icon": "✎",
+          "color": "teal"
+        },
+        {
+          "name": "mind's eye",
+          "icon": "◉",
+          "color": "indigo"
+        },
+        {
+          "name": "background mind",
+          "icon": "☾",
+          "color": "plum",
+          "state": "agenda: empty"
+        }
+      ],
+      "runs": [
+        {
+          "input": "a problem, 10 minutes",
+          "outputs": [
+            "looked at it",
+            "—",
+            "—",
+            "nothing"
+          ],
+          "caption": "Looked at it for ten minutes, then went to the movies."
+        },
+        {
+          "input": "the problem, stated",
+          "outputs": [
+            "facts · constraints · ?s",
+            "20 points",
+            "recalled, eyes closed",
+            "…"
+          ],
+          "states": [
+            "",
+            "",
+            "",
+            "agenda: 20 points"
+          ],
+          "caption": "Load it up: write it all down, go over it in different orders, then close your eyes."
+        },
+        {
+          "input": "sleep on it",
+          "outputs": [
+            "",
+            "",
+            "",
+            "an idea"
+          ],
+          "xray": true,
+          "caption": "Wait for it — at least overnight. Then pick it apart while awake."
+        }
+      ],
+      "caption": "You did not think about it hard enough while you were awake for it to become important to your mind when you are asleep.",
+      "notes": [
+        "“if you can imagine having an assistant who every now and then can take one of those out and put a different color in, then you could juggle balls of 20 different colors at the same time as long as there are only nine in the air at any one point in time.”",
+        "The notes are that assistant."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "Wait for it, then try it",
+      "items": [
+        {
+          "text": "At least overnight",
+          "sub": [
+            "“sleep sober for best results”"
+          ]
+        },
+        {
+          "text": "Work on more than one thing — not within a day, but over time",
+          "sub": [
+            "“Don't stay stuck. Switch.”"
+          ]
+        },
+        {
+          "text": "Wake up working",
+          "sub": [
+            "sometimes with the answer to a different problem — capture it"
+          ]
+        },
+        {
+          "text": "Eventually, coding is required — type sparingly",
+          "sub": [
+            "“if I think that I have got an answer and the answer is small, that is one of the most telling attributes that it is probably good.”"
+          ]
+        },
+        {
+          "text": "Feedback loops matter, but don't lean on them",
+          "sub": [
+            "“Test-driven dentistry, I do not think I could come up with a better thing.”"
+          ]
+        }
+      ],
+      "notes": "“It can take between an hour and an entire day to load up something, so once you have done that, you try to get at least the rest of the day, or three days, or more on it.”"
+    },
+    {
+      "kind": "quote",
+      "quote": "If I could advocate anything, it is \"Do not be afraid\" especially, \"do not be afraid of being wrong.\"",
+      "by": "Rich Hickey",
+      "source": "Hammock Driven Development (Clojure/conj 2010)",
+      "notes": [
+        "“When the facts change, do not dig in.”",
+        "The summary slide: “It's a rant! it doesn't have a summary”."
+      ]
+    },
+    {
+      "kind": "section",
+      "title": "Weeks 1 and 2, side by side",
+      "subtitle": "Ousterhout · Parnas · Moseley & Marks · Hickey",
+      "color": "orange",
+      "number": "04"
+    },
+    {
+      "kind": "versus",
+      "title": "Two definitions of complexity",
+      "left": {
+        "name": "Ousterhout",
+        "color": "blue",
+        "points": [
+          "Whatever makes a system hard to understand and modify",
+          "Measured by its symptoms: change amplification, cognitive load, unknown unknowns",
+          "Caused by dependencies and obscurity",
+          "Hide it in deep modules"
+        ]
+      },
+      "right": {
+        "name": "Hickey",
+        "color": "teal",
+        "points": [
+          "Braiding: things interleaved that could be independent",
+          "Objective: look for the braids",
+          "Caused by complecting constructs: state, objects, syntax…",
+          "Don't hide it: avoid it — values, data, functions, queues"
+        ]
+      },
+      "agree": [
+        "it's incremental",
+        "it's your fault",
+        "understanding is the bottleneck",
+        "design before you type"
+      ],
+      "notes": "Ousterhout's definition is about the reader (closer to Hickey's “hard”); Hickey's is about the structure. They mostly point at the same code."
+    },
+    {
+      "kind": "bullets",
+      "title": "The same idea, again",
+      "items": [
+        {
+          "text": "“I don't know, I don't want to know” ≈ information hiding",
+          "tag": "Parnas"
+        },
+        {
+          "text": "“Partitioning doesn't imply simplicity” ≈ the flowchart decomposition: modular, but sharing every decision",
+          "tag": "Parnas"
+        },
+        {
+          "text": "Incidental ≈ accidental complexity",
+          "tag": "Tar Pit"
+        },
+        {
+          "text": "“State is never simple” ≈ state as the major cause",
+          "tag": "Tar Pit"
+        },
+        {
+          "text": "The simplicity toolkit ≈ functional relational programming: values, declarative data, rules",
+          "tag": "Tar Pit"
+        }
+      ],
+      "notes": "The Tar Pit's FRP split — essential state as relations, logic as pure functions, control and performance separated — is Hickey's right-hand column almost item by item."
+    },
+    {
+      "kind": "bullets",
+      "title": "Where they pull apart",
+      "items": [
+        {
+          "text": "Hide information, or expose it?",
+          "sub": [
+            "Ousterhout hides design decisions inside deep classes",
+            "Hickey: Represent data as data — hide how, never the facts"
+          ]
+        },
+        {
+          "text": "Fewer things, or more?",
+          "sub": [
+            "Ousterhout warns about classitis — many shallow classes",
+            "Hickey: more things, as long as they hang straight — he counts braids, not parts"
+          ]
+        },
+        {
+          "text": "Objects",
+          "sub": [
+            "APOSD's examples are classes; to Hickey objects complect state, identity and value",
+            "the Tar Pit sides with Hickey: OOP tightly couples state together with related behaviour"
+          ]
+        }
+      ],
+      "notes": "One way to reconcile them: both want small interfaces over a lot of hidden “how”. They disagree about whether information itself belongs behind an interface."
+    },
+    {
+      "kind": "section",
+      "title": "Easy, mistaken for simple",
+      "subtitle": "this week's exercise, with public examples",
+      "color": "red",
+      "number": "05",
+      "notes": "The task asks for three places in your own code. These are public ones so the deck can be shared; bring your own to the discussion."
+    },
+    {
+      "kind": "code",
+      "title": "1 · java.util.Date: a value that was a place",
+      "panes": [
+        {
+          "label": "java.util.Date (1996)",
+          "code": [
+            "Date start = new Date();",
+            "Meeting standup = new Meeting(start);",
+            "",
+            "start.setTime(start.getTime() + 3_600_000);",
+            "// standup has moved an hour too:",
+            "// it kept a reference to the same place"
+          ]
+        },
+        {
+          "label": "java.time (Java 8, 2014)",
+          "code": [
+            "Instant start = Instant.now();",
+            "Meeting standup = new Meeting(start);",
+            "",
+            "Instant later = start.plus(Duration.ofHours(1));",
+            "// start is a value: standup is unchanged",
+            "// and later is a new fact"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "Easy: one mutable class, at hand in every JDK since 1.0.",
+          "pane": 0,
+          "lines": "1-2"
+        },
+        {
+          "caption": "Complected: the date and the moment you read it.",
+          "pane": 0,
+          "lines": "4-6"
+        },
+        {
+          "caption": "Simple: immutable values, new values for new facts.",
+          "pane": 1,
+          "lines": "4-6"
+        }
+      ],
+      "notes": [
+        "The cost of untangling: a second date/time API (JSR 310), and two decades of code that still passes Dates around. Effective Java's “make defensive copies” item uses this exact class.",
+        "Name the braid: value and time. Easy in which sense: at hand and familiar."
+      ]
+    },
+    {
+      "kind": "code",
+      "title": "2 · Array.prototype.sort: easy, and in place",
+      "panes": [
+        {
+          "label": "since the first JavaScript",
+          "code": [
+            "const scores = [3, 1, 2];",
+            "const ranked = scores.sort();",
+            "",
+            "ranked === scores;   // true",
+            "scores;              // [1, 2, 3] — the input changed"
+          ]
+        },
+        {
+          "label": "ES2023",
+          "code": [
+            "const scores = [3, 1, 2];",
+            "const ranked = scores.toSorted();",
+            "",
+            "ranked === scores;   // false",
+            "scores;              // [3, 1, 2]"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "caption": "sort returns the array it was given — after changing it.",
+          "pane": 0,
+          "lines": "2-5"
+        },
+        {
+          "caption": "toSorted, toReversed, toSpliced and with return new arrays.",
+          "pane": 1,
+          "lines": "2-5"
+        }
+      ],
+      "notes": [
+        "The cost of untangling: sort can never change (the web depends on it), so the language grew a second set of methods.",
+        "Name the braid: the result and the input — and, through any other reference to the array, everyone else's view of it."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "title": "3 · Lisp's parens (Hickey's own)",
+      "items": [
+        {
+          "text": "Easy to describe: everything is a list",
+          "tag": "easy"
+        },
+        {
+          "text": "Complected: one construct for calls, grouping and data",
+          "tag": "braid"
+        },
+        {
+          "text": "Clojure's fix: more data structures — vectors, maps, sets",
+          "tag": "simpler"
+        },
+        {
+          "text": "The cost: a new language, not a patch",
+          "tag": "cost"
+        }
+      ],
+      "notes": "Hickey's own example from Simple Made Easy. In all three cases the braid could not be undone in place: the old thing stays, and the simple version lives next to it. That is what untangling costs once others depend on the braid."
+    },
+    {
+      "kind": "bullets",
+      "title": "This week's presentation",
+      "items": [
+        {
+          "text": "Find three places where code confused easy with simple",
+          "sub": [
+            "easy in which sense: at hand, familiar, or near our capabilities?"
+          ]
+        },
+        {
+          "text": "Name each braid",
+          "sub": [
+            "what is complected with what? value/time, what/how, who/when, why/everything"
+          ]
+        },
+        {
+          "text": "Price the untangling now",
+          "sub": [
+            "what depends on the braid? can it change in place, or only beside it?"
+          ]
+        }
+      ],
+      "notes": "The Week 2 “present” task, phrased generically."
+    },
+    {
+      "kind": "poll",
+      "question": "Which talk changed your mind the most?",
+      "options": [
+        {
+          "label": "Simple Made Easy",
+          "color": "blue"
+        },
+        {
+          "label": "Value of Values",
+          "color": "teal"
+        },
+        {
+          "label": "Hammock",
+          "color": "plum"
+        }
+      ],
+      "notes": "Click to count hands."
+    },
+    {
+      "kind": "bullets",
+      "title": "Next week: coupling, cohesion, connascence",
+      "items": [
+        {
+          "text": "Meilir Page-Jones on connascence (connascence.io)",
+          "tag": "read"
+        },
+        {
+          "text": "Ousterhout, A Philosophy of Software Design, ch. 7–10",
+          "tag": "read"
+        },
+        {
+          "text": "Fowler's bliki entries on coupling",
+          "tag": "read"
+        },
+        {
+          "text": "Kevlin Henney, Structure and Interpretation of Computer Programmers",
+          "tag": "watch"
+        }
+      ],
+      "notes": "A precise vocabulary for “this code is tangled” — the next step after “complected”."
+    },
+    {
+      "kind": "quote",
+      "quote": "Simplicity is the ultimate sophistication.",
+      "by": "Leonardo da Vinci",
+      "source": "the last slide of Simple Made Easy",
+      "notes": "“This is what you say when somebody tries to sell you a sophisticated type system.”"
+    },
+    {
+      "kind": "section",
+      "title": "Questions & discussion",
+      "subtitle": "What's the most complected thing you touched this week?",
+      "color": "blue",
+      "number": "?"
+    }
+  ]
+}
