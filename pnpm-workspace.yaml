@@ -7,10 +7,10 @@ packages:
 catalog:
   "@fontsource/fredoka": ^5.3.0
   "@types/node": ^26.6.4
-  effect: 4.0.1
+  effect: 4.0.2
   knip: ^6.40.0
   pixi.js: ^8.22.0
-  playwright: ^1.63.0
+  playwright: ^1.64.0
   typescript: ^7.0.2
-  vite: ^8.3.3
+  vite: ^8.3.4
   vitest: ^5.0.3
